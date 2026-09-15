@@ -1,0 +1,256 @@
+// Rule-based "AI Outlook" engine.
+//
+// This is NOT a live AI/LLM call — it's a fixed set of if/else thresholds
+// applied to the numbers we already fetched from Finnhub. It costs nothing
+// and needs no extra API key. See CLAUDE.md for why this approach was
+// chosen over a live Claude API call for v1.
+//
+// Every threshold here is a general rule of thumb, not sector-adjusted —
+// e.g. "high" P/E means something different for a bank vs. a software
+// company. Treat the output as a starting point, not a verdict.
+
+function isNum(v) {
+  return typeof v === "number" && !Number.isNaN(v);
+}
+
+function generateOutlook({ symbol, quote, metric, recommendation }) {
+  const bullets = [];
+  let score = 0;
+  // Tracks which specific factor drove each score change, so the headline
+  // can name what's actually going on ("led by profitability") instead of
+  // always falling back to the same three fixed sentences — see headline
+  // logic below. Only factors that moved the score get tracked; purely
+  // informational bullets (beta, dividend, mid-range price) don't.
+  const factors = [];
+
+  const pe = metric.peTTM;
+  if (isNum(pe)) {
+    if (pe > 30) {
+      bullets.push(`P/E of ${pe.toFixed(1)} is on the higher side — the market is pricing in meaningful growth expectations, or the stock may simply be richly valued relative to current earnings.`);
+      score -= 0.5;
+      factors.push({ name: "its rich valuation", delta: -0.5 });
+    } else if (pe < 10) {
+      bullets.push(`P/E of ${pe.toFixed(1)} is on the lower side — this can point to undervaluation, or reflect market caution about future earnings.`);
+    } else {
+      bullets.push(`P/E of ${pe.toFixed(1)} sits in a fairly typical range, not signaling extreme optimism or pessimism on its own.`);
+      score += 0.5;
+      factors.push({ name: "a reasonable valuation", delta: 0.5 });
+    }
+  }
+
+  const de = metric["totalDebt/totalEquityAnnual"];
+  if (isNum(de)) {
+    if (de > 1.5) {
+      bullets.push(`Debt-to-Equity of ${de.toFixed(2)} indicates fairly high leverage — more financial risk if earnings soften or borrowing costs rise.`);
+      score -= 0.5;
+      factors.push({ name: "high leverage", delta: -0.5 });
+    } else if (de < 0.5) {
+      bullets.push(`Debt-to-Equity of ${de.toFixed(2)} is conservative — the company relies mostly on its own capital rather than borrowing.`);
+      score += 0.5;
+      factors.push({ name: "a conservative balance sheet", delta: 0.5 });
+    } else {
+      bullets.push(`Debt-to-Equity of ${de.toFixed(2)} is a moderate, fairly typical level of leverage.`);
+      score += 0.25;
+      factors.push({ name: "typical leverage", delta: 0.25 });
+    }
+  }
+
+  const roe = metric.roeTTM;
+  if (isNum(roe)) {
+    if (roe > 15) {
+      bullets.push(`Return on Equity of ${roe.toFixed(1)}% is strong — shareholder capital is being turned into profit efficiently.`);
+      score += 0.5;
+      factors.push({ name: "strong profitability", delta: 0.5 });
+    } else if (roe < 5) {
+      bullets.push(`Return on Equity of ${roe.toFixed(1)}% is on the weak side.`);
+      score -= 0.5;
+      factors.push({ name: "weak profitability", delta: -0.5 });
+    }
+  }
+
+  const netMargin = metric.netProfitMarginTTM;
+  if (isNum(netMargin)) {
+    if (netMargin > 15) {
+      bullets.push(`Net margin of ${netMargin.toFixed(1)}% is healthy — a good share of revenue converts into actual profit.`);
+      score += 0.5;
+      factors.push({ name: "healthy margins", delta: 0.5 });
+    } else if (netMargin < 5) {
+      bullets.push(`Net margin of ${netMargin.toFixed(1)}% is thin — most revenue is being absorbed by costs.`);
+      score -= 0.5;
+      factors.push({ name: "thin margins", delta: -0.5 });
+    }
+  }
+
+  const revGrowth = metric.revenueGrowthTTMYoy;
+  if (isNum(revGrowth)) {
+    if (revGrowth > 15) {
+      bullets.push(`Revenue grew ${revGrowth.toFixed(1)}% year-over-year — strong top-line momentum.`);
+      score += 0.5;
+      factors.push({ name: "strong revenue growth", delta: 0.5 });
+    } else if (revGrowth < 0) {
+      bullets.push(`Revenue shrank ${Math.abs(revGrowth).toFixed(1)}% year-over-year — worth understanding whether that's company-specific or an industry-wide slowdown.`);
+      score -= 0.5;
+      factors.push({ name: "shrinking revenue", delta: -0.5 });
+    }
+  }
+
+  const vsMarket = metric["priceRelativeToS&P50013Week"];
+  if (isNum(vsMarket)) {
+    if (vsMarket > 5) {
+      bullets.push(`Outperforming the S&P 500 by ${vsMarket.toFixed(1)} points over the last 13 weeks — recent relative strength.`);
+      score += 0.25;
+      factors.push({ name: "recent relative strength", delta: 0.25 });
+    } else if (vsMarket < -5) {
+      bullets.push(`Underperforming the S&P 500 by ${Math.abs(vsMarket).toFixed(1)} points over the last 13 weeks — recent relative weakness.`);
+      score -= 0.25;
+      factors.push({ name: "recent relative weakness", delta: -0.25 });
+    }
+  }
+
+  const beta = metric.beta;
+  if (isNum(beta)) {
+    if (beta > 1.3) {
+      bullets.push(`Beta of ${beta.toFixed(2)} means this stock tends to swing more than the overall market — bigger moves in both directions.`);
+    } else if (beta < 0.7) {
+      bullets.push(`Beta of ${beta.toFixed(2)} means this stock has historically been more stable than the overall market.`);
+    }
+  }
+
+  const dividend = metric.dividendYieldIndicatedAnnual;
+  if (isNum(dividend) && dividend > 0) {
+    bullets.push(`Pays a dividend yield of ${dividend.toFixed(2)}% — part of the return here comes as cash income, not just price appreciation.`);
+  } else {
+    bullets.push(`Pays no meaningful dividend — typical of a company reinvesting profits into growth rather than paying them out.`);
+  }
+
+  const high = metric["52WeekHigh"];
+  const low = metric["52WeekLow"];
+  if (isNum(high) && isNum(low) && isNum(quote.c) && high > low) {
+    const pct = (quote.c - low) / (high - low);
+    if (pct > 0.85) {
+      bullets.push(`Trading near its 52-week high (${(pct * 100).toFixed(0)}% of the way up the range) — a sign of recent momentum, though it also means less room below before hitting new highs.`);
+      score += 0.25;
+      factors.push({ name: "momentum near its 52-week high", delta: 0.25 });
+    } else if (pct < 0.15) {
+      bullets.push(`Trading near its 52-week low (${(pct * 100).toFixed(0)}% of the way up the range) — worth understanding whether that reflects a temporary setback or a deeper problem.`);
+      score -= 0.25;
+      factors.push({ name: "being stuck near its 52-week low", delta: -0.25 });
+    } else {
+      bullets.push(`Trading roughly in the middle of its 52-week range.`);
+    }
+  }
+
+  if (recommendation) {
+    const { strongBuy = 0, buy = 0, hold = 0, sell = 0, strongSell = 0 } = recommendation;
+    const total = strongBuy + buy + hold + sell + strongSell;
+    if (total > 0) {
+      const buyShare = (strongBuy + buy) / total;
+      const sellShare = (strongSell + sell) / total;
+      const tilt = buyShare > 0.5 ? "bullish" : sellShare > 0.5 ? "bearish" : "mixed";
+      bullets.push(`Analysts covering ${symbol} lean ${tilt} — ${strongBuy + buy} Buy/Strong Buy vs. ${strongSell + sell} Sell/Strong Sell out of ${total} ratings.`);
+      if (buyShare > 0.5) { score += 0.5; factors.push({ name: "bullish analyst sentiment", delta: 0.5 }); }
+      else if (sellShare > 0.5) { score -= 0.5; factors.push({ name: "bearish analyst sentiment", delta: -0.5 }); }
+    }
+  }
+
+  // Name the specific factor(s) actually driving the score, rather than
+  // always returning one of three fixed sentences — this is why the
+  // headline used to look identical for most stocks that landed in the
+  // (wide) "mixed" bucket. Still zero extra API cost: everything here is
+  // derived from numbers already fetched for the rest of the page.
+  const topPositive = factors.filter(f => f.delta > 0).sort((a, b) => b.delta - a.delta)[0];
+  const topNegative = factors.filter(f => f.delta < 0).sort((a, b) => a.delta - b.delta)[0];
+
+  let headline;
+  if (bullets.length === 0) {
+    headline = "Not enough data was returned to form a read on this stock.";
+  } else if (score > 1.5) {
+    headline = topPositive
+      ? `Taken together, today's numbers lean encouraging, led by ${topPositive.name}.`
+      : "Taken together, today's numbers lean encouraging.";
+  } else if (score < -1) {
+    headline = topNegative
+      ? `Taken together, today's numbers show some caution flags, mainly around ${topNegative.name}.`
+      : "Taken together, today's numbers show some caution flags worth digging into.";
+  } else if (topPositive && topNegative) {
+    headline = `Taken together, today's numbers are mixed: ${topPositive.name} stands out positively, while ${topNegative.name} is worth watching.`;
+  } else if (topPositive) {
+    headline = `Taken together, today's numbers lean mildly positive, with ${topPositive.name} the standout.`;
+  } else if (topNegative) {
+    headline = `Taken together, today's numbers lean mildly cautious, with ${topNegative.name} the main concern.`;
+  } else {
+    headline = "Taken together, today's numbers are mixed — some positives, some to watch.";
+  }
+
+  return {
+    headline,
+    bullets,
+    caveat: "This is an automated read based only on today's numbers, generated with fixed rules — not a live AI analysis, and not financial advice. It doesn't know about recent news, competitive position, or industry context, so use it as a starting point alongside your own research.",
+  };
+}
+
+// ETFs have no earnings/margins/balance sheet — this reads purely off the
+// fund's own historical price behavior (the only real fundamentals-free
+// data Finnhub's free tier actually returns for a fund, confirmed
+// directly 2026-08-28), not the P/E-style logic above.
+function generateETFOutlook({ metric }) {
+  const bullets = [];
+  const ytd = metric.yearToDatePriceReturnDaily;
+  const week52 = metric["52WeekPriceReturnDaily"];
+  const week13 = metric["13WeekPriceReturnDaily"];
+  const beta = metric.beta;
+  const vol = metric["3MonthADReturnStd"];
+
+  if (isNum(week52)) bullets.push(`Over the past year, this fund's price has ${week52 >= 0 ? "risen" : "fallen"} about ${Math.abs(week52).toFixed(1)}%.`);
+  if (isNum(ytd)) bullets.push(`So far this calendar year, it's ${ytd >= 0 ? "up" : "down"} about ${Math.abs(ytd).toFixed(1)}%.`);
+  if (isNum(week13)) bullets.push(`Over the last quarter (~13 weeks), it's ${week13 >= 0 ? "up" : "down"} about ${Math.abs(week13).toFixed(1)}%.`);
+  if (isNum(beta)) {
+    if (beta > 1.1) bullets.push(`With a beta of ${beta.toFixed(2)}, this fund has historically swung more than the overall market — bigger moves in both directions.`);
+    else if (beta < 0.9) bullets.push(`With a beta of ${beta.toFixed(2)}, this fund has historically moved less than the overall market — a steadier ride either way.`);
+    else bullets.push(`With a beta of ${beta.toFixed(2)}, this fund has historically moved roughly in line with the overall market.`);
+  }
+  if (isNum(vol)) bullets.push(`Its 3-month volatility (day-to-day price swings) has run about ${vol.toFixed(1)} percentage points — higher means choppier, not automatically "riskier" in the sense of losing money.`);
+
+  let headline;
+  if (bullets.length === 0) headline = "Not enough data was returned to form a read on this fund.";
+  else if (isNum(week52) && week52 > 10) headline = `This fund has had a strong past year, up about ${week52.toFixed(1)}%.`;
+  else if (isNum(week52) && week52 < -10) headline = `This fund has had a difficult past year, down about ${Math.abs(week52).toFixed(1)}%.`;
+  else headline = "This fund's price has moved within a fairly typical range over the past year.";
+
+  return {
+    headline,
+    bullets,
+    caveat: "ETFs don't have earnings, margins, or a P/E ratio the way individual companies do — this read is based purely on the fund's own historical price behavior, not a live AI analysis, and not financial advice.",
+  };
+}
+
+// Crypto: Finnhub returns nothing beyond a bare price for these symbols
+// (confirmed directly, 2026-08-28) — this reads off CoinGecko's per-coin
+// data instead (same source as the homepage Crypto tab).
+function generateCryptoOutlook({ coin }) {
+  if (!coin) return { headline: "Not enough data was returned to form a read on this coin.", bullets: [], caveat: "" };
+
+  const bullets = [];
+  const pct24h = coin.price_change_percentage_24h;
+  const pct7d = coin.price_change_percentage_7d;
+  const pct30d = coin.price_change_percentage_30d;
+  const athChange = coin.ath_change_percentage;
+
+  if (isNum(pct24h)) bullets.push(`Over the last 24 hours, the price has ${pct24h >= 0 ? "risen" : "fallen"} about ${Math.abs(pct24h).toFixed(1)}%.`);
+  if (isNum(pct7d)) bullets.push(`Over the last 7 days, it's ${pct7d >= 0 ? "up" : "down"} about ${Math.abs(pct7d).toFixed(1)}%.`);
+  if (isNum(pct30d)) bullets.push(`Over the last 30 days, it's ${pct30d >= 0 ? "up" : "down"} about ${Math.abs(pct30d).toFixed(1)}%.`);
+  if (isNum(athChange)) bullets.push(`It's currently trading about ${Math.abs(athChange).toFixed(1)}% ${athChange >= 0 ? "above" : "below"} its all-time high.`);
+  if (isNum(coin.market_cap_rank)) bullets.push(`By market cap, it currently ranks #${coin.market_cap_rank} among all cryptocurrencies.`);
+
+  let headline;
+  if (bullets.length === 0) headline = "Not enough data was returned to form a read on this coin.";
+  else if (isNum(pct7d) && pct7d > 10) headline = `This coin has had a strong week, up about ${pct7d.toFixed(1)}%.`;
+  else if (isNum(pct7d) && pct7d < -10) headline = `This coin has had a rough week, down about ${Math.abs(pct7d).toFixed(1)}%.`;
+  else headline = "This coin's price has moved within a fairly typical range this week.";
+
+  return {
+    headline,
+    bullets,
+    caveat: "Cryptocurrency has no earnings, revenue, or company fundamentals behind it — this read is based purely on recent price behavior, not a live AI analysis, and not financial advice. Crypto is highly volatile; past moves say nothing reliable about what happens next.",
+  };
+}

@@ -1,0 +1,708 @@
+// home.js — tabbed home page: curated browse categories, dynamically-
+// computed Winners/Losers/Most Active, Crypto, a Macro tab (FRED), and a
+// grid/heatmap view toggle. Depends on finnhubUrl()/fetchJSON()/isNum()/
+// formatCurrency()/displaySymbol()/loadTicker()/renderNews() from
+// script.js, so this file must load after it.
+//
+// Two different kinds of tab, deliberately decoupled:
+// - BROWSE_CATEGORIES: name + ticker only, no live data fetched at all —
+//   so these can be as long a list as makes sense with zero API cost.
+//   Click through to the real deep-dive page for actual numbers.
+// - Winners/Losers/Most Active/Crypto: need real quotes to be meaningful
+//   at all, so they draw from a smaller, separate RANKING_STOCK_SYMBOLS
+//   universe (the original curated ~36) — kept small specifically to
+//   control API cost, independent of how long the browse lists get.
+
+const CRYPTO_COINGECKO_IDS = {
+  "BINANCE:BTCUSDT": "bitcoin",
+  "BINANCE:ETHUSDT": "ethereum",
+  "BINANCE:SOLUSDT": "solana",
+  "BINANCE:XRPUSDT": "ripple",
+  "BINANCE:DOGEUSDT": "dogecoin",
+  "BINANCE:ADAUSDT": "cardano",
+};
+const CRYPTO_ITEMS = Object.keys(CRYPTO_COINGECKO_IDS).map(symbol => [symbol, { bitcoin: "Bitcoin", ethereum: "Ethereum", solana: "Solana", ripple: "XRP", dogecoin: "Dogecoin", cardano: "Cardano" }[CRYPTO_COINGECKO_IDS[symbol]]]);
+
+// FRED has no CORS support at all (confirmed directly), so unlike
+// Finnhub/Twelve Data/CoinGecko, it can't be called directly even from
+// local dev — this always goes through the deployed Worker. Falls back to
+// the current combined deployment's URL when API_BASE_URL (script.js)
+// hasn't been set to a separately-deployed backend yet — once it is, FRED
+// follows automatically, same as the other three proxied APIs.
+const FRED_PROXY_BASE = API_BASE_URL || "https://maximising-shareholder-value.jozsua-heng.workers.dev";
+
+function coingeckoUrl(path, params) {
+  const search = new URLSearchParams(params || {});
+  if (IS_LOCAL_DEV) {
+    if (typeof COINGECKO_API_KEY !== "undefined" && COINGECKO_API_KEY && COINGECKO_API_KEY !== "YOUR_COINGECKO_KEY_HERE") {
+      search.set("x_cg_demo_api_key", COINGECKO_API_KEY);
+    }
+    return `https://api.coingecko.com/api/v3${path}?${search.toString()}`;
+  }
+  search.set("path", path);
+  return `${API_BASE_URL}/api/coingecko?${search.toString()}`;
+}
+
+function fredUrl(seriesId, extraParams) {
+  const search = new URLSearchParams({
+    path: "/series/observations",
+    series_id: seriesId,
+    file_type: "json",
+    sort_order: "desc",
+    limit: "1",
+    ...extraParams,
+  });
+  return `${FRED_PROXY_BASE}/api/fred?${search.toString()}`;
+}
+
+// Browsable only — no quotes ever fetched for these, so length is free.
+// `accent` — a fixed decorative color per category (not theme-swapped,
+// same idea as the logo badge) purely so the zero-cost browse grid reads
+// as more distinct/designed instead of every category looking identical.
+// Not a status color (doesn't mean good/bad), just a visual identifier.
+const BROWSE_CATEGORIES = [
+  { id: "trending-tech", title: "Trending Tech", accent: "#6366f1", items: [["AAPL", "Apple"], ["MSFT", "Microsoft"], ["GOOGL", "Alphabet"], ["AMZN", "Amazon"], ["NVDA", "Nvidia"], ["META", "Meta"], ["ORCL", "Oracle"], ["ADBE", "Adobe"], ["INTC", "Intel"], ["CSCO", "Cisco"], ["UBER", "Uber"], ["ABNB", "Airbnb"]] },
+  { id: "blue-chip", title: "Blue Chip", accent: "#0ea5e9", items: [["JNJ", "Johnson & Johnson"], ["PG", "Procter & Gamble"], ["KO", "Coca-Cola"], ["JPM", "JPMorgan Chase"], ["V", "Visa"], ["WMT", "Walmart"], ["MCD", "McDonald's"], ["DIS", "Disney"], ["HD", "Home Depot"], ["UNH", "UnitedHealth"], ["COST", "Costco"], ["PEP", "PepsiCo"]] },
+  { id: "dividend-payers", title: "Dividend Payers", accent: "#f59e0b", items: [["T", "AT&T"], ["XOM", "ExxonMobil"], ["VZ", "Verizon"], ["PFE", "Pfizer"], ["MO", "Altria"], ["IBM", "IBM"], ["CVX", "Chevron"], ["MMM", "3M"], ["KMI", "Kinder Morgan"], ["O", "Realty Income"], ["D", "Dominion Energy"], ["SO", "Southern Company"]] },
+  { id: "growth", title: "Growth", accent: "#ec4899", items: [["TSLA", "Tesla"], ["NFLX", "Netflix"], ["SHOP", "Shopify"], ["PLTR", "Palantir"], ["CRWD", "CrowdStrike"], ["AMD", "AMD"], ["RBLX", "Roblox"], ["DDOG", "Datadog"], ["ZS", "Zscaler"], ["NET", "Cloudflare"], ["SNOW", "Snowflake"], ["ROKU", "Roku"]] },
+  { id: "etfs", title: "ETFs", accent: "#14b8a6", items: [["SPY", "S&P 500"], ["QQQ", "Nasdaq 100"], ["VTI", "Total Market"], ["DIA", "Dow Jones"], ["IWM", "Russell 2000"], ["VOO", "S&P 500 (Vanguard)"], ["ARKK", "ARK Innovation"], ["XLK", "Technology Sector"], ["XLF", "Financial Sector"], ["XLE", "Energy Sector"], ["EFA", "Developed Markets"], ["EEM", "Emerging Markets"]] },
+  { id: "bond-etfs", title: "Bond ETFs", accent: "#8b5cf6", items: [["TLT", "20+Y Treasury"], ["BND", "Total Bond Market"], ["AGG", "US Aggregate Bond"], ["HYG", "High Yield Corp"], ["IEF", "7-10Y Treasury"], ["LQD", "Investment Grade Corp"], ["MUB", "National Muni Bond"], ["SHY", "1-3Y Treasury"], ["VCIT", "Intermediate Corp Bond"], ["EMB", "Emerging Markets Bond"], ["JNK", "High Yield Bond"], ["BIV", "Intermediate-Term Bond"]] },
+];
+
+// Small, curated universe used ONLY to rank Winners/Losers/Most Active —
+// the original 6-per-category set, kept separate from the (now much
+// longer) browse lists above so ranking cost doesn't grow with them.
+// Trimmed from 6 to 4 per category (36 -> 24 symbols, 2026-08-07) to cut
+// real Finnhub usage — this is the single biggest cost center in the app
+// (a first-ever visit to Winners/Losers/Most Active fires one quote call
+// per symbol here, all at once). ETF/bond rows lost DIA/IWM and AGG/IEF
+// specifically since DIA/IWM are already covered by the homepage's index
+// strip (home.js loadIndexStrip) — no loss of information, just no
+// double-fetching the same names two different ways.
+const RANKING_STOCK_SYMBOLS = [
+  ["AAPL", "Apple"], ["MSFT", "Microsoft"], ["NVDA", "Nvidia"], ["META", "Meta"],
+  ["JNJ", "Johnson & Johnson"], ["PG", "Procter & Gamble"], ["JPM", "JPMorgan Chase"], ["WMT", "Walmart"],
+  ["T", "AT&T"], ["XOM", "ExxonMobil"], ["PFE", "Pfizer"], ["IBM", "IBM"],
+  ["TSLA", "Tesla"], ["NFLX", "Netflix"], ["PLTR", "Palantir"], ["AMD", "AMD"],
+  ["SPY", "S&P 500"], ["QQQ", "Nasdaq 100"], ["VTI", "Total Market"], ["VOO", "S&P 500 (Vanguard)"],
+  ["TLT", "20+Y Treasury"], ["BND", "Total Bond Market"], ["HYG", "High Yield Corp"], ["LQD", "Investment Grade Corp"],
+];
+
+const DYNAMIC_TABS = [
+  { id: "winners", title: "Winners" },
+  { id: "losers", title: "Losers" },
+  { id: "active", title: "Most Active" },
+];
+
+const homeState = {
+  activeTab: "trending-tech", // cheap default — a browse category costs zero API calls
+  viewMode: "grid",
+  quotes: {}, // ranking-universe symbol -> { symbol, name, quote }
+  rankingLoaded: false,
+  cryptoLoaded: false,
+  marketTickers: {}, // symbol -> quote, from MARKET_TICKERS — read by worldMarkets.js too
+};
+
+const homeTabsEl = document.getElementById("homeTabs");
+const homeContentEl = document.getElementById("homeContent");
+const homeViewToggleEl = document.getElementById("homeViewToggle");
+const homeNewsListEl = document.getElementById("homeNewsList");
+const indexStripEl = document.getElementById("indexStrip");
+const recentlyViewedRowEl = document.getElementById("recentlyViewedRow");
+const marketBreadthEl = document.getElementById("marketBreadth");
+
+// One shared ticker list feeds BOTH the sidebar list AND the world map's
+// per-exchange markers (worldMarkets.js reads homeState.marketTickers by
+// symbol) — one fetch pass serves two UI surfaces instead of paying for
+// the same data twice. Country ETFs stand in for each exchange's real
+// index since Finnhub's free tier doesn't offer live foreign indices
+// (same reasoning as the original US-index proxies) — 20 quote calls,
+// once per homepage visit, cached 30s at the edge.
+const MARKET_TICKERS = [
+  ["SPY", "S&P 500"],
+  ["QQQ", "Nasdaq 100"],
+  ["DIA", "Dow Jones"],
+  ["IWM", "Russell 2000"],
+  ["GLD", "Gold"],
+  ["USO", "Oil"],
+  ["EFA", "Developed Mkts"],
+  ["EEM", "Emerging Mkts"],
+  ["EWC", "Canada"],
+  ["EWZ", "Brazil"],
+  ["EWU", "United Kingdom"],
+  ["EWQ", "France"],
+  ["EWG", "Germany"],
+  ["EZA", "South Africa"],
+  ["INDA", "India"],
+  ["EWS", "Singapore"],
+  ["MCHI", "China"],
+  ["EWH", "Hong Kong"],
+  ["EWJ", "Japan"],
+  ["EWA", "Australia"],
+];
+// 2026-08-14 added 10 more (South Korea/Taiwan/Mexico/Switzerland/
+// Netherlands/Spain/Italy/Indonesia/Silver/Natural Gas) to "fill up" this
+// list; reverted 2026-08-27 — the taller sidebar stretched the map's flex
+// row height, and since the SVG uses preserveAspectRatio to hold its own
+// aspect ratio, the extra container height just became a visible empty
+// gap below the actual map graphic rather than more visible content. Back
+// to 20 so the sidebar roughly matches the map's natural height. If more
+// tickers are wanted again, they need a layout change (e.g. a 3rd column,
+// or letting the sidebar scroll independently) to avoid reintroducing the
+// gap, not just appending to this array.
+
+function initHome() {
+  buildTabs();
+  buildViewToggle();
+  switchTab(homeState.activeTab);
+  loadMarketNews();
+  loadMarketTickers();
+  renderRecentlyViewed();
+}
+
+async function loadMarketTickers() {
+  indexStripEl.innerHTML = MARKET_TICKERS.map(([symbol, name]) =>
+    `<div class="index-chip" data-symbol="${symbol}"><span class="index-chip-name">${name}</span><span class="index-chip-value muted">···</span></div>`
+  ).join("");
+
+  const results = await Promise.all(MARKET_TICKERS.map(async ([symbol]) => {
+    try {
+      const q = await fetchJSON(finnhubUrl("/quote", { symbol }));
+      return isNum(q.c) && q.c !== 0 ? { symbol, quote: q } : null;
+    } catch {
+      return null;
+    }
+  }));
+
+  results.forEach(r => {
+    if (!r) return;
+    homeState.marketTickers[r.symbol] = r.quote;
+    const chip = indexStripEl.querySelector(`.index-chip[data-symbol="${r.symbol}"] .index-chip-value`);
+    if (!chip) return;
+    const dp = r.quote.dp ?? 0;
+    chip.classList.remove("muted");
+    chip.classList.add(dp >= 0 ? "positive" : "negative");
+    chip.textContent = `${formatCurrency(r.quote.c)} (${dp >= 0 ? "+" : ""}${dp.toFixed(2)}%)`;
+  });
+
+  Array.from(indexStripEl.children).forEach(chip => {
+    chip.addEventListener("click", () => loadTicker(chip.dataset.symbol));
+  });
+
+  // Re-draw the map's markers now that ticker data is available (they
+  // render once immediately on page load, before this fetch resolves, so
+  // they start out price-less and fill in here) — and render the market
+  // breadth strip, which depends on this same data.
+  if (typeof renderWorldMarkets === "function") renderWorldMarkets();
+  renderMarketBreadth(results.filter(Boolean));
+}
+
+// Zero extra API cost — reuses the same 20 quotes already fetched above.
+// A quick "how's the world doing today" pulse using data that's fetched
+// unconditionally anyway (unlike the ranking-tab universe, which stays
+// lazy on purpose).
+function renderMarketBreadth(results) {
+  if (!marketBreadthEl) return;
+  if (results.length === 0) { marketBreadthEl.innerHTML = ""; return; }
+
+  const up = results.filter(r => (r.quote.dp ?? 0) > 0).length;
+  const down = results.filter(r => (r.quote.dp ?? 0) < 0).length;
+  const flat = results.length - up - down;
+  const upPct = (up / results.length) * 100;
+
+  const sorted = [...results].sort((a, b) => (b.quote.dp ?? 0) - (a.quote.dp ?? 0));
+  const best = sorted[0];
+  const worst = sorted[sorted.length - 1];
+  const bestName = MARKET_TICKERS.find(([s]) => s === best.symbol)?.[1] || best.symbol;
+  const worstName = MARKET_TICKERS.find(([s]) => s === worst.symbol)?.[1] || worst.symbol;
+
+  let nextEventHtml = "";
+  if (typeof getNextMarketEvent === "function") {
+    const next = getNextMarketEvent();
+    nextEventHtml = `<span class="muted">Next: <strong>${next.ex.city} ${next.label}</strong> in ${formatDuration(next.diffMin)}</span>`;
+  }
+
+  marketBreadthEl.innerHTML = `
+    <div class="market-breadth-bar" title="${up} up · ${down} down · ${flat} flat, out of ${results.length} tracked global tickers">
+      <div class="market-breadth-fill" style="width:${upPct}%"></div>
+    </div>
+    <div class="market-breadth-stats">
+      <span><strong class="positive">${up}</strong> up · <strong class="negative">${down}</strong> down <span class="muted">(of ${results.length} tracked)</span></span>
+      <span class="muted">Best: <strong class="positive">${bestName} ${(best.quote.dp ?? 0) >= 0 ? "+" : ""}${(best.quote.dp ?? 0).toFixed(1)}%</strong> · Worst: <strong class="negative">${worstName} ${(worst.quote.dp ?? 0).toFixed(1)}%</strong></span>
+      ${nextEventHtml}
+    </div>
+  `;
+}
+
+// Zero API cost — reads what script.js already saved to localStorage
+// after each successful ticker load. Name-only chips, same as browse
+// categories, so revisiting one is free until actually clicked.
+function renderRecentlyViewed() {
+  const recent = getRecentlyViewed();
+  if (recent.length === 0) {
+    recentlyViewedRowEl.classList.add("hidden");
+    return;
+  }
+  recentlyViewedRowEl.classList.remove("hidden");
+  recentlyViewedRowEl.innerHTML = '<span class="recently-viewed-label">Recently viewed</span>';
+  recent.forEach(({ symbol, name }) => {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "recently-viewed-chip";
+    chip.innerHTML = `<strong>${symbol}</strong><span class="muted">${name}</span>`;
+    chip.addEventListener("click", () => loadTicker(symbol));
+    recentlyViewedRowEl.appendChild(chip);
+  });
+}
+
+function buildTabs() {
+  homeTabsEl.innerHTML = "";
+  const allTabs = [...DYNAMIC_TABS, ...BROWSE_CATEGORIES, { id: "crypto", title: "Crypto" }, { id: "macro", title: "Macro" }];
+  allTabs.forEach(tab => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "home-tab" + (tab.id === homeState.activeTab ? " active" : "");
+    btn.textContent = tab.title;
+    btn.dataset.tabId = tab.id;
+    btn.addEventListener("click", () => switchTab(tab.id));
+    homeTabsEl.appendChild(btn);
+  });
+}
+
+function buildViewToggle() {
+  homeViewToggleEl.querySelectorAll("button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      homeState.viewMode = btn.dataset.mode;
+      homeViewToggleEl.querySelectorAll("button").forEach(b => b.classList.toggle("active", b === btn));
+      renderActiveTab();
+    });
+  });
+}
+
+async function switchTab(tabId) {
+  homeState.activeTab = tabId;
+  Array.from(homeTabsEl.children).forEach(btn => btn.classList.toggle("active", btn.dataset.tabId === tabId));
+
+  if (tabId === "macro") {
+    homeViewToggleEl.classList.add("hidden");
+    renderMacroTab();
+    return;
+  }
+
+  const isDynamic = DYNAMIC_TABS.some(t => t.id === tabId);
+  const isCrypto = tabId === "crypto";
+
+  // Grid/Heatmap only makes sense for the stock ranking tabs — browse
+  // categories have no live % change to color by, and crypto has its own
+  // dedicated table (buildCryptoTable) instead of the grid/heatmap tiles.
+  homeViewToggleEl.classList.toggle("hidden", !isDynamic);
+
+  if (!isDynamic && !isCrypto) {
+    renderBrowseCategory(tabId);
+    return;
+  }
+
+  homeContentEl.innerHTML = '<p class="muted">Loading...</p>';
+  if (isDynamic) {
+    await ensureRankingLoaded();
+  } else {
+    await ensureCryptoLoaded();
+  }
+
+  // The user may have clicked a different tab while this one was still
+  // loading — only render if this is still the tab they're looking at.
+  if (homeState.activeTab === tabId) renderActiveTab();
+}
+
+function renderBrowseCategory(tabId) {
+  const cat = BROWSE_CATEGORIES.find(c => c.id === tabId);
+  homeContentEl.innerHTML = "";
+  if (!cat) return;
+  homeContentEl.appendChild(buildSimpleGrid(cat.items, cat.accent));
+}
+
+async function ensureRankingLoaded() {
+  if (homeState.rankingLoaded) return;
+  await Promise.all(RANKING_STOCK_SYMBOLS.map(([symbol, name], i) => new Promise(resolve => {
+    setTimeout(async () => {
+      try {
+        const q = await fetchJSON(finnhubUrl("/quote", { symbol }));
+        if (isNum(q.c) && q.c !== 0) homeState.quotes[symbol] = { symbol, name, quote: q };
+      } catch {
+        // leave this symbol unset — it just won't appear in rankings
+      }
+      resolve();
+    }, i * 30); // light stagger across the ranking universe
+  })));
+  await ensureCryptoLoaded(); // crypto is part of the ranking pool too
+  homeState.rankingLoaded = true;
+}
+
+async function ensureCryptoLoaded() {
+  if (homeState.cryptoLoaded) return;
+  try {
+    // /coins/markets instead of /simple/price — same single-call cost
+    // (still one request for all 6 coins), but returns market cap, 24h
+    // volume, circulating/max supply, and all-time-high/low — genuinely
+    // crypto-specific data with no real stock equivalent, versus the old
+    // endpoint's bare price + 24h change.
+    const ids = CRYPTO_ITEMS.map(([symbol]) => CRYPTO_COINGECKO_IDS[symbol]).join(",");
+    const data = await fetchJSON(coingeckoUrl("/coins/markets", { vs_currency: "usd", ids, order: "market_cap_desc" }));
+    const byId = {};
+    (Array.isArray(data) ? data : []).forEach(coin => { byId[coin.id] = coin; });
+    CRYPTO_ITEMS.forEach(([symbol, name]) => {
+      const coin = byId[CRYPTO_COINGECKO_IDS[symbol]];
+      if (coin && isNum(coin.current_price)) {
+        homeState.quotes[symbol] = {
+          symbol, name,
+          quote: { c: coin.current_price, dp: coin.price_change_percentage_24h ?? 0 },
+          crypto: coin,
+        };
+      }
+    });
+    homeState.cryptoLoaded = true;
+  } catch {
+    // leave crypto symbols unset
+  }
+}
+
+function renderActiveTab() {
+  const tabId = homeState.activeTab;
+  let items;
+
+  if (tabId === "crypto") {
+    items = CRYPTO_ITEMS.map(([symbol]) => homeState.quotes[symbol]).filter(Boolean);
+  } else if (tabId === "winners" || tabId === "losers" || tabId === "active") {
+    const all = Object.values(homeState.quotes);
+    if (tabId === "winners") {
+      items = all.filter(q => (q.quote.dp ?? 0) > 0).sort((a, b) => (b.quote.dp ?? 0) - (a.quote.dp ?? 0)).slice(0, 12);
+    } else if (tabId === "losers") {
+      items = all.filter(q => (q.quote.dp ?? 0) < 0).sort((a, b) => (a.quote.dp ?? 0) - (b.quote.dp ?? 0)).slice(0, 12);
+    } else {
+      items = [...all].sort((a, b) => Math.abs(b.quote.dp ?? 0) - Math.abs(a.quote.dp ?? 0)).slice(0, 12);
+    }
+  } else {
+    homeContentEl.innerHTML = "";
+    return;
+  }
+
+  homeContentEl.innerHTML = "";
+
+  if (items.length === 0) {
+    homeContentEl.innerHTML = '<p class="muted">No data available right now — this can happen if the free data tier is temporarily rate-limited. Try switching tabs again in a moment.</p>';
+    return;
+  }
+
+  // Crypto gets its own table instead of the plain price/% tiles used for
+  // stocks — market cap, volume, supply, and distance from all-time-high
+  // are the numbers people actually look for with crypto and don't have
+  // a real stock-page equivalent, so reusing the stock tile made the tab
+  // feel thin. buildGrid/buildHeatmap stay unused for crypto now.
+  homeContentEl.appendChild(tabId === "crypto" ? buildCryptoTable(items) : (homeState.viewMode === "heatmap" ? buildHeatmap(items) : buildGrid(items)));
+
+  if (tabId === "active") {
+    const note = document.createElement("p");
+    note.className = "muted small home-note";
+    note.textContent = "Ranked by size of today's price move — real trading volume isn't available on the free data tier.";
+    homeContentEl.appendChild(note);
+  }
+}
+
+function formatCompactUsd(v) {
+  if (!isNum(v)) return "N/A";
+  if (v >= 1e12) return `$${(v / 1e12).toFixed(2)}T`;
+  if (v >= 1e9) return `$${(v / 1e9).toFixed(2)}B`;
+  if (v >= 1e6) return `$${(v / 1e6).toFixed(2)}M`;
+  return `$${v.toLocaleString()}`;
+}
+
+function formatCompactSupply(v) {
+  if (!isNum(v)) return "N/A";
+  if (v >= 1e9) return `${(v / 1e9).toFixed(2)}B`;
+  if (v >= 1e6) return `${(v / 1e6).toFixed(2)}M`;
+  if (v >= 1e3) return `${(v / 1e3).toFixed(2)}K`;
+  return v.toLocaleString();
+}
+
+function buildCryptoTable(items) {
+  const wrap = document.createElement("div");
+  wrap.className = "crypto-table-scroll";
+  const table = document.createElement("table");
+  table.className = "crypto-table";
+
+  const theadRow = ["Coin", "Price", "24h", "Market Cap", "24h Volume", "Circulating Supply", "From All-Time High"];
+  table.innerHTML = `<thead><tr>${theadRow.map(h => `<th>${h}</th>`).join("")}</tr></thead>`;
+
+  const tbody = document.createElement("tbody");
+  items
+    .slice()
+    .sort((a, b) => (b.crypto?.market_cap ?? 0) - (a.crypto?.market_cap ?? 0))
+    .forEach(({ symbol, name, quote, crypto }) => {
+      const row = document.createElement("tr");
+      row.className = "crypto-table-row";
+      row.addEventListener("click", () => loadTicker(symbol));
+
+      const dp = quote.dp ?? 0;
+      const athPct = crypto && isNum(crypto.ath_change_percentage) ? crypto.ath_change_percentage : null;
+      const supplyPct = crypto && isNum(crypto.circulating_supply) && isNum(crypto.max_supply) && crypto.max_supply > 0
+        ? (crypto.circulating_supply / crypto.max_supply) * 100 : null;
+
+      row.innerHTML = `
+        <td><strong>${name}</strong> <span class="muted small">${crypto?.symbol ? crypto.symbol.toUpperCase() : displaySymbol(symbol)}</span></td>
+        <td>${formatCurrency(quote.c)}</td>
+        <td class="${dp >= 0 ? "positive" : "negative"}">${dp >= 0 ? "+" : ""}${dp.toFixed(2)}%</td>
+        <td>${formatCompactUsd(crypto?.market_cap)}${crypto?.market_cap_rank ? ` <span class="muted small">#${crypto.market_cap_rank}</span>` : ""}</td>
+        <td>${formatCompactUsd(crypto?.total_volume)}</td>
+        <td>${formatCompactSupply(crypto?.circulating_supply)}${supplyPct !== null ? ` <span class="muted small">(${supplyPct.toFixed(0)}% of max)</span>` : ""}</td>
+        <td class="${athPct !== null && athPct >= -1 ? "positive" : ""}">${athPct !== null ? `${athPct.toFixed(1)}%` : "N/A"}</td>
+      `;
+      tbody.appendChild(row);
+    });
+  table.appendChild(tbody);
+  wrap.appendChild(table);
+
+  const note = document.createElement("p");
+  note.className = "muted small home-note";
+  note.textContent = "Market cap, volume, supply, and all-time-high data via CoinGecko. \"From All-Time High\" shows how far below (or, rarely, above) each coin's record price it's currently trading.";
+
+  const outer = document.createElement("div");
+  outer.appendChild(wrap);
+  outer.appendChild(note);
+  return outer;
+}
+
+// Name + ticker only — no quote, no fetch. Used for the browse categories.
+function buildSimpleGrid(items, accent) {
+  const row = document.createElement("div");
+  row.className = "home-chip-row home-chip-row-tab";
+  items.forEach(([symbol, name]) => {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "home-chip home-chip-simple";
+    if (accent) chip.style.setProperty("--chip-accent", accent);
+    chip.innerHTML = `
+      <span class="home-chip-name">${name}</span>
+      <span class="home-chip-symbol">${displaySymbol(symbol)}</span>
+    `;
+    chip.addEventListener("click", () => loadTicker(symbol));
+    row.appendChild(chip);
+  });
+  return row;
+}
+
+function buildGrid(items) {
+  const row = document.createElement("div");
+  row.className = "home-chip-row home-chip-row-tab";
+  items.forEach(({ symbol, name, quote }) => {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    const change = quote.dp ?? 0;
+    const up = change >= 0;
+    chip.className = "home-chip " + (up ? "chip-up" : "chip-down");
+    chip.innerHTML = `
+      <span class="home-chip-name">${name}</span>
+      <span class="home-chip-symbol">${displaySymbol(symbol)}</span>
+      <span class="home-chip-price ${up ? "positive" : "negative"}">
+        <span class="home-chip-arrow">${up ? "▲" : "▼"}</span>${formatCurrency(quote.c)}
+        <span class="home-chip-pct">${up ? "+" : ""}${change.toFixed(1)}%</span>
+      </span>
+    `;
+    chip.addEventListener("click", () => loadTicker(symbol));
+    row.appendChild(chip);
+  });
+  return row;
+}
+
+function buildHeatmap(items) {
+  const grid = document.createElement("div");
+  grid.className = "heatmap-grid";
+  items.forEach(({ symbol, name, quote }) => {
+    const change = quote.dp ?? 0;
+    const tile = document.createElement("button");
+    tile.type = "button";
+    tile.className = "heatmap-tile";
+    tile.style.background = heatColor(change);
+    tile.title = `${name} — ${formatCurrency(quote.c)}`;
+    tile.innerHTML = `
+      <span class="heatmap-symbol">${displaySymbol(symbol)}</span>
+      <span class="heatmap-change">${change >= 0 ? "+" : ""}${change.toFixed(1)}%</span>
+    `;
+    tile.addEventListener("click", () => loadTicker(symbol));
+    grid.appendChild(tile);
+  });
+  return grid;
+}
+
+// Uniform tile size (not sized by market cap like a "real" treemap would
+// be — that needs profile2 data for every symbol shown, doubling
+// requests for a homepage feature). Color intensity carries the signal.
+function heatColor(changePct) {
+  const clamped = Math.max(-8, Math.min(8, changePct || 0));
+  const intensity = 0.18 + (Math.abs(clamped) / 8) * 0.6;
+  return clamped >= 0 ? `rgba(27,175,122,${intensity})` : `rgba(208,59,59,${intensity})`;
+}
+
+// ---- Macro tab (FRED) ----
+const MACRO_SERIES = [
+  { id: "FEDFUNDS", label: "Fed Funds Rate", unit: "%", params: {} },
+  { id: "CPIAUCSL", label: "Inflation (CPI, YoY)", unit: "%", params: { units: "pc1" } },
+  { id: "UNRATE", label: "Unemployment Rate", unit: "%", params: {} },
+  { id: "DGS10", label: "10-Year Treasury Yield", unit: "%", params: {} },
+  // Added 2026-08-27 — same FRED key, only fetched when this tab is
+  // opened (already lazy), so more indicators here don't add any
+  // always-on cost, just more content when someone actually visits.
+  { id: "MORTGAGE30US", label: "30-Year Mortgage Rate", unit: "%", params: {} },
+  { id: "M2SL", label: "M2 Money Supply (YoY)", unit: "%", params: { units: "pc1" } },
+  { id: "UMCSENT", label: "Consumer Sentiment", unit: "", params: {} },
+  { id: "DCOILWTICO", label: "Crude Oil (WTI)", unit: "", prefix: "$", params: {} },
+];
+
+async function renderMacroTab() {
+  if (typeof FRED_API_KEY === "undefined" || !FRED_API_KEY || FRED_API_KEY === "YOUR_FRED_KEY_HERE") {
+    homeContentEl.innerHTML = '<p class="muted">Add a free FRED API key to config.js to enable this tab (Fed funds rate, inflation, unemployment, 10-year treasury yield). See README.md.</p>';
+    return;
+  }
+
+  homeContentEl.innerHTML = '<p class="muted">Loading...</p>';
+
+  const results = await Promise.allSettled(MACRO_SERIES.map(async series => {
+    const data = await fetchJSON(fredUrl(series.id, series.params));
+    const obs = data.observations && data.observations[0];
+    return { value: obs ? parseFloat(obs.value) : null, date: obs ? obs.date : null };
+  }));
+
+  const grid = document.createElement("div");
+  grid.className = "grid macro-grid";
+  results.forEach((r, i) => {
+    const series = MACRO_SERIES[i];
+    const card = document.createElement("div");
+    card.className = "indicator";
+
+    const label = document.createElement("div");
+    label.className = "indicator-label";
+    label.textContent = series.label;
+
+    const value = document.createElement("div");
+    value.className = "indicator-value";
+    if (r.status === "fulfilled" && isNum(r.value.value)) {
+      value.textContent = `${series.prefix || ""}${r.value.value.toFixed(2)}${series.unit}`;
+      const dateNote = document.createElement("div");
+      dateNote.className = "macro-date";
+      dateNote.textContent = `As of ${r.value.date}`;
+      card.appendChild(label);
+      card.appendChild(value);
+      card.appendChild(dateNote);
+    } else {
+      value.textContent = "N/A";
+      card.appendChild(label);
+      card.appendChild(value);
+    }
+    grid.appendChild(card);
+  });
+
+  homeContentEl.innerHTML = "";
+  homeContentEl.appendChild(grid);
+
+  const note = document.createElement("p");
+  note.className = "muted small home-note";
+  note.textContent = "US economic indicators from the Federal Reserve (FRED). These update monthly or quarterly, not daily — don't expect them to move on every visit.";
+  homeContentEl.appendChild(note);
+}
+
+const NEWS_CATEGORY_COLORS = {
+  business: "#1baf7a", general: "#7ea0ff", forex: "#e0ab2e", crypto: "#c77dff", merger: "#e66767", technology: "#3ddc84",
+};
+
+function loadMarketNews() {
+  fetchJSON(finnhubUrl("/news", { category: "general" }))
+    .then(items => renderHomeNews(items.slice(0, 9)))
+    .catch(() => { homeNewsListEl.innerHTML = '<p class="muted">Couldn\'t load market news right now.</p>'; });
+}
+
+// Richer visual treatment than the plain list used elsewhere (ticker-page
+// company news) — same /news response, no extra API cost, just using
+// more of what Finnhub already returns (image, category) plus a featured
+// "hero" story up top. Falls back to a colored initial-letter badge if an
+// item has no image or its image fails to load.
+function renderHomeNews(items) {
+  homeNewsListEl.innerHTML = "";
+  if (!items || items.length === 0) {
+    homeNewsListEl.innerHTML = '<p class="muted">No recent news found.</p>';
+    return;
+  }
+
+  const sorted = [...items].sort((a, b) => b.datetime - a.datetime);
+  const [hero, ...rest] = sorted;
+
+  const wrap = document.createElement("div");
+  wrap.className = "home-news-wrap";
+
+  wrap.appendChild(buildNewsCard(hero, true));
+
+  const grid = document.createElement("div");
+  grid.className = "home-news-grid";
+  rest.forEach(item => grid.appendChild(buildNewsCard(item, false)));
+  wrap.appendChild(grid);
+
+  homeNewsListEl.appendChild(wrap);
+}
+
+function buildNewsCard(item, isHero) {
+  const source = item.source || "Unknown";
+  const card = document.createElement("a");
+  card.className = isHero ? "home-news-hero" : "home-news-card";
+  card.href = item.url;
+  card.target = "_blank";
+  card.rel = "noopener noreferrer";
+
+  const media = document.createElement("div");
+  media.className = isHero ? "home-news-hero-media" : "home-news-card-media";
+  if (item.image) {
+    const img = document.createElement("img");
+    img.src = item.image;
+    img.alt = "";
+    img.loading = "lazy";
+    img.onerror = () => { media.innerHTML = ""; media.style.background = colorFromString(source); media.textContent = source.charAt(0).toUpperCase(); };
+    media.appendChild(img);
+  } else {
+    media.style.background = colorFromString(source);
+    media.textContent = source.charAt(0).toUpperCase();
+  }
+  card.appendChild(media);
+
+  const body = document.createElement("div");
+  body.className = "home-news-body";
+
+  const metaRow = document.createElement("div");
+  metaRow.className = "home-news-meta-row";
+  if (item.category) {
+    const catBadge = document.createElement("span");
+    catBadge.className = "home-news-category";
+    catBadge.style.color = NEWS_CATEGORY_COLORS[item.category] || "var(--accent)";
+    catBadge.style.borderColor = NEWS_CATEGORY_COLORS[item.category] || "var(--accent)";
+    catBadge.textContent = item.category;
+    metaRow.appendChild(catBadge);
+  }
+  const metaText = document.createElement("span");
+  metaText.className = "muted small";
+  metaText.textContent = `${source} · ${formatRelativeTime(new Date((item.datetime || 0) * 1000))}`;
+  metaRow.appendChild(metaText);
+
+  const headline = document.createElement("div");
+  headline.className = isHero ? "home-news-hero-headline" : "home-news-card-headline";
+  headline.textContent = item.headline || "";
+
+  body.appendChild(metaRow);
+  body.appendChild(headline);
+  if (isHero && item.summary) {
+    const summary = document.createElement("p");
+    summary.className = "home-news-hero-summary muted small";
+    summary.textContent = item.summary;
+    body.appendChild(summary);
+  }
+  card.appendChild(body);
+
+  return card;
+}
+
+initHome();
