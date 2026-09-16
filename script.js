@@ -41,7 +41,9 @@ const IS_LOCAL_DEV = ["localhost", "127.0.0.1", ""].includes(location.hostname);
 // and every proxied call below — Finnhub, Twelve Data, CoinGecko, FRED —
 // follows automatically. This is the ONE line that needs to change for
 // that split; nothing else in these four URL helpers does.
-const API_BASE_URL = "";
+// Set 2026-09-16 once msv-api was deployed and verified (a live quote
+// came back through https://msv-api.jozsua-heng.workers.dev/api/finnhub).
+const API_BASE_URL = "https://msv-api.jozsua-heng.workers.dev";
 
 // Every Finnhub request, whether called directly (local dev) or proxied
 // (deployed), builds its URL through this one function — so it's the one
