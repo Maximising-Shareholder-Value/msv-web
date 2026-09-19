@@ -114,6 +114,20 @@ so the homepage looks finished without spending free-tier API budget on
 every single visit — see the note in [ROADMAP.md](ROADMAP.md) for the
 tradeoff this involves and when to reverse it.
 
+## Phase 7 — Home page polish round 2 (2026-09-19)
+
+Same-day follow-up after Phase 6 shipped: the intro copy was made more
+casual (dropped the formal "(via ETFs)" parenthetical for a lighter
+tone), the inline "how to use" `<details>` accordion was replaced with a
+proper paginated popup modal (5 slides, prev/next + dot navigation,
+reusing the same overlay pattern as the existing indicator-tooltip
+popup), and every browse category (Trending Tech, Blue Chip, Dividend
+Payers, Growth, ETFs, Bond ETFs) got ~50% more tickers (12 → 18 each).
+Two new feature ideas were also scoped into [TODO.md](TODO.md): a
+Recently-Viewed sidebar column with categorization, and extending the
+existing Compare feature to cover a fund's underlying holdings, not just
+its price stats.
+
 ---
 
 *Add new phases here as they happen, most recent last — this is meant to
