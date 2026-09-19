@@ -46,6 +46,51 @@ intact.
       written against it — not something that can be researched further
       without that step.
 
+## ETF/index fund page enhancements (scoped 2026-09-19)
+
+Blocked on confirming a free data source — see the "Fund overview,
+holdings & sector weighting" section in
+[API_RESEARCH.md](API_RESEARCH.md). Finnhub's ETF-specific endpoints are
+confirmed premium-gated (live-tested), so this needs a new vendor.
+**Next concrete step: sign up for a free FMP key (email only, no card)
+and test the ETF Holdings/Sector Weighting/Information endpoints live**
+— same pattern as the Alpaca options decision. Also worth testing
+whether Twelve Data's existing key (already in use for charts) unlocks
+their Fundamentals/ETF endpoints before adding FMP as a second vendor.
+
+Once a source is confirmed, this covers three asks:
+- [ ] **"About the fund" overview section** for ETFs/index funds
+      (parallel to the stock "About the Company" card) — category (e.g.
+      Large Blend), fund family, net assets/AUM, NAV, expense ratio,
+      yield, legal type, YTD daily total return.
+- [ ] **Holdings + sector weighting** section — top holdings and sector
+      breakdown for ETFs.
+- [ ] **New indicator audit result (2026-09-19):** cross-checked
+      Jozsua's requested indicator list against what's already live —
+      previous close, open, day high/low, 52-week range (+ gauge), avg
+      volume (10-day/3-month), beta, and period returns (5-day through
+      52-week) **are already shown for ETFs today**, confirmed via a
+      live `/stock/metric` request that returned exactly those fields
+      and nothing else. Genuinely missing, confirmed not available on
+      any currently-used free source: **bid, ask, today's volume** (a
+      general free-tier gap, not ETF-specific — Finnhub's free quote
+      endpoint has never included these, for any instrument type), and
+      the fund-classification cluster above (NAV, AUM, expense ratio,
+      category, fund family, legal type, yield) blocked on the same
+      FMP/Twelve Data confirmation. Add `(?)` tooltip definitions for
+      whichever of these actually get built, matching the existing
+      pattern in `definitions.js`.
+
+## Embedded side-by-side comparison (scoped 2026-09-19)
+
+A Compare feature already exists as its own page (`compare.js`) — this
+is a **different** ask: a comparison section embedded directly on the
+individual stock/ETF deep-dive page itself, showing similar assets in
+the same class/industry/sector side by side without leaving the page.
+Needs a design decision (which "similar assets" get picked
+automatically — same-sector peers via Finnhub's `/stock/peers` for
+stocks? same `BROWSE_CATEGORIES` bucket for ETFs?) before building.
+
 ## Pillar 5: explain-the-concept education layer
 
 - [ ] Pick the first 3-5 concepts to cover (e.g. "what a rate hike means,
