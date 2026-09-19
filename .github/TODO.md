@@ -6,26 +6,38 @@ already been done. Check items off as they land; move finished groups
 into HISTORY.md instead of just deleting them, so the record stays
 intact.
 
-## Up next — Pillar 1: multi-asset-class indicators
+## Pillar 1: multi-asset-class indicators
 
-- [ ] Audit which real ticker searches currently return N/A-heavy pages —
-      test a handful of real bonds, commodity ETFs, and index funds
-      against the live app and note exactly what's missing, rather than
-      assuming from the code alone. (ETF and crypto instrument types were
-      already redesigned 2026-09-13 — confirm they're actually solid
-      before assuming this pillar starts from zero.)
-- [ ] Clarify what "CDCs" referred to in the original ask (2026-09-19) —
-      likely a typo (CDs? CDS/credit default swaps? something else?) —
-      before building indicators for the wrong asset class.
-- [ ] Decide the bonds approach: individual bonds have zero free-tier
-      Finnhub coverage (confirmed) — likely stays "browse via bond ETFs"
-      rather than a new data source. Confirm this is still the right call
-      rather than silently re-deciding it mid-build.
-- [ ] Spike FlashAlpha's actual free-tier limits (a live request, not the
-      marketing page) before committing to it for options — see
-      [API_RESEARCH.md](API_RESEARCH.md).
-- [ ] Build/extend `getInstrumentType()` and `applyInstrumentTypeUI()` for
-      whatever gaps the audit above actually finds.
+- [x] **Audit which real ticker searches currently return N/A-heavy
+      pages — done 2026-09-19, against the live production site (real
+      data, not assumptions).** Tested AAPL (stock), VOO (index fund
+      ETF), TLT (bond ETF), GLD/USO (commodity trust ETFs), UNG (futures-
+      based commodity ETF), URA (uranium miners ETF), BTC/ETH (crypto) —
+      **every one of them renders clean, with zero N/A in any visible
+      card.** The one N/A found (AAPL's Insider Transactions table, 2
+      instances) is a real, individual SEC Form 4 filing missing a
+      `transactionPrice` field on 2 specific rows — correct behavior, not
+      a bug. **Conclusion: the 2026-09-13 ETF/crypto redesign already
+      solved this pillar for every asset type that has real free-tier
+      data behind it** — commodity ETFs (both trust-structured like GLD
+      and futures-based like UNG) were already covered by the same
+      `getInstrumentType()` logic without any extra work needed.
+- [x] Also confirmed: searching a symbol with genuinely zero coverage
+      (tested a real Treasury CUSIP) degrades gracefully — stays on the
+      home view with a status message, no crash, no broken dashboard.
+- [ ] **What's actually left is narrower than originally scoped:**
+      individual bonds and options have **zero free-tier data available
+      anywhere** (not a rendering bug — there's nothing to render). The
+      only real remaining decisions:
+      - Confirm "browse bond ETFs instead of individual bonds" stays the
+        answer (already the case today, seems right).
+      - Decide whether options are worth pursuing via FlashAlpha (needs
+        a live spike of its actual free-tier limits first — see
+        [API_RESEARCH.md](API_RESEARCH.md)) or explicitly deprioritized.
+- [ ] Still need Jozsua to clarify what "CDCs" meant in the original ask
+      (2026-09-19) — likely a typo (CDs? CDS/credit default swaps?
+      something else?) — in case it points at a real gap the audit above
+      didn't think to test.
 
 ## Pillar 5: explain-the-concept education layer
 
