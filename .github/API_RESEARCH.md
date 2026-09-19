@@ -7,6 +7,32 @@ repo's own `CLAUDE.md` has a strong "confirmed directly, not assumed"
 culture around free-tier claims (they change, and secondhand summaries
 get them wrong often), so this doc keeps that standard.
 
+## Shortlist: free APIs worth having in the toolbox (generous limits, ranked)
+
+Jozsua asked to keep this list tight rather than adding vendors freely.
+In order of how generous the free tier actually is:
+
+1. **Finnhub** (already in use) — 60 calls/min (~86,400/day theoretical).
+2. **Alpaca** (researched, not yet integrated) — free paper account,
+   **1,000 calls/min** on the Basic market data plan. The most generous
+   limit found in this whole research pass. Covers options; does NOT
+   cover bonds (see the bonds/options note below).
+3. **Twelve Data** (already in use) — 800/day, 8/min.
+4. **OECD SDMX / DBnomics** (researched, not yet integrated) — free, no
+   API key at all, no documented strict rate limit found, CORS-friendly
+   (callable straight from the browser, no proxy needed).
+5. **CoinGecko** (already in use) — public tier, no key needed, generous
+   enough for this app's crypto usage.
+6. **World Bank** (researched) — free, no key, but needs a msv-api proxy
+   (no CORS).
+7. **FRED** (already in use) — free, needs a key, no meaningful limit
+   issue at this app's scale.
+8. **Financial Modeling Prep (FMP)** — 250 calls/day. The **least**
+   generous of the bunch by raw request count, but the only real lead
+   for ETF/fund-specific data (see below) — and that kind of data
+   changes slowly (daily at most), so 250/day can stretch far with
+   caching, unlike live quotes.
+
 ## Currently in use
 
 | Source | Used for | Free tier | CORS (browser-callable?) |
@@ -67,6 +93,44 @@ decisions, not one:
   zero-cost architecture. **"Browse via bond ETFs instead" remains the
   right call** unless real revenue ever justifies a paid data bill.
 
+## Fund overview, holdings & sector weighting for ETFs (2026-09-19)
+
+Jozsua wants a proper ETF/index-fund "about" section — category (e.g.
+Large Blend), fund family, net assets/AUM, NAV, expense ratio, yield,
+legal type — plus holdings and sector weighting. None of this is
+fund-classification data; it's a genuinely different data domain from
+price/return data.
+
+**Confirmed live (2026-09-19) that Finnhub's ETF-specific endpoints are
+premium-gated, not free:**
+
+```
+GET /etf/profile, /etf/holdings, /etf/sector, /etf/country
+→ {"error":"You don't have access to this resource."}
+```
+
+on all four, tested against `VOO` through the real production proxy.
+Also confirmed live that `/stock/metric` for an ETF (`VOO`, all metrics)
+contains **zero** yield or today's-volume fields — every field currently
+rendered for ETFs is already everything Finnhub's free tier has to give
+on this front. So this isn't "we're leaving free data on the table" —
+it's a genuine new-data-source problem.
+
+| Source | What it claims to offer | Free tier | Confirmed? |
+|---|---|---|---|
+| **Financial Modeling Prep (FMP)** | Dedicated endpoints matching this exactly: ETF & Fund Holdings, ETF Sector Weighting, ETF Country Weighting, and an "ETF Information" endpoint with expense ratio + AUM | 250 calls/day, no credit card to sign up (email + password only) | **Not confirmed** — FMP's docs pages block automated fetching, and it's common for vendors to gate exactly this kind of specialized dataset behind a paid "Starter" tier even when basic quotes/profiles are free. Could not verify without an actual key. |
+| **Twelve Data** (already in use) | Has a documented "ETF" product and a separate "Fundamentals" API mentioning fund family/category/expense ratio/AUM | 800/day, 8/min (same key already in use for charts) | **Not confirmed** — same issue, fundamentals-type data is commonly a paid-tier add-on even on APIs with an otherwise-generous free plan. |
+| **EODHD** | Same ETF fundamentals glossary (fund family, category, holdings, sector weights) | Free tier is 20 calls/day, very likely excludes this | Already established as paywalled for this specific data (see the bonds/options section above) |
+
+**What this means concretely:** there's a real, named candidate (FMP has
+exactly the right endpoint shapes) but **the free-tier status is
+unconfirmed** — the docs are unscrapable and secondhand sources don't
+agree. This needs the same treatment as Alpaca did: **sign up for a free
+FMP key (just an email, no card) and test the specific endpoints
+live** before building anything on top of it. Same for Twelve Data's
+fundamentals endpoints, since that key already exists — worth testing
+before adding a new vendor at all.
+
 ## Candidates for multi-country macro (pillar 4)
 
 FRED is Federal Reserve data — **US only** by definition. Two genuinely
@@ -96,6 +160,12 @@ OECD doesn't cover.
 - [Indicator API Queries (World Bank Data Help Desk)](https://datahelpdesk.worldbank.org/knowledgebase/articles/898599-indicator-api-queries)
 - [OECD SDMX API documentation](https://data.oecd.org/api/sdmx-ml-documentation/)
 - CORS support for World Bank/OECD/DBnomics: confirmed directly via live `curl` requests with an `Origin` header on 2026-09-19, not taken from any of the above sources (none of them documented it clearly).
+- Finnhub `/etf/*` endpoints being premium-gated, and `/stock/metric` having no yield/volume fields for ETFs: confirmed directly via live `curl` requests through the production msv-api proxy on 2026-09-19.
+- [ETF & Fund Holdings API (FMP)](https://site.financialmodelingprep.com/developer/docs/stable/holdings)
+- [ETF Sector Weighting API (FMP)](https://site.financialmodelingprep.com/developer/docs/stable/sector-weighting)
+- [Do You Need a Credit Card for Financial Modeling Prep? (FMP)](https://site.financialmodelingprep.com/education/other/do-you-need-a-credit-card-to-use-financial-modeling-prep)
+- [Twelve Data | ETF APIs](https://twelvedata.com/etf)
+- [Twelve Data | Fundamental Data API](https://twelvedata.com/fundamentals)
 - [Tradier Market Data docs](https://docs.tradier.com/docs/market-data)
 - [Alpaca Fixed Income docs](https://docs.alpaca.markets/us/docs/fixed-income) — confirms Broker-API-only gating for bonds
 - [Alpaca Options Trading docs](https://docs.alpaca.markets/us/docs/options-trading) — confirms free self-serve paper-account access
