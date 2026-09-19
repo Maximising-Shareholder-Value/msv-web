@@ -1,5 +1,10 @@
 # CLAUDE.md
 
+> This file is the technical reference (how the code works, why specific
+> bugs were fixed the way they were, data-source quirks). For the
+> long-term vision, architecture roadmap, project history, and an
+> actionable to-do list, see [`.github/`](.github/README.md).
+
 ## Name
 
 The app is called **$MSV** ("Maximising Shareholder Value" — a joke name;
