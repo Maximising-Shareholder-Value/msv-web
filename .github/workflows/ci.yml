@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  syntax-check:
+    name: JS syntax check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # No build step in this repo (plain HTML/CSS/JS) — this just parses
+      # every tracked .js file with Node and fails on a syntax error,
+      # without executing any of it.
+      - name: Check every JS file parses
+        run: |
+          set -e
+          for f in $(git ls-files '*.js'); do
+            echo "checking $f"
+            node --check "$f"
+          done
+
+  smoke-test:
+    name: Site loads + ticker search (Playwright)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+      # config.js is gitignored (holds real API keys locally) and isn't
+      # fetched at all when deployed, so it doesn't exist here either.
+      # The app needs *some* value in it to proceed past its
+      # "no key configured" check — the real fetches are intercepted and
+      # mocked in tests/smoke.spec.js, so this key is never actually used.
+      - name: Create test-only config.js
+        run: |
+          cat > config.js <<'EOF'
+          const FINNHUB_API_KEY = "ci-test-key";
+          const TWELVE_DATA_API_KEY = "ci-test-key";
+          const FRED_API_KEY = "ci-test-key";
+          const COINGECKO_API_KEY = "ci-test-key";
+          EOF
+      - name: Run smoke test
+        run: npm run test:smoke
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
