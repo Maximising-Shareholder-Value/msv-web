@@ -975,27 +975,82 @@ canvas#priceChart, canvas#volumeChart, canvas#rsiChart, canvas#macdChart { width
 /* ---- Home intro + how-to-use ---- */
 .home-intro-card { margin-bottom: 16px; }
 .home-intro-lead { margin: 0 0 10px; color: var(--text-secondary); line-height: 1.5; }
-.home-how-to summary {
-  cursor: pointer;
+.home-how-to-trigger {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 7px 14px;
   font-weight: 600;
+  font-size: 13px;
   color: var(--accent);
-  list-style: none;
+  cursor: pointer;
 }
-.home-how-to summary::-webkit-details-marker { display: none; }
-.home-how-to summary::before { content: "▸ "; }
-.home-how-to[open] summary::before { content: "▾ "; }
-.home-how-to ol { margin: 12px 0 8px; padding-left: 20px; }
-.home-how-to li { margin-bottom: 8px; line-height: 1.5; }
-.how-to-q {
-  display: inline-block;
-  width: 15px; height: 15px;
+.home-how-to-trigger:hover { background: var(--bg-surface-2); }
+
+/* Paginated "how to use" modal — same overlay pattern as .tooltip-overlay/
+   .tooltip-popup (see that rule set), just its own card since the content
+   shape (slides + nav) is different. */
+.how-to-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 41;
+  width: 90%;
+  max-width: 440px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px 22px 18px;
+  box-shadow: 0 20px 48px rgba(0,0,0,0.55);
+}
+.how-to-modal-close {
+  position: absolute;
+  top: 10px; right: 14px;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+.how-to-modal-close:hover { color: var(--text-primary); }
+.how-to-slides { min-height: 190px; }
+.how-to-slide { display: none; text-align: center; }
+.how-to-slide.active { display: block; }
+.how-to-slide-icon { font-size: 34px; margin-bottom: 6px; }
+.how-to-slide-num { font-size: 11px; color: var(--text-muted); font-weight: 600; letter-spacing: 0.04em; margin-bottom: 8px; }
+.how-to-slide h3 { margin: 0 0 10px; font-size: 17px; }
+.how-to-slide p { margin: 0; font-size: 13.5px; line-height: 1.55; color: var(--text-secondary); }
+.how-to-modal-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 20px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+.how-to-nav-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--text-primary);
+}
+.how-to-nav-btn:disabled { opacity: 0.35; cursor: default; }
+.how-to-nav-btn-primary { background: var(--accent); border-color: var(--accent); color: #06120d; font-weight: 600; }
+.how-to-dots { display: flex; gap: 6px; }
+.how-to-dot {
+  width: 7px; height: 7px;
+  padding: 0;
   border-radius: 50%;
-  border: 1px solid var(--text-muted);
-  color: var(--text-muted);
-  font-size: 10px;
-  text-align: center;
-  line-height: 14px;
+  border: none;
+  background: var(--border);
+  cursor: pointer;
 }
+.how-to-dot.active { background: var(--accent); }
 .sample-data-badge {
   text-transform: none;
   letter-spacing: normal;

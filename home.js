@@ -60,13 +60,16 @@ function fredUrl(seriesId, extraParams) {
 // same idea as the logo badge) purely so the zero-cost browse grid reads
 // as more distinct/designed instead of every category looking identical.
 // Not a status color (doesn't mean good/bad), just a visual identifier.
+// Each category bumped ~50% (12 -> 18 items, 2026-09-19) at Jozsua's
+// request to make the homepage feel fuller — still zero API cost, this is
+// name+ticker only (see the file-level comment above).
 const BROWSE_CATEGORIES = [
-  { id: "trending-tech", title: "Trending Tech", accent: "#6366f1", items: [["AAPL", "Apple"], ["MSFT", "Microsoft"], ["GOOGL", "Alphabet"], ["AMZN", "Amazon"], ["NVDA", "Nvidia"], ["META", "Meta"], ["ORCL", "Oracle"], ["ADBE", "Adobe"], ["INTC", "Intel"], ["CSCO", "Cisco"], ["UBER", "Uber"], ["ABNB", "Airbnb"]] },
-  { id: "blue-chip", title: "Blue Chip", accent: "#0ea5e9", items: [["JNJ", "Johnson & Johnson"], ["PG", "Procter & Gamble"], ["KO", "Coca-Cola"], ["JPM", "JPMorgan Chase"], ["V", "Visa"], ["WMT", "Walmart"], ["MCD", "McDonald's"], ["DIS", "Disney"], ["HD", "Home Depot"], ["UNH", "UnitedHealth"], ["COST", "Costco"], ["PEP", "PepsiCo"]] },
-  { id: "dividend-payers", title: "Dividend Payers", accent: "#f59e0b", items: [["T", "AT&T"], ["XOM", "ExxonMobil"], ["VZ", "Verizon"], ["PFE", "Pfizer"], ["MO", "Altria"], ["IBM", "IBM"], ["CVX", "Chevron"], ["MMM", "3M"], ["KMI", "Kinder Morgan"], ["O", "Realty Income"], ["D", "Dominion Energy"], ["SO", "Southern Company"]] },
-  { id: "growth", title: "Growth", accent: "#ec4899", items: [["TSLA", "Tesla"], ["NFLX", "Netflix"], ["SHOP", "Shopify"], ["PLTR", "Palantir"], ["CRWD", "CrowdStrike"], ["AMD", "AMD"], ["RBLX", "Roblox"], ["DDOG", "Datadog"], ["ZS", "Zscaler"], ["NET", "Cloudflare"], ["SNOW", "Snowflake"], ["ROKU", "Roku"]] },
-  { id: "etfs", title: "ETFs", accent: "#14b8a6", items: [["SPY", "S&P 500"], ["QQQ", "Nasdaq 100"], ["VTI", "Total Market"], ["DIA", "Dow Jones"], ["IWM", "Russell 2000"], ["VOO", "S&P 500 (Vanguard)"], ["ARKK", "ARK Innovation"], ["XLK", "Technology Sector"], ["XLF", "Financial Sector"], ["XLE", "Energy Sector"], ["EFA", "Developed Markets"], ["EEM", "Emerging Markets"]] },
-  { id: "bond-etfs", title: "Bond ETFs", accent: "#8b5cf6", items: [["TLT", "20+Y Treasury"], ["BND", "Total Bond Market"], ["AGG", "US Aggregate Bond"], ["HYG", "High Yield Corp"], ["IEF", "7-10Y Treasury"], ["LQD", "Investment Grade Corp"], ["MUB", "National Muni Bond"], ["SHY", "1-3Y Treasury"], ["VCIT", "Intermediate Corp Bond"], ["EMB", "Emerging Markets Bond"], ["JNK", "High Yield Bond"], ["BIV", "Intermediate-Term Bond"]] },
+  { id: "trending-tech", title: "Trending Tech", accent: "#6366f1", items: [["AAPL", "Apple"], ["MSFT", "Microsoft"], ["GOOGL", "Alphabet"], ["AMZN", "Amazon"], ["NVDA", "Nvidia"], ["META", "Meta"], ["ORCL", "Oracle"], ["ADBE", "Adobe"], ["INTC", "Intel"], ["CSCO", "Cisco"], ["UBER", "Uber"], ["ABNB", "Airbnb"], ["PYPL", "PayPal"], ["NOW", "ServiceNow"], ["PANW", "Palo Alto Networks"], ["MU", "Micron"], ["QCOM", "Qualcomm"], ["SPOT", "Spotify"]] },
+  { id: "blue-chip", title: "Blue Chip", accent: "#0ea5e9", items: [["JNJ", "Johnson & Johnson"], ["PG", "Procter & Gamble"], ["KO", "Coca-Cola"], ["JPM", "JPMorgan Chase"], ["V", "Visa"], ["WMT", "Walmart"], ["MCD", "McDonald's"], ["DIS", "Disney"], ["HD", "Home Depot"], ["UNH", "UnitedHealth"], ["COST", "Costco"], ["PEP", "PepsiCo"], ["MA", "Mastercard"], ["NKE", "Nike"], ["MRK", "Merck"], ["ABT", "Abbott Labs"], ["LOW", "Lowe's"], ["TXN", "Texas Instruments"]] },
+  { id: "dividend-payers", title: "Dividend Payers", accent: "#f59e0b", items: [["T", "AT&T"], ["XOM", "ExxonMobil"], ["VZ", "Verizon"], ["PFE", "Pfizer"], ["MO", "Altria"], ["IBM", "IBM"], ["CVX", "Chevron"], ["MMM", "3M"], ["KMI", "Kinder Morgan"], ["O", "Realty Income"], ["D", "Dominion Energy"], ["SO", "Southern Company"], ["ED", "Consolidated Edison"], ["MDT", "Medtronic"], ["GILD", "Gilead Sciences"], ["BMY", "Bristol-Myers Squibb"], ["NEE", "NextEra Energy"], ["WEC", "WEC Energy"]] },
+  { id: "growth", title: "Growth", accent: "#ec4899", items: [["TSLA", "Tesla"], ["NFLX", "Netflix"], ["SHOP", "Shopify"], ["PLTR", "Palantir"], ["CRWD", "CrowdStrike"], ["AMD", "AMD"], ["RBLX", "Roblox"], ["DDOG", "Datadog"], ["ZS", "Zscaler"], ["NET", "Cloudflare"], ["SNOW", "Snowflake"], ["ROKU", "Roku"], ["COIN", "Coinbase"], ["MDB", "MongoDB"], ["U", "Unity"], ["HOOD", "Robinhood"], ["SOFI", "SoFi"], ["APP", "AppLovin"]] },
+  { id: "etfs", title: "ETFs", accent: "#14b8a6", items: [["SPY", "S&P 500"], ["QQQ", "Nasdaq 100"], ["VTI", "Total Market"], ["DIA", "Dow Jones"], ["IWM", "Russell 2000"], ["VOO", "S&P 500 (Vanguard)"], ["ARKK", "ARK Innovation"], ["XLK", "Technology Sector"], ["XLF", "Financial Sector"], ["XLE", "Energy Sector"], ["EFA", "Developed Markets"], ["EEM", "Emerging Markets"], ["XLV", "Health Care Sector"], ["XLY", "Consumer Discretionary"], ["XLI", "Industrials Sector"], ["XLU", "Utilities Sector"], ["GLD", "Gold"], ["SLV", "Silver"]] },
+  { id: "bond-etfs", title: "Bond ETFs", accent: "#8b5cf6", items: [["TLT", "20+Y Treasury"], ["BND", "Total Bond Market"], ["AGG", "US Aggregate Bond"], ["HYG", "High Yield Corp"], ["IEF", "7-10Y Treasury"], ["LQD", "Investment Grade Corp"], ["MUB", "National Muni Bond"], ["SHY", "1-3Y Treasury"], ["VCIT", "Intermediate Corp Bond"], ["EMB", "Emerging Markets Bond"], ["JNK", "High Yield Bond"], ["BIV", "Intermediate-Term Bond"], ["TIP", "TIPS (Inflation-Protected)"], ["SPTL", "Long-Term Treasury"], ["VGIT", "Intermediate Treasury"], ["FLOT", "Floating Rate Bond"], ["PFF", "Preferred Stock"], ["BSV", "Short-Term Bond"]] },
 ];
 
 // Small, curated universe used ONLY to rank Winners/Losers/Most Active —
@@ -715,4 +718,75 @@ function buildNewsCard(item, isHero) {
   return card;
 }
 
+// ---- "How to use $MSV" modal — paginated, left/right through 5 slides ----
+const HOW_TO_SLIDES = [
+  { icon: "🔍", title: "Search anything", body: `Type any company, ticker, or crypto symbol — "Apple", "AAPL", "BTC" — into the search box up top. You'll get price, valuation, financial health, analyst views, and a plain-English Outlook, all on one page.` },
+  { icon: "❓", title: "Hover the (?) icons", body: "Every indicator on this site has one. Hover it for what the number means and why it matters, in plain English — no finance degree required." },
+  { icon: "🗂️", title: "Browse for ideas", body: "No ticker in mind? Use the tabs below — Trending Tech, Blue Chip, ETFs, Bond ETFs, and more — or check Winners/Losers/Most Active for what's moving today." },
+  { icon: "⚖️", title: "Compare side by side", body: "Use the Compare button up top to put up to 4 tickers side by side and see how they stack up against each other." },
+  { icon: "🌎", title: "Check the bigger picture", body: "The Macro tab covers the economic backdrop — interest rates, inflation, unemployment — that moves the whole market, not just one stock." },
+];
+
+function initHowToModal() {
+  const trigger = document.getElementById("howToTrigger");
+  const overlay = document.getElementById("howToModalOverlay");
+  const modal = document.getElementById("howToModal");
+  const closeBtn = document.getElementById("howToModalClose");
+  const prevBtn = document.getElementById("howToPrev");
+  const nextBtn = document.getElementById("howToNext");
+  const slidesEl = document.getElementById("howToSlides");
+  const dotsEl = document.getElementById("howToDots");
+  if (!trigger || !overlay || !modal) return;
+
+  let index = 0;
+
+  slidesEl.innerHTML = HOW_TO_SLIDES.map((s, i) => `
+    <div class="how-to-slide${i === 0 ? " active" : ""}" data-slide="${i}">
+      <div class="how-to-slide-icon">${s.icon}</div>
+      <div class="how-to-slide-num">${i + 1} / ${HOW_TO_SLIDES.length}</div>
+      <h3>${s.title}</h3>
+      <p>${s.body}</p>
+    </div>
+  `).join("");
+
+  dotsEl.innerHTML = HOW_TO_SLIDES.map((_, i) =>
+    `<button type="button" class="how-to-dot${i === 0 ? " active" : ""}" data-slide="${i}" aria-label="Go to step ${i + 1}"></button>`
+  ).join("");
+
+  const slideEls = slidesEl.querySelectorAll(".how-to-slide");
+  const dotEls = dotsEl.querySelectorAll(".how-to-dot");
+
+  function showSlide(i) {
+    index = Math.max(0, Math.min(HOW_TO_SLIDES.length - 1, i));
+    slideEls.forEach((el, idx) => el.classList.toggle("active", idx === index));
+    dotEls.forEach((el, idx) => el.classList.toggle("active", idx === index));
+    prevBtn.disabled = index === 0;
+    nextBtn.textContent = index === HOW_TO_SLIDES.length - 1 ? "Done ✓" : "Next ›";
+  }
+
+  function open() {
+    showSlide(0);
+    overlay.classList.remove("hidden");
+    modal.classList.remove("hidden");
+  }
+  function close() {
+    overlay.classList.add("hidden");
+    modal.classList.add("hidden");
+  }
+
+  trigger.addEventListener("click", open);
+  closeBtn.addEventListener("click", close);
+  overlay.addEventListener("click", close);
+  prevBtn.addEventListener("click", () => showSlide(index - 1));
+  nextBtn.addEventListener("click", () => (index === HOW_TO_SLIDES.length - 1 ? close() : showSlide(index + 1)));
+  dotEls.forEach(dot => dot.addEventListener("click", () => showSlide(parseInt(dot.dataset.slide, 10))));
+  document.addEventListener("keydown", e => {
+    if (modal.classList.contains("hidden")) return;
+    if (e.key === "Escape") close();
+    if (e.key === "ArrowRight") showSlide(index + 1);
+    if (e.key === "ArrowLeft") showSlide(index - 1);
+  });
+}
+
 initHome();
+initHowToModal();

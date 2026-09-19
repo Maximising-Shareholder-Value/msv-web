@@ -67,16 +67,69 @@ intact.
 - [ ] Only after that: decide a cost model (who pays per query, any usage
       caps) before wiring up real API calls.
 
-## Small, standalone items (not tied to a pillar)
+## Home page enhancements (not tied to a big pillar, but real asks)
+
+- [ ] **Recently Viewed as a sidebar column.** Currently a horizontal row
+      above the tabs (`renderRecentlyViewed()` in `home.js`) — Jozsua
+      wants this reworked into a left- or right-hand column, with the
+      ability to organize/categorize the entries rather than just a flat
+      recency list (2026-09-19 ask). Needs a design decision on what
+      "organize/categorize" means concretely (manual tags? auto-grouped
+      by asset type? a watchlist rather than just recently-viewed?)
+      before building — worth a quick check-in rather than guessing.
+- [ ] **Compare, extended.** A Compare feature already exists
+      (`compare.js`, up to 4 tickers side by side, reuses the same
+      sector/traffic-light logic as the deep-dive page) — Jozsua's
+      2026-09-19 ask adds "underlying assets" to what gets compared,
+      which the current version doesn't do (e.g. an ETF/index fund's
+      actual holdings/composition, not just its price stats). Needs
+      research into whether Finnhub's free tier (or any source in
+      [API_RESEARCH.md](API_RESEARCH.md)) exposes fund holdings at all
+      before promising this.
+
+## Homepage feature recommendations (brainstormed 2026-09-19, not yet chosen)
+
+Asked for "an extensive range of recommendations" to consider adding —
+these are options, not commitments. Roughly ordered by how cheap/easy
+each would be given the app's existing zero-cost architecture:
+
+- **Upcoming earnings calendar strip** — Finnhub's `/calendar/earnings`
+  is already used per-ticker (deep-dive page); a homepage-wide version
+  ("who reports this week") is the same endpoint, no new data source.
+- **Economic calendar** (next Fed meeting, next CPI/jobs report date) —
+  pairs naturally with the Macro tab; FRED doesn't provide calendar
+  dates directly, would need a small curated/hand-maintained list rather
+  than a live feed (dates are known well in advance, low maintenance).
+- **A real watchlist**, separate from Recently Viewed — user manually
+  adds/removes tickers, stored in `localStorage` (same zero-backend
+  pattern already used for theme and recently-viewed). Natural pairing
+  with the "Recently Viewed as a sidebar column" item above.
+- **Sector performance heatmap** (not per-stock — per-sector, e.g. using
+  the `XL*` sector ETFs already in the ETFs browse category) — cheap,
+  reuses tickers already fetched or easily added.
+- **"Did you know" rotating fact** tied to Pillar 5 (the education
+  layer) — a small, free way to surface bite-sized learning content on
+  every visit once that content exists.
+- **Currency/FX strip** (USD/SGD, USD/AUD, etc.) — Twelve Data supports
+  forex; would need to confirm free-tier forex coverage before building
+  (Finnhub's free tier explicitly does NOT cover forex — see the root
+  `CLAUDE.md` — so this would lean on Twelve Data or a new source).
+- **Trending/most-searched tickers this week** — needs some form of
+  shared counter across visitors, which the current architecture doesn't
+  have (everything today is per-browser, no shared backend state) — the
+  one item here that's a real architecture addition, not just more UI.
+
+## Standalone items
 
 - [x] CI: JS syntax check + Playwright smoke test on every PR — done
       2026-09-19, see [HISTORY.md](HISTORY.md).
 - [x] Governance docs (this folder) — done 2026-09-19.
-- [ ] Home page: more explanatory copy + a "how to use" section — in
-      progress 2026-09-19.
-- [ ] Home page: world map / ticker strip switched to placeholder data —
-      in progress 2026-09-19, see the tradeoff note in
-      [ROADMAP.md](ROADMAP.md).
+- [x] Home page: more explanatory copy + a "how to use" popup (paginated
+      modal, not inline) — done 2026-09-19.
+- [x] Home page: world map / ticker strip switched to placeholder data —
+      done 2026-09-19, see the tradeoff note in [ROADMAP.md](ROADMAP.md).
+- [x] Browse categories bumped ~50% more tickers each (12 → 18 per
+      category) — done 2026-09-19.
 - [ ] Quagmire hub page link to $MSV — checked 2026-09-19, currently
       live and correctly pointing at
       `https://msv-web.jozsua-heng.workers.dev/` (verified via a real
