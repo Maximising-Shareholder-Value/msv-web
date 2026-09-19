@@ -972,6 +972,42 @@ canvas#priceChart, canvas#volumeChart, canvas#rsiChart, canvas#macdChart { width
 .market-breadth-stats .positive { color: var(--positive); }
 .market-breadth-stats .negative { color: var(--negative); }
 
+/* ---- Home intro + how-to-use ---- */
+.home-intro-card { margin-bottom: 16px; }
+.home-intro-lead { margin: 0 0 10px; color: var(--text-secondary); line-height: 1.5; }
+.home-how-to summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--accent);
+  list-style: none;
+}
+.home-how-to summary::-webkit-details-marker { display: none; }
+.home-how-to summary::before { content: "▸ "; }
+.home-how-to[open] summary::before { content: "▾ "; }
+.home-how-to ol { margin: 12px 0 8px; padding-left: 20px; }
+.home-how-to li { margin-bottom: 8px; line-height: 1.5; }
+.how-to-q {
+  display: inline-block;
+  width: 15px; height: 15px;
+  border-radius: 50%;
+  border: 1px solid var(--text-muted);
+  color: var(--text-muted);
+  font-size: 10px;
+  text-align: center;
+  line-height: 14px;
+}
+.sample-data-badge {
+  text-transform: none;
+  letter-spacing: normal;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 1px 8px;
+  margin-left: 4px;
+}
+
 /* ---- Global Markets world map ---- */
 .world-markets-card { margin-bottom: 16px; }
 .world-markets-map { width: 100%; position: relative; }

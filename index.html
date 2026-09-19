@@ -45,8 +45,23 @@
 <section id="homeView" class="home-view">
   <div class="home-decor" aria-hidden="true"></div>
 
+  <div class="card home-intro-card">
+    <p class="home-intro-lead">$MSV is a free research dashboard covering stocks, ETFs, crypto, and (via ETFs) bonds and commodities — search any ticker for a full breakdown of its price, valuation, financial health, and a plain-English Outlook, see how major markets around the world are doing right now, and check the US economic backdrop that moves all of it.</p>
+    <details class="home-how-to">
+      <summary>👋 New here? How to use $MSV</summary>
+      <ol>
+        <li><strong>Search</strong> any company, ticker, or crypto symbol (e.g. "Apple", "AAPL", "BTC") in the box above — you'll get price, valuation, financial health, analyst views, and a plain-English Outlook, all on one page.</li>
+        <li><strong>Hover any <span class="how-to-q">(?)</span></strong> next to a number for what it means and why it matters — every indicator on this site has one.</li>
+        <li><strong>Browse</strong> the tabs below (Trending Tech, Blue Chip, ETFs, Bond ETFs, and more) for ideas if you don't have a ticker in mind, or check Winners/Losers/Most Active for what's moving today.</li>
+        <li><strong>Compare</strong> up to 4 tickers side by side using the Compare button up top.</li>
+        <li><strong>Check the Macro tab</strong> for the economic backdrop (interest rates, inflation, unemployment) that moves the whole market, not just one stock.</li>
+      </ol>
+      <p class="muted small">Nothing here is financial advice — it's real data with plain-English explanations, so you can make your own call.</p>
+    </details>
+  </div>
+
   <div class="card world-markets-card">
-    <h3>Global Markets <span class="card-subtitle" id="worldMarketsSummary"></span></h3>
+    <h3>Global Markets <span class="card-subtitle" id="worldMarketsSummary"></span> <span class="sample-data-badge" title="Illustrative sample prices, not live data — kept static so loading this page never uses any of the free-tier API budget.">Sample data</span></h3>
     <div class="world-markets-layout">
       <div id="worldMarketsMap" class="world-markets-map"></div>
       <div id="indexStrip" class="index-strip"></div>

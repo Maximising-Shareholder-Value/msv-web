@@ -113,11 +113,9 @@ const marketBreadthEl = document.getElementById("marketBreadth");
 
 // One shared ticker list feeds BOTH the sidebar list AND the world map's
 // per-exchange markers (worldMarkets.js reads homeState.marketTickers by
-// symbol) — one fetch pass serves two UI surfaces instead of paying for
-// the same data twice. Country ETFs stand in for each exchange's real
-// index since Finnhub's free tier doesn't offer live foreign indices
-// (same reasoning as the original US-index proxies) — 20 quote calls,
-// once per homepage visit, cached 30s at the edge.
+// symbol) — one render pass serves two UI surfaces. Country ETFs stand in
+// for each exchange's real index since Finnhub's free tier doesn't offer
+// live foreign indices (same reasoning as the original US-index proxies).
 const MARKET_TICKERS = [
   ["SPY", "S&P 500"],
   ["QQQ", "Nasdaq 100"],
@@ -140,6 +138,28 @@ const MARKET_TICKERS = [
   ["EWJ", "Japan"],
   ["EWA", "Australia"],
 ];
+
+// Illustrative sample prices/% changes — NOT live data. This used to fire
+// 20 real Finnhub quote calls on every single home page visit regardless
+// of whether the visitor did anything (the single biggest fixed API cost
+// in the app). Replaced 2026-09-19 with a static snapshot so the map and
+// sidebar look complete without spending free-tier budget just for
+// someone loading the home page — see .github/ROADMAP.md for the
+// tradeoff and when to reverse this. Shape matches Finnhub's real /quote
+// response (`c` = price, `dp` = % change) so worldMarkets.js and
+// renderMarketBreadth() don't need to know the difference.
+const MARKET_TICKERS_SAMPLE = {
+  SPY: { c: 748.32, dp: 0.42 }, QQQ: { c: 612.18, dp: 0.68 },
+  DIA: { c: 461.05, dp: -0.15 }, IWM: { c: 241.77, dp: 0.91 },
+  GLD: { c: 401.62, dp: -0.53 }, USO: { c: 71.44, dp: 1.12 },
+  EFA: { c: 92.31, dp: 0.24 }, EEM: { c: 48.16, dp: -0.38 },
+  EWC: { c: 44.90, dp: 0.31 }, EWZ: { c: 33.27, dp: -0.67 },
+  EWU: { c: 39.55, dp: 0.18 }, EWQ: { c: 42.03, dp: -0.22 },
+  EWG: { c: 38.71, dp: 0.55 }, EZA: { c: 47.62, dp: -0.11 },
+  INDA: { c: 55.48, dp: 0.73 }, EWS: { c: 27.19, dp: 0.09 },
+  MCHI: { c: 58.34, dp: -0.94 }, EWH: { c: 24.86, dp: -0.42 },
+  EWJ: { c: 76.20, dp: 0.61 }, EWA: { c: 26.55, dp: 0.14 },
+};
 // 2026-08-14 added 10 more (South Korea/Taiwan/Mexico/Switzerland/
 // Netherlands/Spain/Italy/Indonesia/Silver/Natural Gas) to "fill up" this
 // list; reverted 2026-08-27 — the taller sidebar stretched the map's flex
@@ -160,39 +180,29 @@ function initHome() {
   renderRecentlyViewed();
 }
 
-async function loadMarketTickers() {
-  indexStripEl.innerHTML = MARKET_TICKERS.map(([symbol, name]) =>
-    `<div class="index-chip" data-symbol="${symbol}"><span class="index-chip-name">${name}</span><span class="index-chip-value muted">···</span></div>`
-  ).join("");
-
-  const results = await Promise.all(MARKET_TICKERS.map(async ([symbol]) => {
-    try {
-      const q = await fetchJSON(finnhubUrl("/quote", { symbol }));
-      return isNum(q.c) && q.c !== 0 ? { symbol, quote: q } : null;
-    } catch {
-      return null;
-    }
-  }));
-
-  results.forEach(r => {
-    if (!r) return;
-    homeState.marketTickers[r.symbol] = r.quote;
-    const chip = indexStripEl.querySelector(`.index-chip[data-symbol="${r.symbol}"] .index-chip-value`);
-    if (!chip) return;
-    const dp = r.quote.dp ?? 0;
-    chip.classList.remove("muted");
-    chip.classList.add(dp >= 0 ? "positive" : "negative");
-    chip.textContent = `${formatCurrency(r.quote.c)} (${dp >= 0 ? "+" : ""}${dp.toFixed(2)}%)`;
+// Synchronous now (no fetch) — reads MARKET_TICKERS_SAMPLE instead of
+// calling Finnhub. Clicking a chip still opens the real, live ticker page
+// via loadTicker(); only this homepage snapshot is static.
+function loadMarketTickers() {
+  const results = MARKET_TICKERS.map(([symbol]) => {
+    const quote = MARKET_TICKERS_SAMPLE[symbol];
+    return quote ? { symbol, quote } : null;
   });
+
+  indexStripEl.innerHTML = MARKET_TICKERS.map(([symbol, name]) => {
+    const quote = MARKET_TICKERS_SAMPLE[symbol];
+    const dp = quote ? (quote.dp ?? 0) : 0;
+    const valueClass = quote ? (dp >= 0 ? "positive" : "negative") : "muted";
+    const valueText = quote ? `${formatCurrency(quote.c)} (${dp >= 0 ? "+" : ""}${dp.toFixed(2)}%)` : "···";
+    return `<div class="index-chip" data-symbol="${symbol}"><span class="index-chip-name">${name}</span><span class="index-chip-value ${valueClass}">${valueText}</span></div>`;
+  }).join("");
+
+  results.forEach(r => { if (r) homeState.marketTickers[r.symbol] = r.quote; });
 
   Array.from(indexStripEl.children).forEach(chip => {
     chip.addEventListener("click", () => loadTicker(chip.dataset.symbol));
   });
 
-  // Re-draw the map's markers now that ticker data is available (they
-  // render once immediately on page load, before this fetch resolves, so
-  // they start out price-less and fill in here) — and render the market
-  // breadth strip, which depends on this same data.
   if (typeof renderWorldMarkets === "function") renderWorldMarkets();
   renderMarketBreadth(results.filter(Boolean));
 }
