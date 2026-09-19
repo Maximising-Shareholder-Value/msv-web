@@ -329,6 +329,35 @@ points at the console. Keep this pattern for any new fetch call site that
 shows errors directly to the user — a transient rate-limit blip
 shouldn't look identical to a genuinely broken setup.
 
+## CI (2026-09-19)
+
+`.github/workflows/ci.yml` runs on every PR into `main` (and on push to
+`main`) with two jobs:
+
+- **syntax-check**: `node --check` against every tracked `.js` file.
+  Catches typos/broken syntax instantly, no dependencies installed.
+- **smoke-test**: a single Playwright test (`tests/smoke.spec.js`) that
+  serves the repo with a plain static server, loads the home page, and
+  searches a ticker (AAPL) — then asserts the deep-dive dashboard
+  (`#dashboard`) actually renders and no uncaught JS error fired.
+
+The smoke test does **not** call the real Finnhub/Twelve Data/Wikipedia
+APIs — `page.route()` intercepts those requests and returns small canned
+JSON instead. Reasoning: a shared free-tier key in a public repo's CI
+would be flaky (rate limits, and no real key exists in git anyway — the
+real one is gitignored `config.js`, local-only). This tests "did our own
+JS break", not "is Finnhub up right now", which is the right thing for a
+merge gate to check. If a fetched field's shape changes and a render
+function needs updating, extend the mocked response in
+`tests/smoke.spec.js` to match rather than skipping the check.
+
+`package.json` exists **only** to pin `@playwright/test` and `http-server`
+as dev tooling for this test — the app itself still has no build step and
+deploys as plain static files (see "Deploying publicly" in README.md). If
+Cloudflare's dashboard build settings ever auto-detect this `package.json`
+and try to run a build command, set that build command to empty/none —
+nothing here needs building.
+
 ## Config / secrets
 
 `config.js` holds the real Finnhub/Twelve Data/FRED/CoinGecko keys for
