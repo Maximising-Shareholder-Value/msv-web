@@ -128,6 +128,22 @@ Recently-Viewed sidebar column with categorization, and extending the
 existing Compare feature to cover a fund's underlying holdings, not just
 its price stats.
 
+## Phase 8 — Pillar 1 audit: mostly already solved (2026-09-19)
+
+Before building anything for the "multi-asset-class indicators" pillar,
+ran a real audit against the live production site (not local assumptions)
+across a stock, an index-fund ETF, a bond ETF, two commodity trust ETFs,
+a futures-based commodity ETF, a sector ETF, and two crypto tickers.
+Every single one rendered with zero N/A in any visible card — the
+2026-09-13 ETF/crypto redesign already generalized cleanly to commodity
+ETFs without any extra work being needed. The one N/A found (2 instances
+in AAPL's Insider Transactions table) turned out to be a real missing
+field in a specific SEC Form 4 filing, not a bug. Net result: this pillar
+turned out to be far closer to "done" than the original roadmap assumed
+— see [TODO.md](TODO.md) for what's genuinely left (individual bonds and
+options, which have no free-tier data source at all, not a rendering gap
+to fix).
+
 ---
 
 *Add new phases here as they happen, most recent last — this is meant to
