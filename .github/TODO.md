@@ -25,19 +25,26 @@ intact.
 - [x] Also confirmed: searching a symbol with genuinely zero coverage
       (tested a real Treasury CUSIP) degrades gracefully — stays on the
       home view with a status message, no crash, no broken dashboard.
-- [ ] **What's actually left is narrower than originally scoped:**
-      individual bonds and options have **zero free-tier data available
-      anywhere** (not a rendering bug — there's nothing to render). The
-      only real remaining decisions:
-      - Confirm "browse bond ETFs instead of individual bonds" stays the
-        answer (already the case today, seems right).
-      - Decide whether options are worth pursuing via FlashAlpha (needs
-        a live spike of its actual free-tier limits first — see
-        [API_RESEARCH.md](API_RESEARCH.md)) or explicitly deprioritized.
-- [ ] Still need Jozsua to clarify what "CDCs" meant in the original ask
-      (2026-09-19) — likely a typo (CDs? CDS/credit default swaps?
-      something else?) — in case it points at a real gap the audit above
-      didn't think to test.
+- [x] ~~Clarify what "CDCs" meant in the original ask~~ — dropped,
+      2026-09-19, per Jozsua ("let's ignore CDCs for now").
+- [x] **Researched whether one source covers both bonds and options —
+      done 2026-09-19, see [API_RESEARCH.md](API_RESEARCH.md) for the
+      full comparison (EODHD, Alpaca, Tradier, Polygon/Massive).
+      Conclusion: no free/hobby-accessible source covers both** — EODHD
+      has both but paywalled (~$100/mo bundle); Alpaca has both but
+      bonds specifically requires a business-level "Broker API"
+      partnership, not reachable by a solo project. Treat as two
+      separate decisions:
+      - **Options: Alpaca's Trading API** — genuinely free, self-serve
+        (email signup, free paper account, no funding/approval), real
+        options chains. This replaces FlashAlpha as the lead candidate.
+      - **Bonds: still no free path anywhere.** "Browse via bond ETFs"
+        stays the answer unless the project ever wants to pay ~$100/mo.
+- [ ] **Decide: build the Alpaca options integration now, or hold?**
+      Needs Jozsua to actually create a free Alpaca account (paper
+      trading, no funding) and share API keys before any code can be
+      written against it — not something that can be researched further
+      without that step.
 
 ## Pillar 5: explain-the-concept education layer
 

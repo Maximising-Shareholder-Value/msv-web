@@ -37,6 +37,36 @@ achievable with existing Finnhub/Twelve Data access), and treat options
 as a distinct, smaller follow-up once FlashAlpha's actual limits are
 confirmed by a live test.
 
+### Follow-up: is there ONE source for both bonds and options? (2026-09-19)
+
+Asked specifically — researched four more candidates looking for a
+single vendor covering both, to avoid juggling two separate
+integrations. Short answer: **no free or self-serve-accessible source
+covers both.** Every vendor that has both bundles them differently:
+
+| Source | Bonds | Options | Verdict |
+|---|---|---|---|
+| **EODHD** | Real corporate + government bond data via ISIN/CUSIP | Via a paid marketplace add-on | Both exist, but **both are paid** — the "ALL-IN-ONE" bundle (EOD + Fundamentals + Calendar + Bonds) is $99.99/month, options is a separate paid add-on on top. Free tier (20 calls/day) includes neither. |
+| **Alpaca** | Real US Treasury bills + 500+ corporate bonds | **Free** — confirmed live via their docs: full options trading + real-time/historical options data through the standard self-serve Trading API, enabled by default on a free paper account (just an email signup, no funding, no approval) | **Bonds require the separate "Broker API," which needs a business partnership/application — not reachable by a solo hobby project.** Options, however, is genuinely free and self-serve. |
+| **Tradier** | Not offered at all | Real-time data requires a *funded* live brokerage account; sandbox gives delayed data only | Doesn't solve either half cleanly for a free/hobby setup |
+| **Polygon.io (now branded Massive)** | **Not offered at all** — confirmed via their live pricing page (stocks, options, indices, currencies, futures — no bonds/fixed-income product exists) | Free tier exists for stocks (5 calls/min) but options-specific free tier wasn't disclosed on the pricing page | Options-focused only, no bonds story at any price |
+
+**Practical recommendation:** treat bonds and options as two separate
+decisions, not one:
+- **Options** — **Alpaca's Trading API is the answer**, and it's
+  actually better than the FlashAlpha lead from the first pass: fully
+  free, self-serve (email signup, free paper account, no funding or
+  approval needed), real-time and historical options chains. Update:
+  supersedes the FlashAlpha spike as the next step if/when options
+  coverage gets built.
+- **Bonds** — still a genuine free-tier dead end everywhere checked.
+  The only way to get real individual-bond data is to either pay EODHD
+  ~$100/month (which would also happen to unlock options from the same
+  vendor, undercutting the case for Alpaca) or pursue a business-level
+  partnership (Alpaca Broker API) — neither fits a hobby project's
+  zero-cost architecture. **"Browse via bond ETFs instead" remains the
+  right call** unless real revenue ever justifies a paid data bill.
+
 ## Candidates for multi-country macro (pillar 4)
 
 FRED is Federal Reserve data — **US only** by definition. Two genuinely
@@ -66,3 +96,8 @@ OECD doesn't cover.
 - [Indicator API Queries (World Bank Data Help Desk)](https://datahelpdesk.worldbank.org/knowledgebase/articles/898599-indicator-api-queries)
 - [OECD SDMX API documentation](https://data.oecd.org/api/sdmx-ml-documentation/)
 - CORS support for World Bank/OECD/DBnomics: confirmed directly via live `curl` requests with an `Origin` header on 2026-09-19, not taken from any of the above sources (none of them documented it clearly).
+- [Tradier Market Data docs](https://docs.tradier.com/docs/market-data)
+- [Alpaca Fixed Income docs](https://docs.alpaca.markets/us/docs/fixed-income) — confirms Broker-API-only gating for bonds
+- [Alpaca Options Trading docs](https://docs.alpaca.markets/us/docs/options-trading) — confirms free self-serve paper-account access
+- [Alpaca expands fixed income to corporate bonds (Alpaca blog)](https://alpaca.markets/blog/alpaca-expands-fixed-income-offering-to-include-corporate-bonds/)
+- [Massive (Polygon.io) pricing](https://massive.com/pricing) — confirms no bonds/fixed-income product exists
