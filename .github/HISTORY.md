@@ -144,6 +144,28 @@ turned out to be far closer to "done" than the original roadmap assumed
 options, which have no free-tier data source at all, not a rendering gap
 to fix).
 
+## Phase 9 — Alpaca (options) + World Bank (multi-country macro) backends live (2026-09-21)
+
+Jozsua created a free Alpaca paper-trading account (no funding, no ID
+verification needed — that's only required for a live account) and
+shared the API Key ID/Secret. Both keys were added as Cloudflare secrets
+on `msv-api` and a new `/api/alpaca` route was added to `worker.js`
+(header-based auth, its own `proxyAlpaca()` function since Alpaca
+doesn't use the query-param-key pattern the other four APIs share). A
+second new route, `/api/worldbank`, was added at the same time — World
+Bank needs no signup or key at all, so this was zero setup on Jozsua's
+side, just backend work. Both were deployed and tested against **real**
+upstream data before merging: a live AAPL options chain with real
+bid/ask came back through `/api/alpaca`, and real Singapore CPI
+inflation + Indonesia GDP growth came back through `/api/worldbank`.
+Shipped as [msv-api PR #1](https://github.com/Maximising-Shareholder-Value/msv-api/pull/1)
+— the first PR in that repo since the org split.
+
+This closes the backend half of two roadmap items (options data for
+pillar 1, multi-country macro data for pillar 4) — the frontend UI for
+either (an options view on the ticker page, a country-selectable macro
+dashboard) is still unbuilt, tracked in [TODO.md](TODO.md).
+
 ---
 
 *Add new phases here as they happen, most recent last — this is meant to
