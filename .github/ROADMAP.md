@@ -92,6 +92,114 @@ engineering decision.
 | 5 | **General "explain the concept" layer** | E.g. "what does a Fed rate hike mean, split by category, for the average person" — for someone learning markets from scratch. Can mostly reuse the existing rule-based pattern in `analysis.js` (fixed thresholds → plain-English text) that already powers the Outlook section. |
 | 6 | **Embedded AI research companion** | A chat-style research assistant inside the app, modeled on how Jozsua already researches trades in Claude conversations (see the two conversations referenced when this was scoped, 2026-09-19). The only pillar that requires a live LLM API and breaks the current zero-cost architecture — needs a validation step and a cost model before committing to the full build. |
 
+## Pillar breakdown (what each one actually involves, 2026-09-21)
+
+The table above is the one-line version. Here's each pillar broken into
+its real sub-parts, what's already done vs. still open, roughly how much
+work is left, and what decisions are still needed before building
+further — so "build pillar N" can mean something concrete rather than a
+vague goal.
+
+### Pillar 1 — Multi-asset-class indicators — ~90% done
+
+- ✅ Stock/ETF/crypto/commodity-ETF/bond-ETF indicators — confirmed
+  working via a live audit (2026-09-19).
+- ✅ Options **data**, on the backend — Alpaca proxy live (2026-09-21).
+- ⬜ Options **UI** on the ticker page — nothing on msv-web calls the
+  Alpaca endpoint yet. This is genuinely the only piece left. Concretely
+  needs: an `alpacaUrl()` helper (same pattern as `finnhubUrl()`), a
+  fetch for the searched ticker's options snapshots, a default
+  expiration + strike range to show (all of them would be overwhelming
+  — likely "nearest expiration, a handful of strikes around the current
+  price"), and a rendering function for a chain-style table or a
+  simplified card view.
+- 🚫 Individual bonds — not a build task, a dead end. No free data
+  source exists anywhere (confirmed across 4 vendors). "Browse bond ETFs
+  instead" stays the permanent answer.
+- **Open decision:** full options chain table, or a simplified
+  "a few key strikes" view? A beginner-friendly app probably wants the
+  simplified version, but worth confirming before building either.
+- **Effort to finish:** medium — a self-contained UI feature, no new
+  data source needed, most of the hard part (getting real data flowing)
+  is already done.
+
+### Pillars 2+3 — Supply chain visualization + its education layer — 0% done
+
+The most novel pillar, and the most work, because none of it can be
+pulled from a live API — it has to be researched and curated by hand
+(LLM-assisted, human-verified).
+
+- ⬜ Pick a pilot theme — AI infrastructure is the natural first choice
+  (it's Jozsua's own recurring research interest, per the two Claude
+  conversations that helped scope this whole roadmap).
+- ⬜ Curate 5-10 real companies within that theme and their actual
+  upstream/downstream relationships (who supplies them, who buys from
+  them) — a research task, not an engineering one.
+- ⬜ Decide the data shape — almost certainly a static JSON file shipped
+  with the frontend (no new backend needed), since this data changes
+  slowly and doesn't need to be "live."
+- ⬜ Design the actual visualization — the "sexy visual" part. Options
+  range from a simple layered list (supplier → company → buyer) to an
+  interactive node/link diagram. Worth a dedicated design pass once a
+  few real companies' data exists to design *against*, not before.
+- ⬜ Write the plain-English "why this matters" copy for each
+  relationship shown — this is pillar 3, bundled in since the
+  visualization and its explanation are really one feature, not two.
+- **Open decisions:** confirm the pilot theme; pick a visual style;
+  decide how many "levels" deep to go (just direct suppliers, or
+  suppliers' suppliers too?).
+- **Effort:** high, and ongoing — curation cost scales with how many
+  companies/themes get covered, this doesn't get "finished" so much as
+  "expanded over time" once the pilot proves worth it.
+
+### Pillar 4 — Multi-country macro dashboard — backend done, frontend 0%
+
+- ✅ World Bank data, on the backend — proxy live (2026-09-21), tested
+  with real Singapore/Indonesia data.
+- ⬜ A country selector in the UI (today's Macro tab has no way to pick
+  a country at all — it's hardcoded to US/FRED data).
+- ⬜ Fetching and displaying World Bank indicators for whichever country
+  gets picked.
+- ⬜ A comparison view — 2 (or more) countries side by side, which was
+  part of the original ask, not just a single-country swap.
+- **Open decisions:** which countries to default to/feature; which
+  indicators to prioritize (GDP, inflation, unemployment are the obvious
+  starting set — World Bank has 20,000+, far too many to show at once);
+  UI pattern for picking a country (dropdown? search box? a short list
+  of common ones plus "other"?).
+- **Effort:** medium — structurally similar to the existing US Macro
+  tab, just needs the country dimension added.
+
+### Pillar 5 — Explain-the-concept education layer — 0% done
+
+- ⬜ Pick the first 3-5 concepts to cover (e.g. "what a rate hike means,
+  by sector" was already discussed as a natural first one).
+- ⬜ Write the plain-English explanation for each — this is mostly a
+  writing task, not an engineering one.
+- ⬜ Decide where it lives in the UI — reusing the existing tooltip-style
+  pattern (like indicator definitions), or a dedicated "Learn" section.
+- **Open decisions:** the concept list; placement.
+- **Effort:** low-to-medium — architecturally, this can mostly reuse the
+  existing rule-based pattern in `analysis.js` (fixed thresholds →
+  plain-English text) that already powers the Outlook section. The real
+  cost is writing good, accurate explanations, not code.
+
+### Pillar 6 — Embedded AI research companion — 0% done, deliberately last
+
+- ⬜ Validate the idea cheaply first — ship a few **static** curated
+  research threads (in the spirit of the two Claude conversations that
+  originally inspired this) before building anything live.
+- ⬜ Decide a cost model — this is the only pillar that requires a live
+  LLM API, meaning real, ongoing, per-query cost. Someone has to pay for
+  that as usage grows, which is a business decision, not an engineering
+  one.
+- ⬜ Only after both of those: build the actual live integration.
+- **Open decisions:** is this worth the ongoing cost at all, and if so,
+  who bears it (a usage cap? a paid tier? absorbed as a cost of running
+  the app?).
+- **Effort:** high, plus the only pillar with a real dollar cost that
+  scales with usage — the reason it's sequenced last, not first.
+
 ## Recommended sequence
 
 This came out of a structured impact/effort pass (impact = how much

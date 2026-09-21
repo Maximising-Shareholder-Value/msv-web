@@ -231,15 +231,15 @@ each would be given the app's existing zero-cost architecture:
       tickers) — done 2026-09-21.
 - [x] New "Commodities" browse category (18 tickers) — done 2026-09-21.
 - [x] Governance doc intros simplified/elaborated — done 2026-09-21.
-- [ ] **The "six pillars" build request (2026-09-21) — needs a scope
-      decision, not yet started.** Jozsua asked to build all six roadmap
-      pillars. Building the entire long-term vision in one pass isn't
-      realistic (supply-chain research, an AI-companion cost decision,
-      and a full macro-dashboard UI is genuinely months of work, not one
-      session) and cuts against both the roadmap's own staged sequence
-      and Jozsua's earlier "let's work through it slowly" instruction.
-      Asked him to pick a starting point/pace rather than guessing — see
-      his next reply for the actual answer once given.
+- [x] "What's New" badge swapped from an auto-popup to a quiet red dot
+      on the bell, cleared on click — done 2026-09-21 (the auto-popup
+      was more intrusive than intended).
+- [x] **Six-pillars breakdown — done 2026-09-21**, see the "Pillar
+      breakdown" section in [ROADMAP.md](ROADMAP.md) for the full detail
+      (sub-parts, status, effort, open decisions per pillar).
+- [ ] **Still open: which pillar(s) to actually start building, and at
+      what pace.** The breakdown above is what's needed to make that
+      call — waiting on Jozsua's decision, not yet started.
 - [ ] Quagmire hub page link to $MSV — checked 2026-09-19, currently
       live and correctly pointing at
       `https://msv-web.jozsua-heng.workers.dev/` (verified via a real
