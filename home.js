@@ -109,6 +109,7 @@ const homeState = {
   rankingLoaded: false,
   cryptoLoaded: false,
   marketTickers: {}, // symbol -> quote, from MARKET_TICKERS — read by worldMarkets.js too
+  macroCountry: "USA", // ISO3 — which country the Macro tab is showing
 };
 
 const homeTabsEl = document.getElementById("homeTabs");
@@ -557,7 +558,13 @@ function heatColor(changePct) {
   return clamped >= 0 ? `rgba(27,175,122,${intensity})` : `rgba(208,59,59,${intensity})`;
 }
 
-// ---- Macro tab (FRED) ----
+// ---- Macro tab (FRED for the US, World Bank for everyone else) ----
+// US stays on FRED deliberately — it's monthly/quarterly and far more
+// current than World Bank's mostly-annual series, so switching the US
+// itself over would be a real regression, not just a broader feature.
+// World Bank only covers the other 4 default countries (pillar 4,
+// 2026-09-21) — see .github (org repo) ROADMAP.md/TODO.md for the
+// country/indicator decisions this was scoped against.
 const MACRO_SERIES = [
   { id: "FEDFUNDS", label: "Fed Funds Rate", unit: "%", params: {} },
   { id: "CPIAUCSL", label: "Inflation (CPI, YoY)", unit: "%", params: { units: "pc1" } },
@@ -572,55 +579,150 @@ const MACRO_SERIES = [
   { id: "DCOILWTICO", label: "Crude Oil (WTI)", unit: "", prefix: "$", params: {} },
 ];
 
+// Default country set decided 2026-09-21 (Jozsua picked "major global
+// economies" over featuring his own footprint) — a full country picker
+// for anywhere else is a later fast-follow, not this first pass.
+const MACRO_COUNTRIES = [
+  { iso3: "USA", label: "United States", flag: "🇺🇸", source: "fred" },
+  { iso3: "CHN", label: "China", flag: "🇨🇳", source: "worldbank" },
+  { iso3: "DEU", label: "Germany", flag: "🇩🇪", source: "worldbank" },
+  { iso3: "JPN", label: "Japan", flag: "🇯🇵", source: "worldbank" },
+  { iso3: "GBR", label: "United Kingdom", flag: "🇬🇧", source: "worldbank" },
+];
+
+// World Bank indicator codes — chosen after live-testing several
+// candidates: policy/lending interest rates (FR.INR.RINR, FR.INR.LEND)
+// come back null for the US/UK/Germany/Japan in recent years (World
+// Bank's own reporting gap for advanced economies, confirmed directly),
+// so a rate indicator was swapped for current account balance, which
+// has real recent data for all 5 countries.
+const WORLD_BANK_INDICATORS = [
+  { id: "NY.GDP.MKTP.KD.ZG", label: "GDP Growth", unit: "%" },
+  { id: "FP.CPI.TOTL.ZG", label: "Inflation (CPI, YoY)", unit: "%" },
+  { id: "SL.UEM.TOTL.ZS", label: "Unemployment Rate", unit: "%" },
+  { id: "BN.CAB.XOKA.GD.ZS", label: "Current Account Balance", unit: "% of GDP" },
+];
+
+function worldBankUrl(indicatorId, countryIso3) {
+  const search = new URLSearchParams({
+    path: `/country/${countryIso3}/indicator/${indicatorId}`,
+    format: "json",
+    per_page: "6", // a few years back, in case the latest is null
+  });
+  return `${API_BASE_URL}/api/worldbank?${search.toString()}`;
+}
+
+function buildMacroCountryPicker() {
+  const row = document.createElement("div");
+  row.className = "macro-country-picker";
+  MACRO_COUNTRIES.forEach(c => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "macro-country-btn" + (c.iso3 === homeState.macroCountry ? " active" : "");
+    btn.textContent = `${c.flag} ${c.label}`;
+    btn.addEventListener("click", () => {
+      if (homeState.macroCountry === c.iso3) return;
+      homeState.macroCountry = c.iso3;
+      renderMacroTab();
+    });
+    row.appendChild(btn);
+  });
+  return row;
+}
+
+function buildIndicatorCard(label, value, unit, prefix, dateLabel) {
+  const card = document.createElement("div");
+  card.className = "indicator";
+  const labelEl = document.createElement("div");
+  labelEl.className = "indicator-label";
+  labelEl.textContent = label;
+  const valueEl = document.createElement("div");
+  valueEl.className = "indicator-value";
+  card.appendChild(labelEl);
+  if (isNum(value)) {
+    valueEl.textContent = `${prefix || ""}${value.toFixed(2)}${unit}`;
+    card.appendChild(valueEl);
+    const dateNote = document.createElement("div");
+    dateNote.className = "macro-date";
+    dateNote.textContent = `As of ${dateLabel}`;
+    card.appendChild(dateNote);
+  } else {
+    valueEl.textContent = "N/A";
+    card.appendChild(valueEl);
+  }
+  return card;
+}
+
 async function renderMacroTab() {
-  if (typeof FRED_API_KEY === "undefined" || !FRED_API_KEY || FRED_API_KEY === "YOUR_FRED_KEY_HERE") {
-    homeContentEl.innerHTML = '<p class="muted">Add a free FRED API key to config.js to enable this tab (Fed funds rate, inflation, unemployment, 10-year treasury yield). See README.md.</p>';
+  const country = MACRO_COUNTRIES.find(c => c.iso3 === homeState.macroCountry) || MACRO_COUNTRIES[0];
+
+  homeContentEl.innerHTML = "";
+  homeContentEl.appendChild(buildMacroCountryPicker());
+  const loading = document.createElement("p");
+  loading.className = "muted";
+  loading.textContent = "Loading...";
+  homeContentEl.appendChild(loading);
+
+  if (country.source === "fred") {
+    if (typeof FRED_API_KEY === "undefined" || !FRED_API_KEY || FRED_API_KEY === "YOUR_FRED_KEY_HERE") {
+      loading.textContent = "Add a free FRED API key to config.js to enable this tab (Fed funds rate, inflation, unemployment, 10-year treasury yield). See README.md.";
+      return;
+    }
+
+    const results = await Promise.allSettled(MACRO_SERIES.map(async series => {
+      const data = await fetchJSON(fredUrl(series.id, series.params));
+      const obs = data.observations && data.observations[0];
+      return { value: obs ? parseFloat(obs.value) : null, date: obs ? obs.date : null };
+    }));
+    if (homeState.macroCountry !== country.iso3) return; // switched countries while this was in flight
+
+    const grid = document.createElement("div");
+    grid.className = "grid macro-grid";
+    results.forEach((r, i) => {
+      const series = MACRO_SERIES[i];
+      const ok = r.status === "fulfilled" && isNum(r.value.value);
+      grid.appendChild(buildIndicatorCard(series.label, ok ? r.value.value : null, series.unit, series.prefix, ok ? r.value.date : null));
+    });
+
+    homeContentEl.innerHTML = "";
+    homeContentEl.appendChild(buildMacroCountryPicker());
+    homeContentEl.appendChild(grid);
+
+    const note = document.createElement("p");
+    note.className = "muted small home-note";
+    note.textContent = "US economic indicators from the Federal Reserve (FRED). These update monthly or quarterly, not daily — don't expect them to move on every visit.";
+    homeContentEl.appendChild(note);
     return;
   }
 
-  homeContentEl.innerHTML = '<p class="muted">Loading...</p>';
-
-  const results = await Promise.allSettled(MACRO_SERIES.map(async series => {
-    const data = await fetchJSON(fredUrl(series.id, series.params));
-    const obs = data.observations && data.observations[0];
-    return { value: obs ? parseFloat(obs.value) : null, date: obs ? obs.date : null };
+  // World Bank path — genuinely free, no key needed (see .github repo's
+  // API_RESEARCH.md). Figures are annual, so "As of" here means the
+  // most recent year World Bank has a real (non-null) value for, not
+  // necessarily this year — picks the first non-null entry from a small
+  // recent-years page rather than assuming the latest year is populated.
+  const results = await Promise.allSettled(WORLD_BANK_INDICATORS.map(async ind => {
+    const data = await fetchJSON(worldBankUrl(ind.id, country.iso3));
+    const rows = Array.isArray(data) && Array.isArray(data[1]) ? data[1] : [];
+    const latest = rows.find(row => isNum(row.value));
+    return latest ? { value: latest.value, date: latest.date } : { value: null, date: null };
   }));
+  if (homeState.macroCountry !== country.iso3) return;
 
   const grid = document.createElement("div");
   grid.className = "grid macro-grid";
   results.forEach((r, i) => {
-    const series = MACRO_SERIES[i];
-    const card = document.createElement("div");
-    card.className = "indicator";
-
-    const label = document.createElement("div");
-    label.className = "indicator-label";
-    label.textContent = series.label;
-
-    const value = document.createElement("div");
-    value.className = "indicator-value";
-    if (r.status === "fulfilled" && isNum(r.value.value)) {
-      value.textContent = `${series.prefix || ""}${r.value.value.toFixed(2)}${series.unit}`;
-      const dateNote = document.createElement("div");
-      dateNote.className = "macro-date";
-      dateNote.textContent = `As of ${r.value.date}`;
-      card.appendChild(label);
-      card.appendChild(value);
-      card.appendChild(dateNote);
-    } else {
-      value.textContent = "N/A";
-      card.appendChild(label);
-      card.appendChild(value);
-    }
-    grid.appendChild(card);
+    const ind = WORLD_BANK_INDICATORS[i];
+    const ok = r.status === "fulfilled" && isNum(r.value.value);
+    grid.appendChild(buildIndicatorCard(ind.label, ok ? r.value.value : null, ind.unit, null, ok ? r.value.date : null));
   });
 
   homeContentEl.innerHTML = "";
+  homeContentEl.appendChild(buildMacroCountryPicker());
   homeContentEl.appendChild(grid);
 
   const note = document.createElement("p");
   note.className = "muted small home-note";
-  note.textContent = "US economic indicators from the Federal Reserve (FRED). These update monthly or quarterly, not daily — don't expect them to move on every visit.";
+  note.textContent = `${country.label}'s economic indicators from the World Bank. These are annual figures, not monthly like the US/FRED tab — "as of" the most recent year with real data, which can lag a year or more.`;
   homeContentEl.appendChild(note);
 }
 

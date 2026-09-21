@@ -383,6 +383,20 @@ header { max-width: 1600px; margin: 0 auto 24px; }
 /* ---- Macro tab ---- */
 .macro-grid .indicator { padding: 14px 16px; }
 .macro-date { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
+.macro-country-picker { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+.macro-country-btn {
+  padding: 6px 13px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+.macro-country-btn:hover { border-color: var(--accent); color: var(--text-primary); }
+.macro-country-btn.active { background: var(--accent); border-color: var(--accent); color: var(--accent-contrast); }
 
 #homeNewsList .news-list { max-height: 420px; overflow-y: auto; }
 

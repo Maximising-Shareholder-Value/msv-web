@@ -14,8 +14,9 @@
 // showing a header per commit.
 const CHANGELOG = [
   {
-    date: "2026-09-21T17:30:00+08:00",
+    date: "2026-09-21T18:15:00+08:00",
     items: [
+      "The Macro tab can now show China, Germany, Japan, or the UK, not just the US — pick a country from the new row of buttons.",
       "The whole site is now ~10% bigger and uses more of the browser window's width on larger screens.",
       "Added a simplified Options view on the ticker page — nearest expiration, the strikes closest to today's price, with a plain-English (?) guide for anyone new to options.",
       "ETF/index fund pages now show the fund's real name and issuer (e.g. \"Vanguard S&P 500 ETF\" — Vanguard), plus a real description where one's available.",
