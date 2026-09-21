@@ -40,11 +40,23 @@ intact.
         options chains. This replaces FlashAlpha as the lead candidate.
       - **Bonds: still no free path anywhere.** "Browse via bond ETFs"
         stays the answer unless the project ever wants to pay ~$100/mo.
-- [ ] **Decide: build the Alpaca options integration now, or hold?**
-      Needs Jozsua to actually create a free Alpaca account (paper
-      trading, no funding) and share API keys before any code can be
-      written against it — not something that can be researched further
-      without that step.
+- [x] **Alpaca backend proxy — done and live, 2026-09-21.** Jozsua
+      created a free paper-trading account and shared the API Key
+      ID/Secret. Added as Cloudflare secrets on `msv-api`
+      (`ALPACA_API_KEY_ID`/`ALPACA_API_SECRET_KEY`), plus a new
+      `/api/alpaca` route (`proxyAlpaca()` in `worker.js`, header-based
+      auth) proxying `data.alpaca.markets/v1beta1`. Deployed and tested
+      live: a real AAPL options chain with real bid/ask came back
+      through the proxy. See msv-api's `CLAUDE.md` for the implementation
+      detail.
+- [ ] **Still open: the actual options UI on msv-web.** The backend can
+      now serve real options data, but nothing on the frontend requests
+      or displays it yet — no "Options" section on the ticker page, no
+      way to browse strikes/expirations. This is the next real piece of
+      work, not yet scoped in detail (needs a design decision on what an
+      options view should even look like for a beginner-friendly app —
+      full chain table? a few key strikes only? worth discussing before
+      building blind).
 
 ## ETF/index fund page enhancements (scoped 2026-09-19)
 
@@ -116,12 +128,23 @@ stocks? same `BROWSE_CATEGORIES` bucket for ETFs?) before building.
 
 ## Pillar 4: multi-country macro dashboard
 
-- [ ] Prototype against OECD SDMX or DBnomics first (both callable
-      directly from the browser, no proxy needed — see
-      [API_RESEARCH.md](API_RESEARCH.md)).
-- [ ] Design the country-selector / comparison UI.
-- [ ] Only add a World Bank proxy route on msv-api if OECD/DBnomics don't
-      cover a country or indicator that's actually needed.
+- [x] **World Bank backend proxy — done and live, 2026-09-21.** Jozsua
+      chose World Bank directly (broadest country coverage) rather than
+      starting with OECD/DBnomics as originally suggested. No key/signup
+      needed at all — confirmed it has zero CORS support of its own
+      (same as FRED), so it's proxied via a new `/api/worldbank` route on
+      `msv-api` (reuses the existing generic `proxy()` function). Tested
+      live: real Singapore CPI inflation and real Indonesia GDP growth
+      both came back correctly.
+- [ ] **Still open: the actual macro dashboard UI on msv-web.** The
+      existing Macro tab (`home.js`) is hardcoded to US-only FRED series
+      — needs a country selector, a way to fetch/display World Bank
+      indicators per country, and ideally a comparison view (2+ countries
+      side by side, matching the original ask). Not yet scoped in detail.
+- [ ] OECD SDMX/DBnomics (callable directly from the browser, no proxy
+      needed) remain an option to add later for countries/indicators
+      World Bank doesn't cover well — not blocking, since World Bank
+      alone already covers virtually every country.
 
 ## Pillar 6: AI research companion — validation step only, for now
 
