@@ -51,9 +51,22 @@ body {
   color: var(--text-primary);
   padding: 24px;
   transition: background 0.2s ease, color 0.2s ease;
+  /* Overall 10% bigger, 2026-09-21 request — `zoom` scales the whole
+     rendered page (layout, type, spacing, images) uniformly, same as the
+     browser's own zoom feature, without needing to convert every
+     hand-written px value in this file to a relative unit. Supported in
+     all current major browsers; the one property here that isn't a
+     formal CSS spec standard yet, but is universally implemented. */
+  zoom: 1.1;
+}
+@media (max-width: 700px) {
+  /* Phones already have limited width — stacking a 10% zoom on top
+     shrinks the effective viewport further and forces more wrapping
+     than intended. Desktop/tablet only. */
+  body { zoom: 1; }
 }
 
-header { max-width: 1400px; margin: 0 auto 24px; }
+header { max-width: 1600px; margin: 0 auto 24px; }
 
 .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
 .brand { display: flex; align-items: center; cursor: pointer; }
@@ -214,7 +227,7 @@ header { max-width: 1400px; margin: 0 auto 24px; }
 /* ---- Home page ---- */
 .home-view {
   position: relative;
-  max-width: 1400px;
+  max-width: 1600px;
   margin: 0 auto;
 }
 
@@ -375,7 +388,7 @@ header { max-width: 1400px; margin: 0 auto 24px; }
 
 /* ---- Dashboard layout ---- */
 .dashboard-grid {
-  max-width: 1400px;
+  max-width: 1600px;
   margin: 0 auto;
   display: grid;
   grid-template-columns: 1fr 360px;
@@ -786,7 +799,7 @@ canvas#priceChart { width: 100%; height: 160px; display: block; }
 .muted { color: var(--text-muted); font-size: 13px; }
 .muted.small { font-size: 12px; }
 
-.status { max-width: 1400px; margin: 12px auto; text-align: center; color: var(--text-secondary); font-size: 13px; }
+.status { max-width: 1600px; margin: 12px auto; text-align: center; color: var(--text-secondary); font-size: 13px; }
 .status.error { color: var(--negative); }
 
 .hidden { display: none !important; }
@@ -1196,7 +1209,7 @@ canvas#priceChart, canvas#volumeChart, canvas#rsiChart, canvas#macdChart { width
 }
 
 /* ---- Compare view ---- */
-.compare-view { max-width: 1400px; margin: 0 auto; display: grid; gap: 16px; }
+.compare-view { max-width: 1600px; margin: 0 auto; display: grid; gap: 16px; }
 
 .compare-input-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
 .compare-ticker-input {

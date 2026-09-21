@@ -6,21 +6,28 @@
 // technical version of the same story. Update this array whenever a
 // real change ships; same ongoing discipline, just a different audience
 // and a shorter entry per item.
+// `date` is a full timestamp now (2026-09-21), not just a day — Jozsua
+// asked for the What's New popup to show when things actually shipped,
+// not just which day. Each entry's timestamp is the real time of its
+// last/most-recent change (pulled from actual git commit times, not
+// invented), grouped by day so the popup stays scannable rather than
+// showing a header per commit.
 const CHANGELOG = [
   {
-    date: "2026-09-21",
+    date: "2026-09-21T17:30:00+08:00",
     items: [
+      "The whole site is now ~10% bigger and uses more of the browser window's width on larger screens.",
       "Added a simplified Options view on the ticker page — nearest expiration, the strikes closest to today's price, with a plain-English (?) guide for anyone new to options.",
       "ETF/index fund pages now show the fund's real name and issuer (e.g. \"Vanguard S&P 500 ETF\" — Vanguard), plus a real description where one's available.",
       "Added an After-Hours price field (clearly marked as a sample — no free data source provides a real one yet).",
       "Macro data can now cover any country, not just the US — a country-picker view is coming next.",
       "Homepage: friendlier intro copy, a proper step-by-step \"How to use $MSV\" guide, and more tickers to browse in every category.",
       "Global Markets map now shows countries only — indexes and commodities moved into their own browse categories, including a new Commodities category.",
-      "This \"What's New\" bell now shows a small red dot when there's something new, instead of popping up automatically every time.",
+      "This \"What's New\" bell now shows a small red dot (with a date and time on each update) instead of popping up automatically every time.",
     ],
   },
   {
-    date: "2026-09-19",
+    date: "2026-09-19T15:59:00+08:00",
     items: [
       "Added automatic checks (CI) that catch broken code before it reaches the live site.",
       "ETFs, bond ETFs, and commodity ETFs now get their own proper set of numbers instead of showing blank \"N/A\" everywhere.",
@@ -31,7 +38,7 @@ const CHANGELOG = [
 const WHATS_NEW_SEEN_KEY = "msvWhatsNewLastSeen";
 
 function formatChangelogDate(dateStr) {
-  return new Date(`${dateStr}T00:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  return new Date(dateStr).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" });
 }
 
 function initWhatsNew() {
