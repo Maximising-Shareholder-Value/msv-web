@@ -171,11 +171,11 @@
 
   <div class="strip">
     <div class="strip-cell">
-      <div class="strip-num">1 / 6</div>
+      <div class="strip-num">2 / 6</div>
       <div class="strip-label">shipped (first iteration)</div>
     </div>
     <div class="strip-cell">
-      <div class="strip-num">1 / 6</div>
+      <div class="strip-num">0 / 6</div>
       <div class="strip-label">backend only, no UI yet</div>
     </div>
     <div class="strip-cell">
@@ -188,7 +188,7 @@
     <div class="rail-seg" data-state="done"></div>
     <div class="rail-seg" data-state="open"></div>
     <div class="rail-seg" data-state="open"></div>
-    <div class="rail-seg" data-state="partial"></div>
+    <div class="rail-seg" data-state="done"></div>
     <div class="rail-seg" data-state="open"></div>
     <div class="rail-seg" data-state="open"></div>
   </div>
@@ -246,18 +246,17 @@
           <div class="card-id">PILLAR 04</div>
           <h2 class="card-title">Multi-Country Macro</h2>
         </div>
-        <span class="pill partial">Backend only</span>
+        <span class="pill done">Shipped (v1)</span>
       </div>
-      <p class="card-desc">See any country's economic backdrop — rates, inflation, growth — not just the US.</p>
+      <p class="card-desc">See any country's economic backdrop — growth, inflation, unemployment — not just the US.</p>
       <ul class="sub-list">
-        <li><span class="mark yes">✓</span><span class="txt">World Bank data live — tested with real Singapore/Indonesia figures</span></li>
-        <li><span class="mark no">○</span><span class="txt">Country picker in the UI</span></li>
-        <li><span class="mark no">○</span><span class="txt">Fetching/displaying per-country indicators</span></li>
-        <li><span class="mark no">○</span><span class="txt">Side-by-side comparison of 2+ countries</span></li>
+        <li><span class="mark yes">✓</span><span class="txt">World Bank data live — tested with real China/Germany/Japan figures</span></li>
+        <li><span class="mark yes">✓</span><span class="txt">Country picker in the Macro tab — US (FRED) + China/Germany/Japan/UK (World Bank)</span></li>
+        <li><span class="mark yes">✓</span><span class="txt">4 indicators per country — GDP growth, inflation, unemployment, current account balance</span></li>
+        <li><span class="mark no">○</span><span class="txt">Side-by-side comparison of 2+ countries — fast-follow, not v1</span></li>
       </ul>
       <div class="card-foot">
-        <div class="foot-row"><span class="foot-label">Effort left</span><span class="foot-val">Medium — same shape as the existing US Macro tab</span></div>
-        <div class="foot-row"><span class="foot-label">Decide</span><span class="foot-val">Default countries, which indicators lead, picker style</span></div>
+        <div class="foot-row"><span class="foot-label">Next up</span><span class="foot-val">Comparison view, and a picker for countries outside the default 5</span></div>
       </div>
     </article>
 
