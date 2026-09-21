@@ -1,10 +1,11 @@
 // changelog.js — a short, plain-English list of what's changed in $MSV
 // recently. Powers the "What's New" popup (🔔 in the header) and its
 // red-dot-until-seen badge. Written for people using the app, not
-// developers — see .github/HISTORY.md for the fuller, technical version
-// of the same story. Update this array whenever a real change ships;
-// same ongoing discipline as HISTORY.md, just a different audience and a
-// shorter entry per item.
+// developers — see HISTORY.md in the project's governance repo
+// (github.com/Maximising-Shareholder-Value/.github) for the fuller,
+// technical version of the same story. Update this array whenever a
+// real change ships; same ongoing discipline, just a different audience
+// and a shorter entry per item.
 const CHANGELOG = [
   {
     date: "2026-09-21",
