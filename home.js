@@ -132,20 +132,23 @@ const marketBreadthEl = document.getElementById("marketBreadth");
 // Those seven moved into the ETFs/Commodities browse categories instead
 // (see BROWSE_CATEGORIES above) — one ticker per country/exchange here
 // now, matching worldMarkets.js's 13-entry EXCHANGES list 1:1.
+// 3rd element is the flag, added 2026-09-21 so the sidebar list can show
+// it alongside the country name (matches the flags already used on the
+// map's own markers, in worldMarkets.js's EXCHANGES array).
 const MARKET_TICKERS = [
-  ["SPY", "United States"],
-  ["EWC", "Canada"],
-  ["EWZ", "Brazil"],
-  ["EWU", "United Kingdom"],
-  ["EWQ", "France"],
-  ["EWG", "Germany"],
-  ["EZA", "South Africa"],
-  ["INDA", "India"],
-  ["EWS", "Singapore"],
-  ["MCHI", "China"],
-  ["EWH", "Hong Kong"],
-  ["EWJ", "Japan"],
-  ["EWA", "Australia"],
+  ["SPY", "United States", "🇺🇸"],
+  ["EWC", "Canada", "🇨🇦"],
+  ["EWZ", "Brazil", "🇧🇷"],
+  ["EWU", "United Kingdom", "🇬🇧"],
+  ["EWQ", "France", "🇫🇷"],
+  ["EWG", "Germany", "🇩🇪"],
+  ["EZA", "South Africa", "🇿🇦"],
+  ["INDA", "India", "🇮🇳"],
+  ["EWS", "Singapore", "🇸🇬"],
+  ["MCHI", "China", "🇨🇳"],
+  ["EWH", "Hong Kong", "🇭🇰"],
+  ["EWJ", "Japan", "🇯🇵"],
+  ["EWA", "Australia", "🇦🇺"],
 ];
 
 // Illustrative sample prices/% changes — NOT live data. This used to fire
@@ -195,12 +198,12 @@ function loadMarketTickers() {
     return quote ? { symbol, quote } : null;
   });
 
-  indexStripEl.innerHTML = MARKET_TICKERS.map(([symbol, name]) => {
+  indexStripEl.innerHTML = MARKET_TICKERS.map(([symbol, name, flag]) => {
     const quote = MARKET_TICKERS_SAMPLE[symbol];
     const dp = quote ? (quote.dp ?? 0) : 0;
     const valueClass = quote ? (dp >= 0 ? "positive" : "negative") : "muted";
     const valueText = quote ? `${formatCurrency(quote.c)} (${dp >= 0 ? "+" : ""}${dp.toFixed(2)}%)` : "···";
-    return `<div class="index-chip" data-symbol="${symbol}"><span class="index-chip-name">${name}</span><span class="index-chip-value ${valueClass}">${valueText}</span></div>`;
+    return `<div class="index-chip" data-symbol="${symbol}"><span class="index-chip-name">${flag ? `${flag} ` : ""}${name}</span><span class="index-chip-value ${valueClass}">${valueText}</span></div>`;
   }).join("");
 
   results.forEach(r => { if (r) homeState.marketTickers[r.symbol] = r.quote; });

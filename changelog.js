@@ -14,14 +14,16 @@
 // showing a header per commit.
 const CHANGELOG = [
   {
-    date: "2026-09-21T18:15:00+08:00",
+    date: "2026-09-21T20:20:00+08:00",
     items: [
+      "Global Markets: hover any highlighted country on the map for its index price and an economic snapshot (GDP growth, inflation, unemployment) in one popup.",
+      "The map itself is cleaner now — prices moved into that hover popup instead of sitting permanently under every label (they were already duplicated in the sidebar list anyway).",
+      "The sidebar list now shows a flag next to each country's name.",
       "The Macro tab can now show China, Germany, Japan, or the UK, not just the US — pick a country from the new row of buttons.",
       "The whole site is now ~10% bigger and uses more of the browser window's width on larger screens.",
       "Added a simplified Options view on the ticker page — nearest expiration, the strikes closest to today's price, with a plain-English (?) guide for anyone new to options.",
       "ETF/index fund pages now show the fund's real name and issuer (e.g. \"Vanguard S&P 500 ETF\" — Vanguard), plus a real description where one's available.",
       "Added an After-Hours price field (clearly marked as a sample — no free data source provides a real one yet).",
-      "Macro data can now cover any country, not just the US — a country-picker view is coming next.",
       "Homepage: friendlier intro copy, a proper step-by-step \"How to use $MSV\" guide, and more tickers to browse in every category.",
       "Global Markets map now shows countries only — indexes and commodities moved into their own browse categories, including a new Commodities category.",
       "This \"What's New\" bell now shows a small red dot (with a date and time on each update) instead of popping up automatically every time.",
