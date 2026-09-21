@@ -2,8 +2,9 @@
 
 > This file is the technical reference (how the code works, why specific
 > bugs were fixed the way they were, data-source quirks). For the
-> long-term vision, architecture roadmap, project history, and an
-> actionable to-do list, see [`.github/`](.github/README.md).
+> long-term vision, architecture roadmap, project history, known
+> blockers, and an actionable to-do list, see the org's governance hub:
+> [github.com/Maximising-Shareholder-Value/.github](https://github.com/Maximising-Shareholder-Value/.github).
 
 ## Name
 
