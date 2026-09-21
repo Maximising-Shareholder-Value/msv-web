@@ -220,18 +220,29 @@ async function renderWorldMarkets() {
     // the remaining source of visual weight.
     const textLeft = ex.boxX - bw / 2;
 
+    // The price/% line that used to live here was removed 2026-09-21 —
+    // it duplicated the sidebar list one-for-one (see home.js's index
+    // strip), and now that hovering shows the same figures plus macro
+    // data, keeping a permanently-visible price under every single label
+    // was redundant weight on the map itself. Just the flag + city name
+    // remains as a static anchor; hover is where the real content is.
     const titleText = document.createElementNS(svgNS, "text");
-    titleText.setAttribute("x", textLeft); titleText.setAttribute("y", ex.boxY - bh * 0.12);
+    titleText.setAttribute("x", textLeft); titleText.setAttribute("y", ex.boxY + bh * 0.12);
     titleText.setAttribute("class", "exchange-float-title");
     titleText.textContent = `${ex.flag} ${ex.city}`;
     g.appendChild(titleText);
 
-    const priceText = document.createElementNS(svgNS, "text");
-    priceText.setAttribute("x", textLeft); priceText.setAttribute("y", ex.boxY + bh * 0.3);
-    priceText.setAttribute("class", `exchange-float-price ${dp === null ? "" : dp >= 0 ? "positive" : "negative"}`);
-    const priceStr = tickerQuote ? (chartFormatCurrency ? chartFormatCurrency(tickerQuote.c) : `$${tickerQuote.c.toFixed(2)}`) : "···";
-    priceText.textContent = dp !== null ? `${ex.ticker} ${priceStr} (${dp >= 0 ? "+" : ""}${dp.toFixed(1)}%)` : `${ex.ticker} ${priceStr}`;
-    g.appendChild(priceText);
+    // Hong Kong has no separate landmass shape in this basemap at this
+    // resolution (confirmed: zero SVG elements carry an "hk" class) —
+    // its marker group becomes the hover target instead of a country
+    // shape. This whole <g> is destroyed and rebuilt every render (see
+    // markersLayer.remove() above), so binding here — inside the loop
+    // that already runs on every render — is correct; the persistent
+    // country-shape hovers below are attached once, not per-render.
+    if (ex.country === "HK") {
+      g.classList.add("map-hoverable-country");
+      bindCountryHover(g, ex);
+    }
 
     markersLayer.appendChild(g);
   });
@@ -242,7 +253,115 @@ async function renderWorldMarkets() {
   if (summaryEl) {
     summaryEl.textContent = `${openCount} of ${EXCHANGES.length} major exchanges currently open`;
   }
+
+  // Country-shape hovers only need attaching once — the land/circle
+  // paths themselves are part of the cached, persistent worldMapSvgRoot
+  // (fetched a single time up top), unlike the marker layer above which
+  // is destroyed and rebuilt every render. Re-running this on every
+  // 30-second re-render would pile up duplicate listeners forever.
+  if (!worldMapSvgRoot.dataset.hoversAttached) {
+    attachCountryShapeHovers();
+    worldMapSvgRoot.dataset.hoversAttached = "true";
+  }
 }
+
+// ---- Hover popup: index + macro snapshot, per country (2026-09-21) ----
+// Each tracked country's real SVG landmass gets a hover target — the
+// underlying worldmap.svg already carries a per-country class on its
+// land paths (e.g. class="land coast jp"), confirmed directly by
+// inspecting the file rather than assumed, so `[class~="xx"]` (an exact
+// space-separated class match, order/other-classes-agnostic) reliably
+// selects a real country regardless of how many other classes its path
+// also carries.
+const macroHoverCache = {}; // ISO3 -> Promise<[{label, unit, value, date}]>, so repeat hovers don't re-fetch
+
+function fetchMacroSnapshot(iso3) {
+  if (macroHoverCache[iso3]) return macroHoverCache[iso3];
+  macroHoverCache[iso3] = Promise.allSettled(
+    WORLD_BANK_INDICATORS.map(ind => fetchJSON(worldBankUrl(ind.id, iso3)))
+  ).then(results => WORLD_BANK_INDICATORS.map((ind, i) => {
+    const r = results[i];
+    if (r.status !== "fulfilled") return { label: ind.label, value: null };
+    const rows = Array.isArray(r.value) && Array.isArray(r.value[1]) ? r.value[1] : [];
+    const latest = rows.find(row => typeof row.value === "number");
+    return latest ? { label: ind.label, unit: ind.unit, value: latest.value, date: latest.date } : { label: ind.label, value: null };
+  }));
+  return macroHoverCache[iso3];
+}
+
+let hoverPopupEl = null;
+let hoverHideTimer = null;
+
+function bindCountryHover(el, ex) {
+  el.addEventListener("mouseenter", () => showCountryHover(ex));
+  el.addEventListener("mousemove", positionHoverPopup);
+  el.addEventListener("mouseleave", scheduleHideHover);
+}
+
+function attachCountryShapeHovers() {
+  hoverPopupEl = document.getElementById("mapHoverPopup");
+  if (!hoverPopupEl) return;
+
+  EXCHANGES.forEach(ex => {
+    if (ex.country === "HK") return; // handled per-render above, no persistent shape to bind here
+    const code = ex.country.toLowerCase();
+    const shapes = worldMapSvgRoot.querySelectorAll(`[class~="${code}"]`);
+    shapes.forEach(el => {
+      el.classList.add("map-hoverable-country");
+      bindCountryHover(el, ex);
+    });
+  });
+}
+
+async function showCountryHover(ex) {
+  clearTimeout(hoverHideTimer);
+  const tickerQuote = (typeof homeState !== "undefined" && homeState.marketTickers) ? homeState.marketTickers[ex.ticker] : null;
+  const dp = tickerQuote ? (tickerQuote.dp ?? 0) : null;
+  const priceStr = tickerQuote ? (typeof formatCurrency === "function" ? formatCurrency(tickerQuote.c) : `$${tickerQuote.c.toFixed(2)}`) : "···";
+
+  hoverPopupEl.innerHTML = `
+    <div class="map-hover-title">${ex.flag} ${ex.city} <span class="muted small">(${ex.name})</span></div>
+    <div class="map-hover-index">${ex.ticker} ${priceStr}${dp !== null ? ` <span class="${dp >= 0 ? "positive" : "negative"}">${dp >= 0 ? "+" : ""}${dp.toFixed(1)}%</span>` : ""}</div>
+    <div class="map-hover-macro muted small">Loading economic snapshot...</div>
+  `;
+  hoverPopupEl.classList.remove("hidden");
+
+  const iso3 = COUNTRY_ISO2_TO_ISO3[ex.country];
+  if (!iso3) return; // no World Bank mapping for this one — index-only popup
+  const snapshot = await fetchMacroSnapshot(iso3);
+  const macroEl = hoverPopupEl.querySelector(".map-hover-macro");
+  if (!macroEl) return; // popup moved to a different country before this resolved
+  const lines = snapshot
+    .filter(s => typeof s.value === "number")
+    .map(s => `<div class="map-hover-macro-row"><span>${s.label}</span><span>${s.value.toFixed(1)}${s.unit || ""}</span></div>`)
+    .join("");
+  macroEl.classList.remove("muted", "small");
+  macroEl.innerHTML = lines || '<span class="muted small">No recent World Bank data for this country.</span>';
+}
+
+function positionHoverPopup(e) {
+  if (!hoverPopupEl || hoverPopupEl.classList.contains("hidden")) return;
+  const offset = 16;
+  const popupWidth = hoverPopupEl.offsetWidth || 220;
+  const viewportWidth = window.innerWidth;
+  let left = e.clientX + offset;
+  if (left + popupWidth > viewportWidth - 12) left = e.clientX - offset - popupWidth;
+  hoverPopupEl.style.left = `${left}px`;
+  hoverPopupEl.style.top = `${e.clientY + offset}px`;
+}
+
+function scheduleHideHover() {
+  hoverHideTimer = setTimeout(() => {
+    if (hoverPopupEl) hoverPopupEl.classList.add("hidden");
+  }, 80);
+}
+
+// ISO 3166-1 alpha-2 (used by EXCHANGES/worldmap.svg) -> alpha-3 (used by
+// the World Bank API) — only needs the 13 tracked exchange countries.
+const COUNTRY_ISO2_TO_ISO3 = {
+  US: "USA", CA: "CAN", BR: "BRA", GB: "GBR", FR: "FRA", DE: "DEU",
+  ZA: "ZAF", IN: "IND", SG: "SGP", CN: "CHN", HK: "HKG", JP: "JPN", AU: "AUS",
+};
 
 renderWorldMarkets();
 setInterval(renderWorldMarkets, 30000);

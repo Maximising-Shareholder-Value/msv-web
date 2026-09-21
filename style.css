@@ -1200,12 +1200,38 @@ canvas#priceChart, canvas#volumeChart, canvas#rsiChart, canvas#macdChart { width
   font-size: 46px; font-weight: 800; fill: var(--text-primary); pointer-events: none;
   filter: drop-shadow(0 0 5px var(--bg-page)) drop-shadow(0 0 5px var(--bg-page)) drop-shadow(0 1px 2px rgba(0,0,0,0.5));
 }
-.exchange-float-price {
-  font-size: 36px; font-weight: 700; fill: var(--text-secondary); pointer-events: none;
-  filter: drop-shadow(0 0 4px var(--bg-page)) drop-shadow(0 0 4px var(--bg-page)) drop-shadow(0 1px 2px rgba(0,0,0,0.5));
+
+/* Interactive countries (2026-09-21) — the price/% line that used to sit
+   under every label was removed in favor of hover: a tracked country's
+   real landmass shape (or, for Hong Kong, its marker dot — see
+   worldMarkets.js for why) gets a pointer cursor and a subtle tint so
+   it's discoverable as interactive, distinct from the ~180 other
+   untracked countries on the same map which stay inert. `pointer-events:
+   auto` overrides .exchange-marker's own `pointer-events: none` above,
+   needed specifically for the Hong Kong marker-group case. */
+.map-hoverable-country { cursor: pointer; pointer-events: auto; }
+path.map-hoverable-country { transition: fill-opacity 0.15s ease; }
+path.map-hoverable-country:hover { fill-opacity: 0.7; fill: var(--accent); }
+
+.map-hover-hint { margin: 10px 0 0; text-align: center; }
+
+.map-hover-popup {
+  position: fixed;
+  z-index: 45;
+  width: 270px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  box-shadow: var(--shadow);
+  pointer-events: none;
 }
-.exchange-float-price.positive { fill: var(--positive); }
-.exchange-float-price.negative { fill: var(--negative); }
+.map-hover-title { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+.map-hover-index { font-size: 12.5px; font-weight: 600; color: var(--text-secondary); padding-bottom: 8px; margin-bottom: 8px; border-bottom: 1px solid var(--border); }
+.map-hover-index .positive { color: var(--positive); }
+.map-hover-index .negative { color: var(--negative); }
+.map-hover-macro-row { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; color: var(--text-secondary); padding: 2px 0; }
+.map-hover-macro-row span:last-child { font-weight: 600; color: var(--text-primary); }
 
 /* ---- Home Market status card (ticker deep-dive right column) ---- */
 .home-market-status { display: flex; align-items: center; gap: 8px; font-size: 14px; margin-bottom: 4px; }
