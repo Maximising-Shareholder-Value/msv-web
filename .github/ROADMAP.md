@@ -17,20 +17,24 @@ read start-to-finish by someone new to the project, and updated as
 priorities change — see [HISTORY.md](HISTORY.md) for how we got to this
 point, and [TODO.md](TODO.md) for the concrete next actions.
 
-## Current architecture (as of 2026-09-19)
+## Current architecture (as of 2026-09-21)
 
 ```mermaid
 graph TD
     U["Visitor's browser"] -->|loads static site| W["msv-web<br/>(static HTML/CSS/JS, no build step)"]
-    W -->|"/api/finnhub, /api/twelvedata,<br/>/api/coingecko, /api/fred"| A["msv-api<br/>(Cloudflare Worker, holds real API keys)"]
+    W -->|"/api/finnhub, /api/twelvedata,<br/>/api/coingecko, /api/fred,<br/>/api/alpaca, /api/worldbank"| A["msv-api<br/>(Cloudflare Worker, holds real API keys)"]
     A --> FH["Finnhub<br/>(stocks, ETFs, recs, earnings, news)"]
     A --> TD["Twelve Data<br/>(price charts)"]
     A --> CG["CoinGecko<br/>(crypto)"]
     A --> FR["FRED<br/>(US-only macro: rates, CPI, unemployment)"]
+    A --> AL["Alpaca<br/>(options chains — backend live, no frontend UI yet)"]
+    A --> WB["World Bank<br/>(multi-country macro — backend live, no frontend UI yet)"]
 
     style U fill:#1baf7a,color:#fff
     style W fill:#3ddc84,color:#000
     style A fill:#3ddc84,color:#000
+    style AL fill:#3ddc84,color:#000
+    style WB fill:#3ddc84,color:#000
 ```
 
 Two repos, both under the `Maximising-Shareholder-Value` GitHub org:
@@ -39,7 +43,9 @@ Two repos, both under the `Maximising-Shareholder-Value` GitHub org:
 (the backend proxy — keeps real API keys server-side). Everything today
 is **zero marginal cost** — every data source is a free tier, and the
 only thing that scales with visitors is how close you get to those free
-rate limits.
+rate limits. Alpaca and World Bank were added 2026-09-21 (see
+[HISTORY.md](HISTORY.md) Phase 9) — both proxy routes are live and
+tested against real data, but nothing on the frontend calls them yet.
 
 ## Where the roadmap items plug in
 
@@ -48,24 +54,27 @@ graph TD
     A["msv-api<br/>(Cloudflare Worker)"]
     W["msv-web<br/>(static frontend)"]
 
-    A --> FH["Finnhub / Twelve Data / CoinGecko / FRED<br/>(today)"]
-    A -.->|"new proxy route needed<br/>(no CORS)"| WB["World Bank<br/>multi-country macro"]
-    W -.->|"direct, has CORS —<br/>confirmed live"| OECD["OECD SDMX<br/>multi-country macro"]
+    A --> FH["Finnhub / Twelve Data / CoinGecko / FRED<br/>(live, in use)"]
+    A --> AL["Alpaca<br/>(live, backend only — no options UI yet)"]
+    A --> WB["World Bank<br/>(live, backend only — no macro-dashboard UI yet)"]
+    W -.->|"direct, has CORS —<br/>confirmed live, not yet added"| OECD["OECD SDMX<br/>optional 2nd macro source"]
     W -.->|curated, hand/LLM-researched,<br/>shipped as static JSON, not a live API| SC[("Supply chain<br/>relationship data")]
     A -.->|"real $/query —<br/>breaks the zero-cost model"| LLM["Claude API<br/>AI research companion"]
 
     style A fill:#3ddc84,color:#000
     style W fill:#3ddc84,color:#000
-    style WB fill:#f59e0b,color:#000
+    style AL fill:#3ddc84,color:#000
+    style WB fill:#3ddc84,color:#000
     style OECD fill:#f59e0b,color:#000
     style SC fill:#ec4899,color:#fff
     style LLM fill:#e66767,color:#fff
 ```
 
-Orange = new data source, same zero-cost model as today. Pink = not a
-live API at all — curated content that ships as data files. Red = the
-one piece that genuinely costs real money per use and needs a cost
-decision before it's built, not just an engineering decision.
+Green = live today. Orange = a candidate new data source, same zero-cost
+model, not yet added. Pink = not a live API at all — curated content
+that ships as data files. Red = the one piece that genuinely costs real
+money per use and needs a cost decision before it's built, not just an
+engineering decision.
 
 ## The pillars (what "the vision" breaks down into)
 
@@ -87,7 +96,10 @@ data-sourcing and curation work, not just code):
 1. **Pillar 1 — multi-asset-class indicators.** High impact, low effort:
    reuses existing architecture and API keys you already have, fixes a
    visibly broken thing (N/A everywhere), zero new cost. **Do this
-   first.**
+   first.** — **Status: mostly done.** A live audit (2026-09-19) found
+   ETFs/commodities/crypto already render clean. Options data is now
+   live on the backend (Alpaca, 2026-09-21); the options UI on
+   msv-web is the one piece still open. See [TODO.md](TODO.md).
 2. **Pillar 5 — explain-the-concept layer.** High impact, low-to-medium
    effort: mostly writing, reusing the existing Outlook pattern. This is
    the connective tissue that makes every later data-heavy feature
@@ -101,7 +113,9 @@ data-sourcing and curation work, not just code):
 4. **Pillar 4 — multi-country macro.** Medium impact, high effort: same
    *kind* of work as the US Macro tab, at higher effort (new data
    sources, comparison UI). Do after the education layer exists, so the
-   numbers this tab shows aren't just numbers.
+   numbers this tab shows aren't just numbers. — **Status: backend
+   done.** World Bank proxy is live (2026-09-21, no key needed). The
+   country-selectable dashboard UI on msv-web is still unbuilt.
 5. **Pillar 6 — AI research companion.** High impact, but impact is
    **uncertain** and effort is high, plus it's the only pillar with a
    real ongoing dollar cost. Validate cheaply first — e.g. ship a few
