@@ -66,6 +66,8 @@ mobile-friendly.
 - `analysis.js` — the rule-based Outlook logic (stock/ETF/crypto variants)
 - `changelog.js` — the "What's New" popup (🔔 in the header) and its
   plain-English list of recent changes
+- `roadmap.html` — an internal-only visual status page for the 6 roadmap
+  pillars (not linked from the main nav — see `.github/ROADMAP.md`)
 - `config.js` (gitignored) / `config.example.js` (template) — API keys
 
 ## Deploying publicly (Cloudflare Pages)

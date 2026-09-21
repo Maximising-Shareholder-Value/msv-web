@@ -126,6 +126,10 @@
         <div class="mini-stat"><span class="mini-stat-label">Day High</span><span id="highVal">--</span></div>
         <div class="mini-stat"><span class="mini-stat-label">Day Low</span><span id="lowVal">--</span></div>
         <div class="mini-stat"><span class="mini-stat-label">Prev Close</span><span id="prevCloseVal">--</span></div>
+        <div class="mini-stat mini-stat-placeholder" title="Neither free data source used here returns a real after-hours price — this is a placeholder, not live data.">
+          <span class="mini-stat-label">After-Hours <span class="mini-stat-flag">sample</span></span>
+          <span id="afterHoursVal">--</span>
+        </div>
       </div>
     </section>
 
@@ -233,6 +237,14 @@
         </div>
       </div>
       <div class="grid" id="rangeGrid"></div>
+    </section>
+
+    <section class="card hidden" id="optionsSection">
+      <h3>Options
+        <button id="optionsHelpBtn" class="help-btn">?</button>
+        <span class="card-subtitle">(simplified — nearest expiration only)</span>
+      </h3>
+      <div id="optionsContent"></div>
     </section>
 
     <section class="card">

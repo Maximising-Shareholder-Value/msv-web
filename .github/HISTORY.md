@@ -236,6 +236,45 @@ Two follow-ups after Jozsua saw Phase 10 live:
   needs to actually choose a starting point, rather than another vague
   restatement of the same six one-liners.
 
+## Phase 12 — Pillar 1 shipped (v1), ETF page enrichment, BLOCKERS.md (2026-09-21)
+
+The largest single batch of the day, after Jozsua reviewed the pillar
+artifact and greenlit pillar 1 specifically:
+
+- **Options view shipped.** A new "Options" card on the ticker page
+  (stocks + ETFs) — nearest expiration only, the 7 strikes closest to
+  the current price, bid/ask per call/put, the at-the-money row
+  highlighted, a plain-English `(?)` tooltip explaining calls/puts/
+  strike/bid-ask. Deliberately simplified per Jozsua's explicit request
+  ("not the most familiar with options... keep it light"). Backed by
+  the Alpaca proxy from Phase 9. Verified against real live contract
+  data before shipping (a genuine test bug was caught and fixed along
+  the way — Alpaca's option symbols encode expiration/strike/type in the
+  contract symbol itself, e.g. `AAPL260921C00250000`, which needed a
+  small parser).
+- **ETF pages got real fund names, issuers, and descriptions** — a
+  hand-curated `ETF_FUND_INFO` lookup (Finnhub gives nothing usable for
+  ETFs, confirmed) covering the ~50 tickers already in the home page's
+  browse categories, plus a fallback in the Wikipedia description lookup
+  for when a specific fund has no article of its own (most don't) but
+  its issuer does. Caught and fixed a real bug in testing: a bare
+  "Vanguard" search resolved to the Wikipedia article about the military
+  formation term, not the fund company — fixed with a small
+  disambiguation override.
+- **`BLOCKERS.md` added** — a single consolidated record of everything
+  that's genuinely not buildable right now and exactly why (individual
+  bonds, bid/ask, today's volume, after-hours prices, most ETF fund
+  stats, the Cloudflare notification permission gap), created
+  specifically so Jozsua doesn't have to keep re-asking about the same
+  blockers, per his direct feedback that this had happened a few times.
+- **The six-pillar visual now also lives in the actual repo/site**, not
+  just as an external Claude artifact link — `roadmap.html` at the repo
+  root, reachable at `/roadmap.html` on the live deployment (not linked
+  from the main nav). The Claude artifact was refreshed to match.
+- Cloudflare Workers Builds notifications: Jozsua chose "failures only";
+  logged in [TODO.md](TODO.md) since it needs him to change it himself
+  in the Cloudflare dashboard (no API permission available here).
+
 ---
 
 *Add new phases here as they happen, most recent last — this is meant to

@@ -65,6 +65,17 @@ function finnhubUrl(path, params) {
   return `${API_BASE_URL}/api/finnhub?${search.toString()}`;
 }
 
+// Unlike Finnhub/Twelve Data/CoinGecko, Alpaca is never called directly
+// even in local dev — its keys (ALPACA_API_KEY_ID/ALPACA_API_SECRET_KEY)
+// live only as msv-api secrets, never in the gitignored local config.js,
+// since header-based auth isn't something worth duplicating into a local
+// file for one API. Options data only (see msv-api's proxyAlpaca()).
+function alpacaUrl(path, params) {
+  const search = new URLSearchParams(params || {});
+  search.set("path", path);
+  return `${API_BASE_URL}/api/alpaca?${search.toString()}`;
+}
+
 // ---- DOM refs ----
 const homeTitle = document.getElementById("homeTitle");
 const themeToggle = document.getElementById("themeToggle");
@@ -85,6 +96,7 @@ const openVal = document.getElementById("openVal");
 const highVal = document.getElementById("highVal");
 const lowVal = document.getElementById("lowVal");
 const prevCloseVal = document.getElementById("prevCloseVal");
+const afterHoursVal = document.getElementById("afterHoursVal");
 
 const descriptionContent = document.getElementById("descriptionContent");
 
@@ -100,6 +112,9 @@ const rangeGaugeWrap = document.getElementById("rangeGaugeWrap");
 const rangeGaugeMarker = document.getElementById("rangeGaugeMarker");
 const rangeLowLabel = document.getElementById("rangeLowLabel");
 const rangeHighLabel = document.getElementById("rangeHighLabel");
+
+const optionsSection = document.getElementById("optionsSection");
+const optionsContent = document.getElementById("optionsContent");
 
 const earningsContent = document.getElementById("earningsContent");
 const financialsContent = document.getElementById("financialsContent");
@@ -137,6 +152,71 @@ let currentIndustry = null;
 let currentBucket = "default";
 
 // ---- Instrument type (stock / etf / crypto) ----
+// Hand-curated fund name/issuer lookup, covering the ~50 ETF tickers
+// already featured in home.js's browse categories (ETFs/Bond ETFs/
+// Commodities). Finnhub's profile2 returns an empty object for every ETF
+// (confirmed directly — it's literally how getInstrumentType() detects
+// "this is an ETF" below), so there's no live source for a fund's real
+// name or issuer. This is general knowledge, not live-verified against
+// any API — correct it if a name/issuer is wrong. Anything searched
+// outside this list still falls back to symbol-only display, same as
+// before this existed. See .github/BLOCKERS.md for the long-tail gap
+// this doesn't fix (needs a confirmed FMP key to do properly).
+const ETF_FUND_INFO = {
+  SPY: { name: "SPDR S&P 500 ETF Trust", issuer: "State Street Global Advisors" },
+  QQQ: { name: "Invesco QQQ Trust", issuer: "Invesco" },
+  VTI: { name: "Vanguard Total Stock Market ETF", issuer: "Vanguard" },
+  DIA: { name: "SPDR Dow Jones Industrial Average ETF Trust", issuer: "State Street Global Advisors" },
+  IWM: { name: "iShares Russell 2000 ETF", issuer: "BlackRock (iShares)" },
+  VOO: { name: "Vanguard S&P 500 ETF", issuer: "Vanguard" },
+  ARKK: { name: "ARK Innovation ETF", issuer: "ARK Invest" },
+  XLK: { name: "Technology Select Sector SPDR Fund", issuer: "State Street Global Advisors" },
+  XLF: { name: "Financial Select Sector SPDR Fund", issuer: "State Street Global Advisors" },
+  XLE: { name: "Energy Select Sector SPDR Fund", issuer: "State Street Global Advisors" },
+  EFA: { name: "iShares MSCI EAFE ETF", issuer: "BlackRock (iShares)" },
+  EEM: { name: "iShares MSCI Emerging Markets ETF", issuer: "BlackRock (iShares)" },
+  XLV: { name: "Health Care Select Sector SPDR Fund", issuer: "State Street Global Advisors" },
+  XLY: { name: "Consumer Discretionary Select Sector SPDR Fund", issuer: "State Street Global Advisors" },
+  XLI: { name: "Industrial Select Sector SPDR Fund", issuer: "State Street Global Advisors" },
+  XLU: { name: "Utilities Select Sector SPDR Fund", issuer: "State Street Global Advisors" },
+  TLT: { name: "iShares 20+ Year Treasury Bond ETF", issuer: "BlackRock (iShares)" },
+  BND: { name: "Vanguard Total Bond Market ETF", issuer: "Vanguard" },
+  AGG: { name: "iShares Core U.S. Aggregate Bond ETF", issuer: "BlackRock (iShares)" },
+  HYG: { name: "iShares iBoxx $ High Yield Corporate Bond ETF", issuer: "BlackRock (iShares)" },
+  IEF: { name: "iShares 7-10 Year Treasury Bond ETF", issuer: "BlackRock (iShares)" },
+  LQD: { name: "iShares iBoxx $ Investment Grade Corporate Bond ETF", issuer: "BlackRock (iShares)" },
+  MUB: { name: "iShares National Muni Bond ETF", issuer: "BlackRock (iShares)" },
+  SHY: { name: "iShares 1-3 Year Treasury Bond ETF", issuer: "BlackRock (iShares)" },
+  VCIT: { name: "Vanguard Intermediate-Term Corporate Bond ETF", issuer: "Vanguard" },
+  EMB: { name: "iShares J.P. Morgan USD Emerging Markets Bond ETF", issuer: "BlackRock (iShares)" },
+  JNK: { name: "SPDR Bloomberg High Yield Bond ETF", issuer: "State Street Global Advisors" },
+  BIV: { name: "Vanguard Intermediate-Term Bond ETF", issuer: "Vanguard" },
+  TIP: { name: "iShares TIPS Bond ETF", issuer: "BlackRock (iShares)" },
+  SPTL: { name: "SPDR Portfolio Long Term Treasury ETF", issuer: "State Street Global Advisors" },
+  VGIT: { name: "Vanguard Intermediate-Term Treasury ETF", issuer: "Vanguard" },
+  FLOT: { name: "iShares Floating Rate Bond ETF", issuer: "BlackRock (iShares)" },
+  PFF: { name: "iShares Preferred and Income Securities ETF", issuer: "BlackRock (iShares)" },
+  BSV: { name: "Vanguard Short-Term Bond ETF", issuer: "Vanguard" },
+  GLD: { name: "SPDR Gold Shares", issuer: "State Street Global Advisors / World Gold Council" },
+  SLV: { name: "iShares Silver Trust", issuer: "BlackRock (iShares)" },
+  PPLT: { name: "abrdn Physical Platinum Shares ETF", issuer: "abrdn" },
+  PALL: { name: "abrdn Physical Palladium Shares ETF", issuer: "abrdn" },
+  USO: { name: "United States Oil Fund", issuer: "United States Commodity Funds" },
+  BNO: { name: "United States Brent Oil Fund", issuer: "United States Commodity Funds" },
+  UNG: { name: "United States Natural Gas Fund", issuer: "United States Commodity Funds" },
+  DBA: { name: "Invesco DB Agriculture Fund", issuer: "Invesco" },
+  CORN: { name: "Teucrium Corn Fund", issuer: "Teucrium" },
+  WEAT: { name: "Teucrium Wheat Fund", issuer: "Teucrium" },
+  SOYB: { name: "Teucrium Soybean Fund", issuer: "Teucrium" },
+  CANE: { name: "Teucrium Sugar Fund", issuer: "Teucrium" },
+  JO: { name: "iPath Series B Bloomberg Coffee Subindex Total Return ETN", issuer: "Barclays" },
+  CPER: { name: "United States Copper Index Fund", issuer: "United States Commodity Funds" },
+  URA: { name: "Global X Uranium ETF", issuer: "Global X" },
+  DBC: { name: "Invesco DB Commodity Index Tracking Fund", issuer: "Invesco" },
+  GSG: { name: "iShares S&P GSCI Commodity-Indexed Trust", issuer: "BlackRock (iShares)" },
+  PDBC: { name: "Invesco Optimum Yield Diversified Commodity Strategy No K-1 ETF", issuer: "Invesco" },
+};
+
 // Companies, ETFs, and crypto need genuinely different analysis sections
 // below the chart — an ETF/crypto has no P/E, margins, or earnings, and
 // Finnhub's fundamentals endpoints confirm this by simply returning empty
@@ -353,13 +433,22 @@ async function loadTicker(symbol) {
     const instrumentType = getInstrumentType(symbol, profile);
     currentIndustry = profile.finnhubIndustry || null;
     currentBucket = getSectorBucket(currentIndustry);
+
+    // Fill in the fund's real name/issuer from the curated lookup before
+    // anything renders off profile.name — see ETF_FUND_INFO's own comment
+    // for why this can't come from Finnhub. instrumentType is already
+    // decided above (off the untouched, empty profile.name), so mutating
+    // it here only affects display, not detection.
+    const fundInfo = instrumentType === "etf" ? ETF_FUND_INFO[symbol] : null;
+    if (fundInfo) profile.name = fundInfo.name;
+
     recordRecentlyViewed(symbol, profile.name || symbol);
 
     applyInstrumentTypeUI(instrumentType);
     renderOverview(symbol, quote, profile);
     renderHomeMarketStatus(profile);
-    renderCompanyFacts(profile);
-    renderDescription(profile.name);
+    renderCompanyFacts(profile, fundInfo);
+    renderDescription(profile.name, fundInfo?.issuer);
 
     if (instrumentType === "etf") {
       renderETFPerformance(metric);
@@ -388,6 +477,7 @@ async function loadTicker(symbol) {
     initChart(symbol);
     initInvestCalc(symbol);
     loadSecondaryData(symbol, profile, myToken);
+    loadOptions(symbol, quote, instrumentType);
   } catch (err) {
     if (myToken !== loadToken) return;
     console.error(err);
@@ -478,6 +568,7 @@ async function loadCryptoTicker(symbol) {
     initChart(symbol); // already shows "not supported for this format" for exotic symbols
     initInvestCalc(symbol); // already shows "not available" for exotic symbols
     loadCryptoNews(myToken);
+    if (optionsSection) optionsSection.classList.add("hidden"); // no crypto options via Alpaca's US-equities endpoint
   } catch (err) {
     if (myToken !== loadToken) return;
     console.error(err);
@@ -592,6 +683,16 @@ function renderOverview(symbol, quote, profile) {
   highVal.textContent = formatCurrency(quote.h);
   lowVal.textContent = formatCurrency(quote.l);
   prevCloseVal.textContent = formatCurrency(quote.pc);
+
+  // Placeholder only — neither Finnhub nor Twelve Data's free tier
+  // returns a real after-hours/pre-market price (confirmed directly, see
+  // .github/BLOCKERS.md). Deterministic per symbol (not random each
+  // render) so it doesn't visibly jump around on repeat visits, and
+  // clearly flagged "sample" in the UI rather than presented as real.
+  if (afterHoursVal) {
+    const seeded = (symbol.charCodeAt(0) + symbol.charCodeAt(symbol.length - 1)) % 21 - 10; // -10..+10
+    afterHoursVal.textContent = formatCurrency(quote.c * (1 + seeded / 1000));
+  }
 }
 
 // "Is this stock's own listing exchange open right now?" — reuses the
@@ -621,9 +722,10 @@ function renderHomeMarketStatus(profile) {
   homeMarketInterval = setInterval(paint, 30000);
 }
 
-function renderCompanyFacts(profile) {
+function renderCompanyFacts(profile, fundInfo) {
   companyFacts.innerHTML = "";
   const facts = [
+    ["Fund Issuer", fundInfo?.issuer || null],
     ["Founded / IPO", profile.ipo || null],
     ["Headquarters", profile.country || null],
     ["Website", profile.weburl || null],
@@ -700,14 +802,39 @@ function renderUpcomingEvents(earningsCalendarRes) {
   upcomingEvents.appendChild(row);
 }
 
-async function renderDescription(companyDisplayName) {
+// `fallbackName` (2026-09-21) — most individual ETFs have no dedicated
+// Wikipedia article of their own (confirmed directly: SPY/QQQ/GLD do,
+// but VOO/IWM/ARKK don't), while their issuer almost always does. Falls
+// back to describing the fund's issuer rather than showing nothing, and
+// says so plainly rather than presenting it as if it were about the fund
+// itself.
+async function renderDescription(companyDisplayName, fallbackName) {
   if (!companyDisplayName) {
     descriptionContent.textContent = "No company description available for this symbol (common for ETFs and crypto, which aren't operating companies).";
     return;
   }
   descriptionContent.textContent = "Looking up a short description...";
   const text = await fetchCompanyDescription(companyDisplayName);
-  descriptionContent.textContent = text || "No public description found for this symbol.";
+  if (text) {
+    descriptionContent.textContent = text;
+    return;
+  }
+  if (fallbackName) {
+    const cleanFallback = fallbackName.replace(/\s*\(.*?\)\s*/g, "").split(" / ")[0].trim();
+    // A bare issuer name is sometimes ambiguous on Wikipedia — confirmed
+    // directly that a plain "Vanguard" search resolves to the military
+    // term (the leading part of an advancing formation), not the fund
+    // company. Add an entry here if another issuer name turns out
+    // similarly ambiguous; the displayed text still uses cleanFallback.
+    const WIKI_SEARCH_OVERRIDES = { Vanguard: "The Vanguard Group" };
+    const searchTerm = WIKI_SEARCH_OVERRIDES[cleanFallback] || cleanFallback;
+    const fallbackText = await fetchCompanyDescription(searchTerm);
+    if (fallbackText) {
+      descriptionContent.textContent = `No dedicated description found for this specific fund — here's its issuer instead. About ${cleanFallback}: ${fallbackText}`;
+      return;
+    }
+  }
+  descriptionContent.textContent = "No public description found for this symbol.";
 }
 
 async function fetchCompanyDescription(companyDisplayName) {
@@ -917,6 +1044,125 @@ function renderETFTradingActivity(metric) {
   renderRealLifeExample("healthExample", [
     isNum(beta) && beta !== 1 && `If the overall market moved 10% (up or down), this fund has historically moved about <strong>${(beta * 10).toFixed(1)}%</strong> — that's what a beta of ${beta.toFixed(2)} means in practice.`,
   ]);
+}
+
+// ---- Options (pillar 1, 2026-09-21) ----
+// Deliberately simplified for its first iteration, per Jozsua's own
+// request ("I'm not the most familiar with options, keep it light") —
+// nearest expiration only, the ~7 strikes closest to the current price,
+// bid/ask only, no Greeks/implied volatility yet. Backed by Alpaca via
+// msv-api's /api/alpaca proxy (see .github/HISTORY.md Phase 9). Shown
+// for stocks and ETFs (many ETFs have real listed options); hidden for
+// crypto, which Alpaca's US-equities options endpoint doesn't cover.
+async function loadOptions(symbol, quote, instrumentType) {
+  if (instrumentType === "crypto" || !optionsSection) {
+    if (optionsSection) optionsSection.classList.add("hidden");
+    return;
+  }
+  optionsSection.classList.remove("hidden");
+  optionsContent.innerHTML = '<p class="muted">Loading options...</p>';
+
+  const price = quote.c;
+  const today = new Date();
+  const maxDate = new Date(today.getTime() + 45 * 24 * 60 * 60 * 1000);
+  const fmtDate = d => d.toISOString().slice(0, 10);
+
+  try {
+    // A tight strike band (±15%) and a 45-day expiration window keep this
+    // to one request for the vast majority of symbols, instead of paging
+    // through every expiration/strike Alpaca has on file.
+    const data = await fetchJSON(alpacaUrl(`/options/snapshots/${symbol}`, {
+      feed: "indicative",
+      limit: 200,
+      expiration_date_gte: fmtDate(today),
+      expiration_date_lte: fmtDate(maxDate),
+      strike_price_gte: (price * 0.85).toFixed(2),
+      strike_price_lte: (price * 1.15).toFixed(2),
+    }));
+
+    const snapshots = (data && data.snapshots) || {};
+    const parsed = Object.entries(snapshots)
+      .map(([occSymbol, snap]) => parseOptionSymbol(occSymbol, symbol, snap))
+      .filter(Boolean);
+
+    if (parsed.length === 0) {
+      optionsContent.innerHTML = '<p class="muted">No options data available for this symbol.</p>';
+      return;
+    }
+
+    const nearestExpiry = parsed.reduce((min, o) => (o.expiry < min ? o.expiry : min), parsed[0].expiry);
+    const forExpiry = parsed.filter(o => o.expiry === nearestExpiry);
+
+    const strikeDistances = [...new Set(forExpiry.map(o => o.strike))]
+      .map(s => ({ strike: s, dist: Math.abs(s - price) }))
+      .sort((a, b) => a.dist - b.dist)
+      .slice(0, 7);
+    const closestStrikes = strikeDistances.map(s => s.strike).sort((a, b) => a - b);
+
+    const byStrike = {};
+    forExpiry.forEach(o => {
+      byStrike[o.strike] = byStrike[o.strike] || {};
+      byStrike[o.strike][o.type] = o.snap;
+    });
+
+    renderOptionsTable(closestStrikes, byStrike, price, nearestExpiry);
+  } catch {
+    optionsContent.innerHTML = '<p class="muted">Couldn\'t load options data right now.</p>';
+  }
+}
+
+// Alpaca's option symbols are OCC-style: <root><YYMMDD><C|P><strike x
+// 1000, 8 digits> — e.g. AAPL260921C00250000 = AAPL, 2026-09-21, Call,
+// $250.00 strike. The root's length varies by ticker (AAPL=4, GOOGL=5)
+// and isn't otherwise delimited, so it's stripped using the underlying
+// symbol that was actually searched, rather than parsed generically.
+function parseOptionSymbol(occSymbol, underlying, snap) {
+  if (!occSymbol.startsWith(underlying)) return null;
+  const rest = occSymbol.slice(underlying.length);
+  const m = rest.match(/^(\d{2})(\d{2})(\d{2})([CP])(\d{8})$/);
+  if (!m) return null;
+  const [, yy, mm, dd, cp, strikeRaw] = m;
+  return {
+    expiry: `20${yy}-${mm}-${dd}`,
+    type: cp === "C" ? "call" : "put",
+    strike: parseInt(strikeRaw, 10) / 1000,
+    snap,
+  };
+}
+
+function renderOptionsTable(strikes, byStrike, price, expiry) {
+  const closestDist = Math.min(...strikes.map(s => Math.abs(s - price)));
+  const rows = strikes.map(strike => {
+    const call = byStrike[strike]?.call?.latestQuote;
+    const put = byStrike[strike]?.put?.latestQuote;
+    const isATM = Math.abs(strike - price) === closestDist;
+    return `
+      <tr class="${isATM ? "options-atm-row" : ""}">
+        <td>${isNum(call?.bp) ? formatCurrency(call.bp) : "--"}</td>
+        <td>${isNum(call?.ap) ? formatCurrency(call.ap) : "--"}</td>
+        <td class="options-strike-cell">${formatCurrency(strike)}</td>
+        <td>${isNum(put?.bp) ? formatCurrency(put.bp) : "--"}</td>
+        <td>${isNum(put?.ap) ? formatCurrency(put.ap) : "--"}</td>
+      </tr>`;
+  }).join("");
+
+  optionsContent.innerHTML = `
+    <p class="muted small">Nearest available expiration: <strong>${formatExpiryDate(expiry)}</strong> — the ${strikes.length} strikes closest to the current price, highlighted below.</p>
+    <div class="options-table-scroll">
+      <table class="options-table">
+        <thead>
+          <tr><th colspan="2">Call</th><th></th><th colspan="2">Put</th></tr>
+          <tr><th>Bid</th><th>Ask</th><th>Strike</th><th>Bid</th><th>Ask</th></tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    <p class="muted small">Bid/ask are indicative quotes, not guaranteed tradeable prices. Simplified first pass — no Greeks or implied volatility yet.</p>
+  `;
+}
+
+function formatExpiryDate(iso) {
+  return new Date(`${iso}T00:00:00`).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
 // ---- Crypto-specific sections (Market Stats / Performance) ----
@@ -1661,3 +1907,4 @@ document.getElementById("rsiHelpBtn").addEventListener("click", () => showToolti
 document.getElementById("macdHelpBtn").addEventListener("click", () => showTooltip("MACD (12, 26, 9)", "macd"));
 document.getElementById("sharesHelpBtn").addEventListener("click", () => showTooltip("Shares Breakdown", "sharesBreakdown"));
 document.getElementById("insiderHelpBtn").addEventListener("click", () => showTooltip("Insider Transactions", "insiderTransactions"));
+document.getElementById("optionsHelpBtn").addEventListener("click", () => showTooltip("Options", "options"));

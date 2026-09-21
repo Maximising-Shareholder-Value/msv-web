@@ -438,6 +438,28 @@ header { max-width: 1400px; margin: 0 auto 24px; }
 .mini-stat { display: flex; flex-direction: column; gap: 3px; }
 .mini-stat-label { font-size: 11px; color: var(--text-muted); }
 .mini-stat span:last-child { font-size: 14px; font-weight: 600; }
+.mini-stat-flag {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0 5px;
+  margin-left: 3px;
+}
+.mini-stat-placeholder span:last-child { color: var(--text-muted); font-style: italic; }
+
+/* Options table */
+.options-table-scroll { overflow-x: auto; }
+.options-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.options-table th, .options-table td { padding: 9px 10px; text-align: center; }
+.options-table thead tr:first-child th { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted); }
+.options-table thead tr:last-child th { font-size: 11px; color: var(--text-muted); font-weight: 600; border-bottom: 1px solid var(--border); }
+.options-table td.options-strike-cell { font-weight: 700; background: var(--bg-surface-2); }
+.options-atm-row td { background: color-mix(in srgb, var(--accent) 10%, transparent); }
+.options-atm-row td.options-strike-cell { background: color-mix(in srgb, var(--accent) 22%, transparent); }
+.options-table tbody tr:not(:last-child) td { border-bottom: 1px solid var(--border); }
 
 .description-text { font-size: 13px; line-height: 1.6; color: var(--text-secondary); margin: 0; }
 
