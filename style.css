@@ -94,7 +94,7 @@ header { max-width: 1400px; margin: 0 auto 24px; }
 }
 .tagline { margin: 6px 0 16px; color: var(--text-secondary); font-size: 13px; max-width: 540px; line-height: 1.5; }
 
-.theme-toggle {
+.theme-toggle, .whats-new-trigger {
   width: 36px; height: 36px;
   border-radius: 50%;
   border: 1px solid var(--border);
@@ -104,7 +104,34 @@ header { max-width: 1400px; margin: 0 auto 24px; }
   display: flex; align-items: center; justify-content: center;
   transition: border-color 0.15s ease, transform 0.15s ease;
 }
-.theme-toggle:hover { border-color: var(--accent); transform: scale(1.05); }
+.theme-toggle:hover, .whats-new-trigger:hover { border-color: var(--accent); transform: scale(1.05); }
+
+/* ---- "What's New" popup — same overlay pattern as .tooltip-overlay/
+   .how-to-modal, a scrollable dated list instead of paginated slides. */
+.whats-new-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 41;
+  width: 90%;
+  max-width: 480px;
+  max-height: 80vh;
+  overflow-y: auto;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 20px;
+  box-shadow: 0 20px 48px rgba(0,0,0,0.55);
+}
+.whats-new-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.whats-new-header h3 { margin: 0; font-size: 16px; }
+.whats-new-entry { padding: 12px 0; border-top: 1px solid var(--border); }
+.whats-new-entry:first-child { border-top: none; }
+.whats-new-date { font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
+.whats-new-list ul { margin: 0; padding-left: 18px; }
+.whats-new-list li { font-size: 13.5px; line-height: 1.55; color: var(--text-secondary); margin-bottom: 6px; }
+.whats-new-list li:last-child { margin-bottom: 0; }
 
 .search-row { display: flex; gap: 8px; max-width: 620px; }
 

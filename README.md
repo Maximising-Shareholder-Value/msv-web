@@ -64,6 +64,8 @@ mobile-friendly.
 - `definitions.js` — tooltip text + formulas
 - `sectorRules.js` — sector-aware traffic-light thresholds
 - `analysis.js` — the rule-based Outlook logic (stock/ETF/crypto variants)
+- `changelog.js` — the "What's New" popup (🔔 in the header) and its
+  plain-English list of recent changes
 - `config.js` (gitignored) / `config.example.js` (template) — API keys
 
 ## Deploying publicly (Cloudflare Pages)

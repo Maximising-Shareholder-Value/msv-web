@@ -1,14 +1,20 @@
 # Project History
 
-A chronological record of how $MSV got to its current state — for future
-collaborators who weren't here for any of this, and so Jozsua has one
-place to point people instead of re-explaining it each time. This is the
-**what-happened-when** view; day-to-day technical reasoning (why a
-specific bug fix works the way it does, what a free-tier API will and
-won't return) lives in each repo's own `CLAUDE.md`, not here.
+This is the story of $MSV, told in order, one dated entry at a time —
+"first this happened, then that, then this." If you weren't around for
+any of it (a new contributor, or just catching up), you should be able to
+read this top to bottom and understand how the project got to where it
+is today, without needing to ask anyone or dig through old messages.
 
-Compiled from the real git history of the archived original repo and the
-two current repos — not reconstructed from memory.
+Each entry answers: what changed, roughly when, and why it mattered —
+not the fine technical detail of *how* it was built (that lives in each
+repo's own `CLAUDE.md` instead, next to the actual code it describes).
+Think of this file as the project's diary, and `CLAUDE.md` as its
+technical manual.
+
+Nothing here is guessed or reconstructed from memory — every entry is
+checked against the real, actual git history (including the original
+repo this project split from), so the dates and order can be trusted.
 
 ## Phase 1 — Built as one repo (2026-07-30 to 2026-08-27)
 
@@ -165,6 +171,48 @@ This closes the backend half of two roadmap items (options data for
 pillar 1, multi-country macro data for pillar 4) — the frontend UI for
 either (an options view on the ticker page, a country-selectable macro
 dashboard) is still unbuilt, tracked in [TODO.md](TODO.md).
+
+## Phase 10 — Changelog popup, copy rewrite, world map cleanup, Commodities category (2026-09-21)
+
+A same-day follow-up batch after Phase 9:
+
+- **"What's New" popup added** (`changelog.js`, 🔔 icon in the header) —
+  a plain-English, dated list of recent changes, shown automatically the
+  first time a returning visitor loads the app after something new
+  ships (skipped entirely on a genuinely first-ever visit), and
+  reopenable anytime via the bell icon. Answers Jozsua's ask for a way
+  to see "what's been added, edited, changed" without needing to read
+  git history.
+- **Intro copy rewritten** in a more confident, editorial register
+  (closer to financial-media writing like Seeking Alpha) — replaced the
+  earlier casual/joke-heavy version.
+- **Global Markets map and sidebar strip are now countries only.**
+  `MARKET_TICKERS` used to also carry US indexes (QQQ/DIA/IWM),
+  commodities (GLD/USO), and regional baskets (EFA/EEM) — none of which
+  answer "which country's market is open," which is what that panel is
+  for. Trimmed from 20 entries to 13, one per exchange, matching
+  `worldMarkets.js`'s `EXCHANGES` list exactly.
+- **New "Commodities" browse category** (18 tickers — precious metals,
+  energy, agriculture, industrial metals, broad commodity baskets) — the
+  indexes that got removed from the map (QQQ/DIA/IWM/EFA/EEM) already
+  lived in the existing "ETFs" category, so only the commodities needed
+  a genuinely new home.
+- **Governance doc introductions rewritten** to be simpler and more
+  explained (this file, `ROADMAP.md`, `TODO.md`, and the folder's
+  `README.md` index) — per Jozsua's specific ask for plainer language.
+
+## Note: the "six pillars" build request (2026-09-21)
+
+Jozsua also asked to "build the six pillars" from the roadmap in this
+same message. That's the entire long-term vision — including the
+supply-chain visualization (real per-company research), an AI research
+companion (a real cost decision), and a multi-country dashboard UI — in
+one shot, which runs directly against both the roadmap's own recommended
+staged sequence and Jozsua's own earlier "let's work through it slowly"
+instruction. Flagged back to him rather than either attempting all six
+at once (would produce shallow, rushed results across the board) or
+quietly building only a fraction without saying so. See
+[TODO.md](TODO.md) for how this got scoped down into an actual next step.
 
 ---
 

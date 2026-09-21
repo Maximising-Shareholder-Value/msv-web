@@ -68,8 +68,13 @@ const BROWSE_CATEGORIES = [
   { id: "blue-chip", title: "Blue Chip", accent: "#0ea5e9", items: [["JNJ", "Johnson & Johnson"], ["PG", "Procter & Gamble"], ["KO", "Coca-Cola"], ["JPM", "JPMorgan Chase"], ["V", "Visa"], ["WMT", "Walmart"], ["MCD", "McDonald's"], ["DIS", "Disney"], ["HD", "Home Depot"], ["UNH", "UnitedHealth"], ["COST", "Costco"], ["PEP", "PepsiCo"], ["MA", "Mastercard"], ["NKE", "Nike"], ["MRK", "Merck"], ["ABT", "Abbott Labs"], ["LOW", "Lowe's"], ["TXN", "Texas Instruments"]] },
   { id: "dividend-payers", title: "Dividend Payers", accent: "#f59e0b", items: [["T", "AT&T"], ["XOM", "ExxonMobil"], ["VZ", "Verizon"], ["PFE", "Pfizer"], ["MO", "Altria"], ["IBM", "IBM"], ["CVX", "Chevron"], ["MMM", "3M"], ["KMI", "Kinder Morgan"], ["O", "Realty Income"], ["D", "Dominion Energy"], ["SO", "Southern Company"], ["ED", "Consolidated Edison"], ["MDT", "Medtronic"], ["GILD", "Gilead Sciences"], ["BMY", "Bristol-Myers Squibb"], ["NEE", "NextEra Energy"], ["WEC", "WEC Energy"]] },
   { id: "growth", title: "Growth", accent: "#ec4899", items: [["TSLA", "Tesla"], ["NFLX", "Netflix"], ["SHOP", "Shopify"], ["PLTR", "Palantir"], ["CRWD", "CrowdStrike"], ["AMD", "AMD"], ["RBLX", "Roblox"], ["DDOG", "Datadog"], ["ZS", "Zscaler"], ["NET", "Cloudflare"], ["SNOW", "Snowflake"], ["ROKU", "Roku"], ["COIN", "Coinbase"], ["MDB", "MongoDB"], ["U", "Unity"], ["HOOD", "Robinhood"], ["SOFI", "SoFi"], ["APP", "AppLovin"]] },
-  { id: "etfs", title: "ETFs", accent: "#14b8a6", items: [["SPY", "S&P 500"], ["QQQ", "Nasdaq 100"], ["VTI", "Total Market"], ["DIA", "Dow Jones"], ["IWM", "Russell 2000"], ["VOO", "S&P 500 (Vanguard)"], ["ARKK", "ARK Innovation"], ["XLK", "Technology Sector"], ["XLF", "Financial Sector"], ["XLE", "Energy Sector"], ["EFA", "Developed Markets"], ["EEM", "Emerging Markets"], ["XLV", "Health Care Sector"], ["XLY", "Consumer Discretionary"], ["XLI", "Industrials Sector"], ["XLU", "Utilities Sector"], ["GLD", "Gold"], ["SLV", "Silver"]] },
+  { id: "etfs", title: "ETFs", accent: "#14b8a6", items: [["SPY", "S&P 500"], ["QQQ", "Nasdaq 100"], ["VTI", "Total Market"], ["DIA", "Dow Jones"], ["IWM", "Russell 2000"], ["VOO", "S&P 500 (Vanguard)"], ["ARKK", "ARK Innovation"], ["XLK", "Technology Sector"], ["XLF", "Financial Sector"], ["XLE", "Energy Sector"], ["EFA", "Developed Markets"], ["EEM", "Emerging Markets"], ["XLV", "Health Care Sector"], ["XLY", "Consumer Discretionary"], ["XLI", "Industrials Sector"], ["XLU", "Utilities Sector"]] },
   { id: "bond-etfs", title: "Bond ETFs", accent: "#8b5cf6", items: [["TLT", "20+Y Treasury"], ["BND", "Total Bond Market"], ["AGG", "US Aggregate Bond"], ["HYG", "High Yield Corp"], ["IEF", "7-10Y Treasury"], ["LQD", "Investment Grade Corp"], ["MUB", "National Muni Bond"], ["SHY", "1-3Y Treasury"], ["VCIT", "Intermediate Corp Bond"], ["EMB", "Emerging Markets Bond"], ["JNK", "High Yield Bond"], ["BIV", "Intermediate-Term Bond"], ["TIP", "TIPS (Inflation-Protected)"], ["SPTL", "Long-Term Treasury"], ["VGIT", "Intermediate Treasury"], ["FLOT", "Floating Rate Bond"], ["PFF", "Preferred Stock"], ["BSV", "Short-Term Bond"]] },
+  // Added 2026-09-21 at Jozsua's request — commodities used to be mixed
+  // into the world map's ticker strip (GLD/USO alongside country ETFs),
+  // which didn't make sense once that strip became countries-only (see
+  // MARKET_TICKERS below). All commodity exposure lives here now instead.
+  { id: "commodities", title: "Commodities", accent: "#d97706", items: [["GLD", "Gold"], ["SLV", "Silver"], ["PPLT", "Platinum"], ["PALL", "Palladium"], ["USO", "Oil (WTI Crude)"], ["BNO", "Oil (Brent Crude)"], ["UNG", "Natural Gas"], ["DBA", "Agriculture"], ["CORN", "Corn"], ["WEAT", "Wheat"], ["SOYB", "Soybeans"], ["CANE", "Sugar"], ["JO", "Coffee"], ["CPER", "Copper"], ["URA", "Uranium Miners"], ["DBC", "Broad Commodities"], ["GSG", "Broad Commodities (GSCI)"], ["PDBC", "Broad Commodities (Diversified)"]] },
 ];
 
 // Small, curated universe used ONLY to rank Winners/Losers/Most Active —
@@ -119,15 +124,15 @@ const marketBreadthEl = document.getElementById("marketBreadth");
 // symbol) — one render pass serves two UI surfaces. Country ETFs stand in
 // for each exchange's real index since Finnhub's free tier doesn't offer
 // live foreign indices (same reasoning as the original US-index proxies).
+//
+// Countries only (2026-09-21) — this used to also carry US indexes
+// (QQQ/DIA/IWM), commodities (GLD/USO), and regional baskets (EFA/EEM),
+// which didn't belong on a "which country's market is open" map/strip.
+// Those seven moved into the ETFs/Commodities browse categories instead
+// (see BROWSE_CATEGORIES above) — one ticker per country/exchange here
+// now, matching worldMarkets.js's 13-entry EXCHANGES list 1:1.
 const MARKET_TICKERS = [
-  ["SPY", "S&P 500"],
-  ["QQQ", "Nasdaq 100"],
-  ["DIA", "Dow Jones"],
-  ["IWM", "Russell 2000"],
-  ["GLD", "Gold"],
-  ["USO", "Oil"],
-  ["EFA", "Developed Mkts"],
-  ["EEM", "Emerging Mkts"],
+  ["SPY", "United States"],
   ["EWC", "Canada"],
   ["EWZ", "Brazil"],
   ["EWU", "United Kingdom"],
@@ -152,10 +157,7 @@ const MARKET_TICKERS = [
 // response (`c` = price, `dp` = % change) so worldMarkets.js and
 // renderMarketBreadth() don't need to know the difference.
 const MARKET_TICKERS_SAMPLE = {
-  SPY: { c: 748.32, dp: 0.42 }, QQQ: { c: 612.18, dp: 0.68 },
-  DIA: { c: 461.05, dp: -0.15 }, IWM: { c: 241.77, dp: 0.91 },
-  GLD: { c: 401.62, dp: -0.53 }, USO: { c: 71.44, dp: 1.12 },
-  EFA: { c: 92.31, dp: 0.24 }, EEM: { c: 48.16, dp: -0.38 },
+  SPY: { c: 748.32, dp: 0.42 },
   EWC: { c: 44.90, dp: 0.31 }, EWZ: { c: 33.27, dp: -0.67 },
   EWU: { c: 39.55, dp: 0.18 }, EWQ: { c: 42.03, dp: -0.22 },
   EWG: { c: 38.71, dp: 0.55 }, EZA: { c: 47.62, dp: -0.11 },
