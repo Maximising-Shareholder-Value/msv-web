@@ -250,3 +250,11 @@ each would be given the app's existing zero-cost architecture:
       deployed to.
 - [ ] Custom domain for $MSV (optional, cosmetic — from the original
       "Moving forward with $MSV" list, not urgent).
+- [ ] Cloudflare Workers Builds email notifications — Jozsua decided
+      2026-09-21 to limit these to failures only (was getting one per
+      PR, mostly "succeeded" noise). Can't be changed via the API token
+      available here (confirmed — got a 403 on the Notifications
+      endpoint; the wrangler OAuth token doesn't have that scope), so
+      this needs Jozsua to do it himself in the Cloudflare dashboard
+      (Notifications → the Workers Builds policy for msv-web/msv-api →
+      select "Build failed" only). Not yet confirmed done.
