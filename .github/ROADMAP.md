@@ -12,10 +12,15 @@ answers "what is this stock's P/E ratio and what does that mean?" —
 the goal is for it to also answer "why does an interest rate hike matter
 to this specific company, three steps removed?"
 
-This document is the living plan for getting there. It's meant to be
-read start-to-finish by someone new to the project, and updated as
-priorities change — see [HISTORY.md](HISTORY.md) for how we got to this
-point, and [TODO.md](TODO.md) for the concrete next actions.
+This document is the living plan for getting there — it's meant to be
+read start-to-finish by someone brand new to the project, plain enough
+that no prior context is assumed. It's a "plan," not a promise: as
+priorities shift, this file gets updated to match, rather than left to
+go stale. Three ways to think about the three governance docs together:
+this one (ROADMAP.md) is the **destination and the route**, "what are we
+building and in what order." [TODO.md](TODO.md) is the **packing
+list**, "what specifically needs doing next." [HISTORY.md](HISTORY.md)
+is the **trip log**, "what's already happened."
 
 ## Current architecture (as of 2026-09-21)
 

@@ -28,6 +28,7 @@
         <div class="clock-meta" id="clockMeta">Detecting timezone...</div>
         <div class="clock-location hidden" id="clockLocation"></div>
       </div>
+      <button id="whatsNewTrigger" class="whats-new-trigger" aria-label="What's new" title="What's new in $MSV">🔔</button>
       <button id="themeToggle" class="theme-toggle" aria-label="Toggle light/dark theme" title="Toggle light/dark theme">🌙</button>
     </div>
   </div>
@@ -46,7 +47,7 @@
   <div class="home-decor" aria-hidden="true"></div>
 
   <div class="card home-intro-card">
-    <p class="home-intro-lead">$MSV is your free one-stop shop for stocks, ETFs, crypto, and — yes — bonds and commodities too (they sneak in via ETFs, don't overthink it). Search any ticker for the full rundown on price, valuation, financial health, and a plain-English Outlook, peek at how markets around the world are doing right now, and check the economic weather that's blowing everything else around.</p>
+    <p class="home-intro-lead">$MSV gives you the full picture on any stock, ETF, or crypto ticker — valuation, financial health, and a clear, plain-English read on where it stands, so you understand what you're buying, not just its price. Layer in a snapshot of markets worldwide and the economic forces moving them, and you've got real context to work with. (Bonds and commodities are in here too, via the ETFs that track them.)</p>
     <button type="button" class="home-how-to-trigger" id="howToTrigger">👋 New here? How to use $MSV</button>
   </div>
 
@@ -345,8 +346,18 @@
   </div>
 </div>
 
+<div id="whatsNewOverlay" class="tooltip-overlay hidden"></div>
+<div id="whatsNewModal" class="whats-new-modal hidden" role="dialog" aria-modal="true" aria-labelledby="whatsNewTitle">
+  <div class="whats-new-header">
+    <h3 id="whatsNewTitle">🔔 What's new in $MSV</h3>
+    <button type="button" id="whatsNewClose" class="how-to-modal-close" aria-label="Close">&times;</button>
+  </div>
+  <div id="whatsNewList" class="whats-new-list"></div>
+</div>
+
 <script src="config.js"></script>
 <script src="definitions.js"></script>
+<script src="changelog.js"></script>
 <script src="sectorRules.js"></script>
 <script src="analysis.js"></script>
 <script src="clock.js"></script>

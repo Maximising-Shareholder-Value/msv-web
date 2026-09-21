@@ -1,10 +1,13 @@
 # To-Do
 
-Concrete, actionable items — see [ROADMAP.md](ROADMAP.md) for the
-reasoning behind the ordering and [HISTORY.md](HISTORY.md) for what's
-already been done. Check items off as they land; move finished groups
-into HISTORY.md instead of just deleting them, so the record stays
-intact.
+This is the working checklist — the actual, specific next steps, broken
+down small enough that each one is a real thing someone could sit down
+and do, not a vague goal. If [ROADMAP.md](ROADMAP.md) is "what are we
+building and why," this file is "okay, so what do I actually do Monday
+morning." Items get a `[x]` and a short note on how/when they were
+finished rather than being deleted once done — that note then usually
+gets folded into [HISTORY.md](HISTORY.md) too, so nothing about a
+finished item is ever fully lost, just moved to where it belongs.
 
 ## Pillar 1: multi-asset-class indicators
 
@@ -217,6 +220,26 @@ each would be given the app's existing zero-cost architecture:
       done 2026-09-19, see the tradeoff note in [ROADMAP.md](ROADMAP.md).
 - [x] Browse categories bumped ~50% more tickers each (12 → 18 per
       category) — done 2026-09-19.
+- [x] "What's New" in-app popup (`changelog.js`, 🔔 in header) — done
+      2026-09-21, see HISTORY.md Phase 10. **Keep this updated going
+      forward, same discipline as HISTORY.md/TODO.md** — add a new dated
+      entry to `CHANGELOG` in `changelog.js` whenever a real
+      user-visible change ships.
+- [x] Intro copy rewritten in a more professional/editorial tone — done
+      2026-09-21.
+- [x] Global Markets map/sidebar trimmed to countries-only (20 → 13
+      tickers) — done 2026-09-21.
+- [x] New "Commodities" browse category (18 tickers) — done 2026-09-21.
+- [x] Governance doc intros simplified/elaborated — done 2026-09-21.
+- [ ] **The "six pillars" build request (2026-09-21) — needs a scope
+      decision, not yet started.** Jozsua asked to build all six roadmap
+      pillars. Building the entire long-term vision in one pass isn't
+      realistic (supply-chain research, an AI-companion cost decision,
+      and a full macro-dashboard UI is genuinely months of work, not one
+      session) and cuts against both the roadmap's own staged sequence
+      and Jozsua's earlier "let's work through it slowly" instruction.
+      Asked him to pick a starting point/pace rather than guessing — see
+      his next reply for the actual answer once given.
 - [ ] Quagmire hub page link to $MSV — checked 2026-09-19, currently
       live and correctly pointing at
       `https://msv-web.jozsua-heng.workers.dev/` (verified via a real
