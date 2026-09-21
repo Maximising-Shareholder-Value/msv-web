@@ -214,6 +214,28 @@ at once (would produce shallow, rushed results across the board) or
 quietly building only a fraction without saying so. See
 [TODO.md](TODO.md) for how this got scoped down into an actual next step.
 
+## Phase 11 — Badge fix + six-pillars breakdown (2026-09-21)
+
+Two follow-ups after Jozsua saw Phase 10 live:
+
+- **The What's New auto-popup was swapped for a quiet red badge** on the
+  bell icon instead — a full-screen popup firing on every returning
+  visit after a change shipped was more intrusive than intended. The
+  badge clears the moment the bell is actually clicked, and (like the
+  popup before it) still doesn't show anything on a genuine first-ever
+  visit. Tested directly across three scenarios (first visit, returning
+  visitor with an older "last seen" date, clicking the bell) rather than
+  assumed correct.
+- **The six roadmap pillars were broken down in detail** — see the
+  "Pillar breakdown" section of [ROADMAP.md](ROADMAP.md), added in
+  response to Jozsua asking for exactly that after the "build all six"
+  request from Phase 9/10 was flagged as too large to attempt in one
+  pass. Each pillar now has its real sub-parts spelled out, what's
+  already done vs. open, a rough effort read, and the specific decisions
+  still needed before building further — meant to give Jozsua what he
+  needs to actually choose a starting point, rather than another vague
+  restatement of the same six one-liners.
+
 ---
 
 *Add new phases here as they happen, most recent last — this is meant to

@@ -13,6 +13,7 @@ const CHANGELOG = [
       "Macro data can now cover any country, not just the US — a country-picker view is coming next.",
       "Homepage: friendlier intro copy, a proper step-by-step \"How to use $MSV\" guide, and more tickers to browse in every category.",
       "Global Markets map now shows countries only — indexes and commodities moved into their own browse categories, including a new Commodities category.",
+      "This \"What's New\" bell now shows a small red dot when there's something new, instead of popping up automatically every time.",
     ],
   },
   {
