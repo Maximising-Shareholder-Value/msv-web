@@ -14,8 +14,14 @@ Think of it as four different questions, each with its own file:
 | **"What should I (or a contributor) actually work on next?"** | [TODO.md](TODO.md) | A checklist, broken into small, doable steps pulled straight out of the roadmap. Things get checked off here as they're finished. |
 | **"What's already happened on this project?"** | [HISTORY.md](HISTORY.md) | A dated, chronological story of the project from its very first commit — every major decision, redesign, and feature, in the order it actually happened. Good for catching up if you've been away, or for a new person joining. |
 | **"What free data sources exist for feature X?"** | [API_RESEARCH.md](API_RESEARCH.md) | Notes from researching outside APIs (stock data, macro data, etc.) — what's free, what the limits are, and whether it's actually confirmed to work (not just guessed). |
-| **"What changed recently, in the app itself?"** | [`../changelog.js`](../changelog.js) and the in-app "What's New" popup (🔔 in the header) | A short, plain-English list of recent additions/fixes, written for people *using* $MSV rather than developers — the same list shown inside the app itself, which pops up automatically the first time you visit after something new ships. |
+| **"What changed recently, in the app itself?"** | [`../changelog.js`](../changelog.js) and the in-app "What's New" popup (🔔 in the header) | A short, plain-English list of recent additions/fixes, written for people *using* $MSV rather than developers — the same list shown inside the app itself. The bell shows a small red dot when there's something new; click it to read what changed. |
+| **"What can't be built right now, and why?"** | [BLOCKERS.md](BLOCKERS.md) | A running list of things that are blocked — no free data source, a missing permission, etc. — with exactly why, so it never has to be re-explained or re-investigated. |
 | **"What runs automatically when code changes?"** | [`workflows/ci.yml`](workflows/ci.yml) | The automated checks (syntax check + a smoke test) that run on every proposed change before it's allowed to merge. |
+
+A visual, at-a-glance version of the six roadmap pillars — status, what's
+left, open decisions — lives at
+[`/roadmap.html`](../roadmap.html) on the live site (not linked from the
+main nav; an internal reference page).
 
 For the nitty-gritty technical details — exactly how a specific piece of
 code works, which quirks a data source has, how to set up config/secrets

@@ -52,49 +52,48 @@ finished item is ever fully lost, just moved to where it belongs.
       live: a real AAPL options chain with real bid/ask came back
       through the proxy. See msv-api's `CLAUDE.md` for the implementation
       detail.
-- [ ] **Still open: the actual options UI on msv-web.** The backend can
-      now serve real options data, but nothing on the frontend requests
-      or displays it yet — no "Options" section on the ticker page, no
-      way to browse strikes/expirations. This is the next real piece of
-      work, not yet scoped in detail (needs a design decision on what an
-      options view should even look like for a beginner-friendly app —
-      full chain table? a few key strikes only? worth discussing before
-      building blind).
+- [x] **Options UI — shipped (v1), 2026-09-21.** Jozsua chose the
+      simplified "few strikes" view explicitly, and asked for it kept
+      light since he's not deeply familiar with options yet. Built: a new
+      "Options" card on the ticker page (stocks + ETFs, hidden for
+      crypto), showing the nearest expiration only and the ~7 strikes
+      closest to the current price, bid/ask per call/put, the
+      at-the-money row highlighted. A `(?)` tooltip explains calls/puts/
+      strike/bid-ask in plain English (`options` key in `definitions.js`).
+      Tested against real live data (real AAPL contracts, real bid/ask).
+      **Deliberately left for later:** Greeks, implied volatility, more
+      strikes/expirations — see [ROADMAP.md](ROADMAP.md)'s pillar
+      breakdown for the "next up" note.
 
-## ETF/index fund page enhancements (scoped 2026-09-19)
+## ETF/index fund page enhancements (scoped 2026-09-19, partially shipped 2026-09-21)
 
-Blocked on confirming a free data source — see the "Fund overview,
-holdings & sector weighting" section in
-[API_RESEARCH.md](API_RESEARCH.md). Finnhub's ETF-specific endpoints are
-confirmed premium-gated (live-tested), so this needs a new vendor.
-**Next concrete step: sign up for a free FMP key (email only, no card)
-and test the ETF Holdings/Sector Weighting/Information endpoints live**
-— same pattern as the Alpaca options decision. Also worth testing
-whether Twelve Data's existing key (already in use for charts) unlocks
-their Fundamentals/ETF endpoints before adding FMP as a second vendor.
+**Shipped, no new data source needed:**
+- [x] **Fund name + issuer** — a hand-curated lookup (`ETF_FUND_INFO` in
+      `script.js`, ~50 tickers matching the home page's browse
+      categories) supplies the real fund name (e.g. "Vanguard S&P 500
+      ETF") and issuer (e.g. "Vanguard") that Finnhub can't provide for
+      ETFs. Shows in the page title and a new "Fund Issuer" fact.
+- [x] **Real "About" description for ETFs** — reuses the existing
+      Wikipedia lookup, now falling back to describing the fund's
+      *issuer* when the specific fund has no dedicated Wikipedia article
+      of its own (confirmed most don't — SPY/QQQ/GLD do, VOO/IWM/ARKK
+      don't), clearly disclosed as "about the issuer" rather than passed
+      off as being about the fund itself.
+- [x] **After-Hours price placeholder** — clearly labeled "sample," see
+      [BLOCKERS.md](BLOCKERS.md) for why it can't be real yet.
+- [x] Coverage limited to the curated list above — anything else
+      searched still falls back to symbol-only display. Long-tail gap
+      tracked in [BLOCKERS.md](BLOCKERS.md).
 
-Once a source is confirmed, this covers three asks:
-- [ ] **"About the fund" overview section** for ETFs/index funds
-      (parallel to the stock "About the Company" card) — category (e.g.
-      Large Blend), fund family, net assets/AUM, NAV, expense ratio,
-      yield, legal type, YTD daily total return.
-- [ ] **Holdings + sector weighting** section — top holdings and sector
-      breakdown for ETFs.
-- [ ] **New indicator audit result (2026-09-19):** cross-checked
-      Jozsua's requested indicator list against what's already live —
-      previous close, open, day high/low, 52-week range (+ gauge), avg
-      volume (10-day/3-month), beta, and period returns (5-day through
-      52-week) **are already shown for ETFs today**, confirmed via a
-      live `/stock/metric` request that returned exactly those fields
-      and nothing else. Genuinely missing, confirmed not available on
-      any currently-used free source: **bid, ask, today's volume** (a
-      general free-tier gap, not ETF-specific — Finnhub's free quote
-      endpoint has never included these, for any instrument type), and
-      the fund-classification cluster above (NAV, AUM, expense ratio,
-      category, fund family, legal type, yield) blocked on the same
-      FMP/Twelve Data confirmation. Add `(?)` tooltip definitions for
-      whichever of these actually get built, matching the existing
-      pattern in `definitions.js`.
+**Still blocked** — see [BLOCKERS.md](BLOCKERS.md) for the full detail,
+this is the short version: NAV, net assets/AUM, expense ratio, category,
+fund family, legal type, dividend yield, top holdings, and sector
+weightings all need a confirmed FMP key that hasn't been provided yet.
+Bid/ask and today's live volume have no free source anywhere, for any
+instrument type, confirmed — not solvable by a new ETF-specific vendor.
+- [ ] **"About the fund" overview section** (category, AUM, NAV, expense
+      ratio, yield, legal type, YTD total return) — blocked on FMP.
+- [ ] **Holdings + sector weighting** section — blocked on FMP.
 
 ## Embedded side-by-side comparison (scoped 2026-09-19)
 

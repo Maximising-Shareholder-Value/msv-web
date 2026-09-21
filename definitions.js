@@ -202,6 +202,13 @@ const DEFINITIONS = {
     low: "Clusters of insiders selling is often routine (scheduled trading plans, tax payments, diversification) rather than a warning sign — worth more attention only if many insiders sell around the same time for no obvious routine reason.",
     sector: "Insider selling is especially normal (and not very informative) right after an IPO or lock-up expiration, or at companies that pay executives heavily in stock — selling some to cover taxes or diversify isn't a red flag in those contexts the way it might be elsewhere.",
   },
+  options: {
+    what: "Options are contracts that let someone buy or sell a stock at a fixed price (the Strike Price) by a set date (the Expiration), without having to actually own the stock to make the trade. The Bid is the highest price a buyer is currently offering; the Ask is the lowest price a seller is currently willing to take — the gap between them is called the spread. This first version shows only the nearest expiration and a handful of strikes near today's price, with no Greeks or implied volatility yet.",
+    formula: "Not a calculation — real quoted prices for each contract, same as a stock's bid/ask.",
+    high: "A Call option gives the right to BUY at the strike price — it becomes more valuable as the stock's actual price rises above the strike.",
+    low: "A Put option gives the right to SELL at the strike price — it becomes more valuable as the stock's actual price falls below the strike.",
+    sector: "A wide gap between bid and ask usually means this specific contract doesn't trade often (low liquidity) — tighter spreads generally mean it's easier to get filled near the quoted price.",
+  },
   fiftyTwoWeekRangeContext: {
     what: "Why the 52-week range matters: it's the simplest available gauge of how volatile the stock has been, and where today's price sits within its own recent trading history. Many traders also watch the exact high/low as psychological levels — round numbers or prior extremes where buying/selling has clustered before.",
     formula: "Not a calculation — it's just today's price mapped onto the (52-week low, 52-week high) range.",

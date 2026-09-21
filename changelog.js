@@ -9,7 +9,9 @@ const CHANGELOG = [
   {
     date: "2026-09-21",
     items: [
-      "Real options data (bid/ask, expirations) now flows through the backend — an on-page Options view is coming next.",
+      "Added a simplified Options view on the ticker page — nearest expiration, the strikes closest to today's price, with a plain-English (?) guide for anyone new to options.",
+      "ETF/index fund pages now show the fund's real name and issuer (e.g. \"Vanguard S&P 500 ETF\" — Vanguard), plus a real description where one's available.",
+      "Added an After-Hours price field (clearly marked as a sample — no free data source provides a real one yet).",
       "Macro data can now cover any country, not just the US — a country-picker view is coming next.",
       "Homepage: friendlier intro copy, a proper step-by-step \"How to use $MSV\" guide, and more tickers to browse in every category.",
       "Global Markets map now shows countries only — indexes and commodities moved into their own browse categories, including a new Commodities category.",
