@@ -1,10 +1,10 @@
 // changelog.js — a short, plain-English list of what's changed in $MSV
 // recently. Powers the "What's New" popup (🔔 in the header) and its
-// auto-open-once-per-new-entry behavior. Written for people using the
-// app, not developers — see .github/HISTORY.md for the fuller,
-// technical version of the same story. Update this array whenever a
-// real change ships; same ongoing discipline as HISTORY.md, just a
-// different audience and a shorter entry per item.
+// red-dot-until-seen badge. Written for people using the app, not
+// developers — see .github/HISTORY.md for the fuller, technical version
+// of the same story. Update this array whenever a real change ships;
+// same ongoing discipline as HISTORY.md, just a different audience and a
+// shorter entry per item.
 const CHANGELOG = [
   {
     date: "2026-09-21",
@@ -32,6 +32,7 @@ function formatChangelogDate(dateStr) {
 
 function initWhatsNew() {
   const trigger = document.getElementById("whatsNewTrigger");
+  const badge = document.getElementById("whatsNewBadge");
   const overlay = document.getElementById("whatsNewOverlay");
   const modal = document.getElementById("whatsNewModal");
   const closeBtn = document.getElementById("whatsNewClose");
@@ -45,12 +46,16 @@ function initWhatsNew() {
     </div>
   `).join("");
 
-  function open() {
-    overlay.classList.remove("hidden");
-    modal.classList.remove("hidden");
+  function markSeen() {
+    badge.classList.add("hidden");
     try { localStorage.setItem(WHATS_NEW_SEEN_KEY, CHANGELOG[0].date); } catch {
       // localStorage unavailable (e.g. private browsing) — just skip remembering
     }
+  }
+  function open() {
+    overlay.classList.remove("hidden");
+    modal.classList.remove("hidden");
+    markSeen();
   }
   function close() {
     overlay.classList.add("hidden");
@@ -64,18 +69,20 @@ function initWhatsNew() {
     if (e.key === "Escape" && !modal.classList.contains("hidden")) close();
   });
 
-  // Auto-open once per new entry — but not on a visitor's very first-ever
-  // visit, since there's nothing to "catch up on" before they've even
-  // seen the app once. lastSeen is a plain ISO date string, so a normal
-  // string comparison is enough to tell "older" from "newer".
+  // A quiet red dot on the bell — not an intrusive auto-popup — for
+  // anyone (Jozsua or a teammate) whose FIRST visit lands after a new
+  // entry was added. Skipped on a genuinely first-ever visit to the
+  // site, since there's nothing to "catch up on" before seeing the app
+  // even once. lastSeen is a plain ISO date string, so a normal string
+  // comparison is enough to tell "older" from "newer".
   let lastSeen = null;
   try { lastSeen = localStorage.getItem(WHATS_NEW_SEEN_KEY); } catch {
-    // localStorage unavailable — just skip the auto-open behavior
+    // localStorage unavailable — just skip the badge behavior
   }
   if (lastSeen === null) {
     try { localStorage.setItem(WHATS_NEW_SEEN_KEY, CHANGELOG[0].date); } catch { /* ignore */ }
   } else if (lastSeen < CHANGELOG[0].date) {
-    open();
+    badge.classList.remove("hidden");
   }
 }
 
