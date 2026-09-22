@@ -14,6 +14,15 @@
 // showing a header per commit.
 const CHANGELOG = [
   {
+    date: "2026-09-22T18:20:00+08:00",
+    items: [
+      "New: a real Watchlist — tap the ☆ on any ticker page to track it, view/remove it from the sidebar.",
+      "New: \"Did You Know\" card on the home page — a rotating tip pulled from the Learn hub.",
+      "New: Economic Calendar (real FOMC/CPI dates) and Earnings This Week, right on the home page.",
+      "New: Sector Performance heatmap — see all 11 market sectors at a glance.",
+    ],
+  },
+  {
     date: "2026-09-22T18:08:00+08:00",
     items: [
       "Fixed the collapsed sidebar — it now shows a clean row of icon-only shortcuts (Learn/Compare/Macro) instead of an empty, half-clipped strip.",
