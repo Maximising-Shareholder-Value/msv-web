@@ -14,6 +14,13 @@
 // showing a header per commit.
 const CHANGELOG = [
   {
+    date: "2026-09-22T19:14:00+08:00",
+    items: [
+      "Removed the left sidebar — Watchlist and Recently Viewed now live as cards on the home page instead.",
+      "New \"Supply Chain\" tab — a real, sourced look at how 17 companies in the AI infrastructure space (NVIDIA, TSMC, Microsoft, OpenAI, and others) are actually connected, with a source and confidence rating on every relationship shown.",
+    ],
+  },
+  {
     date: "2026-09-22T18:20:00+08:00",
     items: [
       "New: a real Watchlist — tap the ☆ on any ticker page to track it, view/remove it from the sidebar.",
