@@ -14,6 +14,13 @@
 // showing a header per commit.
 const CHANGELOG = [
   {
+    date: "2026-09-22T16:21:00+08:00",
+    items: [
+      "Learn tab is now complete — added the final 3 categories: Macro & the Economy (rate hikes, inflation, GDP, unemployment), Options 101 (calls, puts, strikes, premiums), and Putting It Together (diversification, risk tolerance, reading the Outlook, red flags to watch for).",
+      "That's all 5 planned Learn categories now live, each with plain-English explanations and simple diagrams — nothing left showing \"Coming soon\".",
+    ],
+  },
+  {
     date: "2026-09-22T15:50:00+08:00",
     items: [
       "Learn tab: new \"Reading the Numbers\" category — Valuation, Growth, Profitability & Efficiency, Financial Health & Risk, and Dividends, each explained in plain English with its own simple diagram, going deeper than the (?) tooltips on the ticker page.",
