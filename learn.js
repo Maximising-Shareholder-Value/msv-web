@@ -78,7 +78,76 @@ const LEARN_CATEGORIES = [
     icon: "📊",
     title: "Reading the Numbers",
     blurb: "What valuation, growth, profitability, risk, and efficiency actually measure — and what counts as \"good\", in plain English.",
-    topics: [],
+    topics: [
+      {
+        id: "valuation",
+        title: "Valuation",
+        oneLiner: "Is this stock expensive or cheap right now?",
+        visual: () => learnValuationVisual(),
+        body: [
+          "Valuation asks one question: for the price you're paying today, how much of the actual business are you getting in return? Two companies making the exact same profit can trade at wildly different prices — valuation is how you tell whether you're paying a fair amount, a premium, or getting a genuine bargain.",
+          "The most common yardstick is the P/E ratio (Price-to-Earnings): how many dollars you're paying today for each $1 the company earns in a year. A P/E of 25 means you're paying $25 upfront for every $1 of annual profit — the market is betting that profit keeps growing enough to justify the wait. There's no single \"correct\" P/E: a mature, slow-growing utility trading at P/E 25 looks expensive, while the same P/E on a fast-growing tech company can look perfectly reasonable.",
+          "The same idea shows up in several other numbers on the Valuation card — P/B compares price to what the company owns outright, Price/Sales compares price to its total sales, and EV/EBITDA and Price/Cash-Flow compare price to its actual cash-generating ability. They're all answering the same underlying question from a slightly different angle, which is exactly why it's worth checking more than just one.",
+        ],
+        example: "If a stock trades at $100 and earns $4 per share a year, its P/E is 25 ($100 ÷ $4). Put another way: at this year's earnings, it would take 25 years of profit to earn back what you paid — assuming profit never grew at all, which is rarely the real expectation for a growing company.",
+        tip: "Every number on the Valuation card (P/E, P/B, EV/EBITDA, EV/Revenue, Price/Sales, Price/Cash-Flow) is a variation of this same \"price vs. what you get\" question — the (?) on each explains exactly what it's comparing.",
+      },
+      {
+        id: "growth",
+        title: "Growth",
+        oneLiner: "Is the business actually getting bigger?",
+        visual: () => learnGrowthVisual(),
+        body: [
+          "Growth measures whether a company's sales (revenue) and profit (earnings) are increasing over time, and how fast. A business that's growing is generally becoming more valuable — more customers, more revenue, more profit to eventually pass on to shareholders — while a shrinking business is moving the opposite direction, even if today's numbers still look fine on their own.",
+          "This dashboard checks growth over several different windows on purpose: year-over-year (this year vs. the same period last year), quarter-over-quarter (this quarter vs. the same quarter last year — catches a recent change in direction faster), and 5-year (the longer trend, smoothing out any single unusually good or bad year).",
+          "Growth alone doesn't tell you whether something is a good investment — it's always worth weighing against Valuation (how much are you paying for that growth?) and Profitability (is the growth actually turning into real profit, or just more revenue with nothing extra to show for it?).",
+        ],
+        example: "If a company made $10 billion in revenue last year and $11 billion this year, that's 10% revenue growth (($11B − $10B) ÷ $10B). Whether that's impressive depends entirely on the company and its industry — 10% is exceptional for a mature grocery chain, and underwhelming for an early-stage software company.",
+        tip: "The Growth card shows this across three windows (TTM year-over-year, quarterly year-over-year, and 5-year) for exactly this reason — one strong or weak quarter can be noise; the 5-year figure tells you whether it's a real, sustained trend.",
+      },
+      {
+        id: "profitability-efficiency",
+        title: "Profitability & Efficiency",
+        oneLiner: "How much of what it makes does it keep — and how hard does its money work?",
+        visual: () => `${learnFunnelVisual()}${learnTurnoverVisual()}`,
+        body: [
+          "Profitability asks: out of every dollar that comes in the door, how much survives as actual profit? Revenue (total sales) is just the starting point — a company pays for the product/service itself, then rent, salaries and marketing, then interest and tax, before whatever's left counts as real profit. Margins measure how much survives at each stage.",
+          "Gross margin is what's left after just the direct cost of the product. Operating margin is what's left after running the core business too. Net margin is what's left after absolutely everything, including interest and tax — the true bottom line. A software company can keep 70-90 cents of every revenue dollar as gross margin because making one more copy of its product costs almost nothing extra; a grocery chain might keep 20-30 cents because physical goods are expensive to buy, store and ship. Neither is \"bad\" — they're structurally different businesses.",
+          "Efficiency is a related but different question: how hard is the company's money working? Two companies can post identical margins yet very different efficiency — one might need $10 of assets (factories, inventory, equipment) to generate $10 of sales each year, while another needs $50 of assets for that same $10. Turnover ratios (asset, inventory, receivables) measure exactly this: how many times a year the company effectively \"recycles\" what it owns into sales.",
+        ],
+        example: "If a company earns $100 in sales and keeps $20 after every cost including tax, its net margin is 20%. If it needed $50 worth of assets to generate that $100 in sales, its asset turnover is 2.0 — it \"turned over\" its asset base twice over the year.",
+        tip: "Profitability and Efficiency are two separate cards on the ticker page for exactly this reason — a company can be profitable but inefficient (great margins, sluggish asset use) or efficient but thin-margined (fast-turning but barely profitable per dollar). Worth checking both, not just one.",
+      },
+      {
+        id: "health-risk",
+        title: "Financial Health & Risk",
+        oneLiner: "Could this company get into trouble paying its bills?",
+        visual: () => learnBarCompareVisual([
+          { value: "$60", label: "Bills due within a year", height: 55, fill: "var(--text-secondary)" },
+          { value: "$90", label: "Cash & liquid assets on hand", height: 82, fill: "var(--accent)" },
+        ], "Illustrative — a healthy cushion here means the shorter bar isn't taller than the longer one."),
+        body: [
+          "Even a genuinely profitable, fast-growing company can get into serious trouble if it can't pay its bills on time — Financial Health and Risk are about that separate question: not \"is the business good\", but \"is it safe\". A company can look great on paper and still hit a cash crunch if too much of what it owes comes due before enough cash comes in to cover it.",
+          "The Current Ratio and Quick Ratio both ask a short-term version of this: for every $1 of bills due within the next year, how many dollars of cash (or near-cash) does the company have on hand right now? Below 1 means bills due soon technically exceed what's readily available — not always an emergency, but worth understanding why.",
+          "Debt-to-Equity and Long-Term Debt/Equity ask a longer-term version: how much of the company is funded by borrowed money versus its own capital? More debt isn't automatically bad — it can be a cheap, efficient way to fund growth — but it adds a fixed obligation that has to be paid whether or not business is going well, which is exactly what Interest Coverage measures: how many times over could this year's operating profit alone cover this year's interest payments?",
+        ],
+        example: "A company with an Interest Coverage Ratio of 5 could pay its annual interest bill 5 times over out of operating profit alone — plenty of cushion. A ratio close to 1 means almost all of its operating profit is already spoken for just servicing debt, leaving very little room for a bad year.",
+        tip: "Financial Health and Risk are two separate cards specifically because they lean toward different time horizons — Financial Health (Quick/Current Ratio, Debt/Equity) is the near-term/overall picture, Risk (Interest Coverage, Long-Term Debt/Equity, Payout Ratio) leans toward whether today's profit comfortably covers today's fixed obligations.",
+      },
+      {
+        id: "dividends",
+        title: "Dividends",
+        oneLiner: "Does it pay you just for holding it?",
+        visual: () => learnDividendVisual(),
+        body: [
+          "Some companies pay a portion of their profit directly to shareholders on a regular schedule (usually quarterly) — this is a dividend. It's a way of saying \"we're generating more cash than we need to reinvest in the business right now, so here's a direct cash return for having your money invested with us\", entirely separate from any change in the share price itself.",
+          "Not every company pays one, and that's not automatically a bad sign — fast-growing companies often reinvest every spare dollar back into expanding the business instead, betting that grows the share price faster than a dividend ever could. Mature, slower-growing companies (utilities, consumer staples) are more likely to pay a steady dividend because they simply don't have as many high-return places left to reinvest their profit.",
+          "Dividend Yield tells you the annual cash return relative to today's price. Dividend Payout Ratio (on the Risk card) tells you what share of profit is being paid out versus kept — a payout ratio over 100% means the company is paying out more than it's currently earning, which usually can't continue indefinitely without the dividend eventually being cut.",
+        ],
+        example: "Invest $1,000 in a stock yielding 3% and you'd collect roughly $30 a year in dividend payments alone — before any gain or loss in the share price itself, and typically split into 4 smaller quarterly payments rather than one lump sum.",
+        tip: "Check Dividend Yield (Dividends card) alongside Payout Ratio (Risk card) together — a very high yield paired with a payout ratio near or above 100% is often a warning sign the market expects a future dividend cut, not a genuine bargain.",
+      },
+    ],
   },
   {
     id: "macro-economy",
@@ -182,6 +251,95 @@ function learnNetworkVisual() {
       <span>A bank: one central record</span>
       <span>Crypto: everyone holds a copy</span>
     </div>
+  `;
+}
+
+// Generic bar-compare chart — bars.height is a raw px value the caller
+// picks to represent the relative sizes being compared (illustrative, not
+// pulled from live data — this is conceptual teaching content).
+function learnBarCompareVisual(bars, note) {
+  const cols = bars.map(b => `
+    <div class="learn-bar-col">
+      <span class="learn-bar-value">${b.value}</span>
+      <div class="learn-bar" style="height:${b.height}px; background:${b.fill};"></div>
+      <span class="learn-bar-label">${b.label}</span>
+    </div>
+  `).join("");
+  return `
+    <div class="learn-bar-chart">${cols}</div>
+    ${note ? `<p class="learn-visual-caption">${note}</p>` : ""}
+  `;
+}
+
+function learnValuationVisual() {
+  return learnBarCompareVisual([
+    { value: "$100", label: "Price you pay", height: 100, fill: "var(--accent)" },
+    { value: "$4", label: "Earnings you get this year", height: 8, fill: "var(--text-secondary)" },
+  ], "That gap is the P/E ratio (here, 25) — years of today's profit to earn back what you paid.");
+}
+
+function learnGrowthVisual() {
+  return learnBarCompareVisual([
+    { value: "", label: "Year 1", height: 35, fill: "var(--text-muted)" },
+    { value: "", label: "Year 2", height: 55, fill: "var(--text-secondary)" },
+    { value: "", label: "Year 3", height: 78, fill: "var(--accent)" },
+    { value: "", label: "Year 4", height: 100, fill: "var(--accent-strong)" },
+  ], "Illustrative — revenue or earnings getting bigger, year after year.");
+}
+
+function learnFunnelVisual() {
+  const stages = [
+    { label: "Revenue", pct: 100 },
+    { label: "− cost of the product = Gross Profit", pct: 70 },
+    { label: "− running the business = Operating Profit", pct: 40 },
+    { label: "− interest & tax = Net Profit", pct: 22 },
+  ];
+  const maxWidth = 230;
+  const rows = stages.map(s => `
+    <div class="learn-funnel-row">
+      <div class="learn-funnel-bar" style="width:${Math.round(s.pct / 100 * maxWidth)}px;"></div>
+      <span class="learn-funnel-label"><strong>${s.pct}%</strong> ${s.label}</span>
+    </div>
+  `).join("");
+  return `<div class="learn-funnel">${rows}</div><p class="learn-visual-caption">Illustrative $100 of revenue — each stage keeps a smaller share</p>`;
+}
+
+function learnTurnoverVisual() {
+  return `
+    <svg class="learn-visual-svg" viewBox="0 0 160 120" style="max-width:170px" role="img" aria-label="Assets convert into sales, which convert back into assets, in a repeating cycle">
+      <defs>
+        <marker id="learnCycleArrow" markerWidth="7" markerHeight="7" refX="5" refY="2.5" orient="auto">
+          <path d="M0,0 L5,2.5 L0,5 Z" fill="var(--accent)"/>
+        </marker>
+      </defs>
+      <line x1="45" y1="30" x2="45" y2="92" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="3,3"/>
+      <line x1="115" y1="30" x2="115" y2="92" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="3,3"/>
+      <path d="M45,28 A35,12 0 0 1 115,28" fill="none" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#learnCycleArrow)"/>
+      <path d="M115,94 A35,12 0 0 1 45,94" fill="none" stroke="var(--accent)" stroke-width="2.5" marker-end="url(#learnCycleArrow)"/>
+      <text x="80" y="14" text-anchor="middle" font-size="11" fill="var(--text-primary)" font-weight="700">Assets</text>
+      <text x="80" y="118" text-anchor="middle" font-size="11" fill="var(--text-primary)" font-weight="700">Sales</text>
+    </svg>
+    <p class="learn-visual-caption">Turnover: how many times a year this cycle repeats</p>
+  `;
+}
+
+function learnDividendVisual() {
+  const radii = [7, 9, 11, 13];
+  const xs = [30, 78, 126, 174];
+  const circles = radii.map((r, i) => `
+    <circle cx="${xs[i]}" cy="${80 - r}" r="${r}" fill="none" stroke="var(--accent)" stroke-width="2"/>
+    <text x="${xs[i]}" y="${84 - r}" text-anchor="middle" font-size="10" fill="var(--accent)" font-weight="700">$</text>
+  `).join("");
+  const ticks = xs.map((x, i) => `
+    <line x1="${x}" y1="85" x2="${x}" y2="91" stroke="var(--border)" stroke-width="1.5"/>
+    <text x="${x}" y="103" text-anchor="middle" font-size="9.5" fill="var(--text-muted)">Q${i + 1}</text>
+  `).join("");
+  return `
+    <svg class="learn-visual-svg" viewBox="0 0 205 110" role="img" aria-label="Four quarterly dividend payments, each slightly larger than the last">
+      <line x1="18" y1="85" x2="192" y2="85" stroke="var(--border)" stroke-width="1.5"/>
+      ${ticks}${circles}
+    </svg>
+    <p class="learn-visual-caption">A steady — and here, slowly growing — quarterly cash payment</p>
   `;
 }
 
