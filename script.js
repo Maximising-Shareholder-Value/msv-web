@@ -24,6 +24,42 @@ function getRecentlyViewed() {
   }
 }
 
+// Watchlist — a manually-curated list, separate from Recently Viewed
+// (which just tracks what you've looked at). Purely local, same zero-
+// API-cost pattern: no live price shown for watchlisted symbols, just
+// name/symbol, consistent with how Recently Viewed already works.
+const WATCHLIST_KEY = "stockDashboardWatchlist";
+
+function getWatchlist() {
+  try {
+    const raw = localStorage.getItem(WATCHLIST_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function isInWatchlist(symbol) {
+  return getWatchlist().some(item => item.symbol === symbol);
+}
+
+function toggleWatchlist(symbol, name) {
+  try {
+    const list = getWatchlist();
+    const idx = list.findIndex(item => item.symbol === symbol);
+    if (idx >= 0) {
+      list.splice(idx, 1);
+    } else {
+      list.unshift({ symbol, name });
+    }
+    localStorage.setItem(WATCHLIST_KEY, JSON.stringify(list));
+    if (typeof renderWatchlist === "function") renderWatchlist();
+    return idx < 0; // true if just added, false if just removed
+  } catch {
+    return false;
+  }
+}
+
 // Local (Live Server) calls Finnhub directly using config.js's key.
 // Deployed (Cloudflare Pages) calls the /api/finnhub proxy instead, which
 // attaches the key server-side — the key never reaches the browser there.
@@ -90,6 +126,7 @@ const tickerBadge = document.getElementById("ticker");
 const exchangeEl = document.getElementById("exchange");
 const industryEl = document.getElementById("industry");
 const logo = document.getElementById("logo");
+const watchlistToggleBtn = document.getElementById("watchlistToggleBtn");
 const priceEl = document.getElementById("price");
 const changeEl = document.getElementById("change");
 const openVal = document.getElementById("openVal");
@@ -298,6 +335,14 @@ searchBtn.addEventListener("click", () => {
 });
 tickerInput.addEventListener("keydown", e => {
   if (e.key === "Enter") searchBtn.click();
+});
+watchlistToggleBtn?.addEventListener("click", () => {
+  const { symbol, name } = watchlistToggleBtn.dataset;
+  if (!symbol) return;
+  const nowInList = toggleWatchlist(symbol, name);
+  watchlistToggleBtn.textContent = nowInList ? "★" : "☆";
+  watchlistToggleBtn.classList.toggle("active", nowInList);
+  watchlistToggleBtn.title = nowInList ? "Remove from watchlist" : "Add to watchlist";
 });
 tooltipClose.addEventListener("click", hideTooltip);
 tooltipOverlay.addEventListener("click", hideTooltip);
@@ -669,6 +714,15 @@ function renderOverview(symbol, quote, profile) {
   tickerBadge.textContent = displaySymbol(symbol);
   exchangeEl.textContent = profile.exchange || "--";
   industryEl.textContent = profile.finnhubIndustry || "--";
+
+  if (watchlistToggleBtn) {
+    watchlistToggleBtn.dataset.symbol = symbol;
+    watchlistToggleBtn.dataset.name = profile.name || displaySymbol(symbol);
+    const inList = isInWatchlist(symbol);
+    watchlistToggleBtn.textContent = inList ? "★" : "☆";
+    watchlistToggleBtn.classList.toggle("active", inList);
+    watchlistToggleBtn.title = inList ? "Remove from watchlist" : "Add to watchlist";
+  }
 
   if (profile.logo) {
     logo.src = profile.logo;

@@ -675,6 +675,7 @@ function renderLearnTab() {
       const expanded = learnState.expandedTopics.has(topic.id);
       const item = document.createElement("div");
       item.className = "learn-topic" + (expanded ? " expanded" : "");
+      item.id = `learn-topic-${topic.id}`;
 
       const header = document.createElement("button");
       header.type = "button";
@@ -718,3 +719,48 @@ function renderLearnTab() {
 
   homeContentEl.appendChild(wrap);
 }
+
+// ---- "Did You Know" homepage tip (phase 2, 2026-09-22) ----
+// Zero extra API cost — just surfaces one topic already written for the
+// Learn hub. Defined here (not home.js) and self-initializing at the
+// bottom of this file specifically because home.js's own initHome() runs
+// synchronously as SOON as home.js finishes loading, which is BEFORE
+// this file (learn.js) has loaded — see index.html's script tag order.
+// Calling this from inside home.js's initHome() would throw
+// "LEARN_CATEGORIES is not defined". Self-initializing here instead
+// works because by the time learn.js runs, home.js has already finished
+// executing and defined everything this needs (loadTicker, etc.).
+function pickDailyTopic() {
+  const allTopics = LEARN_CATEGORIES.flatMap(cat => cat.topics.map(topic => ({ cat, topic })));
+  if (allTopics.length === 0) return null;
+  // Seeded by today's date, not Math.random() — same tip all day (doesn't
+  // change on every reload/tab switch), a new one tomorrow.
+  const dayNum = Number(new Date().toISOString().slice(0, 10).replaceAll("-", ""));
+  return allTopics[dayNum % allTopics.length];
+}
+
+function renderDidYouKnowTip() {
+  const el = document.getElementById("didYouKnowContent");
+  if (!el) return;
+  const picked = pickDailyTopic();
+  if (!picked) { el.innerHTML = ""; return; }
+  const { cat, topic } = picked;
+
+  el.innerHTML = `
+    <p class="did-you-know-oneliner"><strong>${topic.title}:</strong> ${topic.oneLiner}</p>
+    <p class="did-you-know-excerpt">${topic.body[0]}</p>
+    <button type="button" class="did-you-know-link">Read more in ${cat.title} →</button>
+  `;
+  el.querySelector(".did-you-know-link").addEventListener("click", () => {
+    learnState.activeCategory = cat.id;
+    learnState.expandedTopics.add(topic.id);
+    goToHomeTab("learn");
+    // goToHomeTab already calls switchTab("learn") -> renderLearnTab(),
+    // which reads learnState above — no extra render call needed here.
+    requestAnimationFrame(() => {
+      document.getElementById(`learn-topic-${topic.id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  });
+}
+
+renderDidYouKnowTip();
