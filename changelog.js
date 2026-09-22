@@ -14,6 +14,12 @@
 // showing a header per commit.
 const CHANGELOG = [
   {
+    date: "2026-09-22T15:50:00+08:00",
+    items: [
+      "Learn tab: new \"Reading the Numbers\" category — Valuation, Growth, Profitability & Efficiency, Financial Health & Risk, and Dividends, each explained in plain English with its own simple diagram, going deeper than the (?) tooltips on the ticker page.",
+    ],
+  },
+  {
     date: "2026-09-22T11:56:00+08:00",
     items: [
       "New \"Learn\" tab on the home page — plain-English explanations of what a stock, ETF, bond ETF, and crypto actually are, each with a simple diagram and a real example, for anyone starting from zero.",
