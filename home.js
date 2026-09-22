@@ -119,6 +119,13 @@ const homeNewsListEl = document.getElementById("homeNewsList");
 const indexStripEl = document.getElementById("indexStrip");
 const recentlyViewedRowEl = document.getElementById("recentlyViewedRow");
 const marketBreadthEl = document.getElementById("marketBreadth");
+const learnBannerEl = document.getElementById("learnBanner");
+const homeSidebarEl = document.getElementById("homeSidebar");
+const sidebarToggleEl = document.getElementById("sidebarToggle");
+const sidebarSearchInputEl = document.getElementById("sidebarSearchInput");
+const sidebarSearchBtnEl = document.getElementById("sidebarSearchBtn");
+
+const SIDEBAR_COLLAPSED_KEY = "msv_sidebar_collapsed";
 
 // One shared ticker list feeds BOTH the sidebar list AND the world map's
 // per-exchange markers (worldMarkets.js reads homeState.marketTickers by
@@ -187,6 +194,53 @@ function initHome() {
   loadMarketNews();
   loadMarketTickers();
   renderRecentlyViewed();
+  initHomeLayout();
+}
+
+// Sidebar + Learn banner wiring — added 2026-09-22 as part of the
+// homepage overhaul (Learn moved out of the tab row into its own
+// banner; a new collapsible sidebar holds quick search, quick links,
+// and Recently Viewed, which used to be a horizontal row above the tabs).
+function initHomeLayout() {
+  learnBannerEl.addEventListener("click", () => goToHomeTab("learn"));
+  document.getElementById("sidebarLearnLink").addEventListener("click", () => goToHomeTab("learn"));
+  document.getElementById("sidebarMacroLink").addEventListener("click", () => goToHomeTab("macro"));
+  document.getElementById("sidebarCompareLink").addEventListener("click", () => {
+    if (typeof showCompareView === "function") showCompareView();
+  });
+
+  // No autocomplete here on purpose — this is a lighter, always-visible
+  // shortcut, not a replacement for the header's full search+suggestions
+  // (autocomplete.js is wired to the single #tickerInput element only).
+  const runSidebarSearch = () => {
+    const sym = sidebarSearchInputEl.value.trim().toUpperCase();
+    if (sym) loadTicker(sym);
+  };
+  sidebarSearchBtnEl.addEventListener("click", runSidebarSearch);
+  sidebarSearchInputEl.addEventListener("keydown", e => {
+    if (e.key === "Enter") runSidebarSearch();
+  });
+
+  let collapsed = false;
+  try { collapsed = localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "true"; } catch { /* private browsing etc. — default expanded */ }
+  homeSidebarEl.classList.toggle("collapsed", collapsed);
+  sidebarToggleEl.textContent = collapsed ? "›" : "‹";
+
+  sidebarToggleEl.addEventListener("click", () => {
+    const nowCollapsed = homeSidebarEl.classList.toggle("collapsed");
+    sidebarToggleEl.textContent = nowCollapsed ? "›" : "‹";
+    try { localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(nowCollapsed)); } catch { /* per-viewer convenience only — fine if this fails */ }
+  });
+}
+
+// Switches to the home view (if not already there) and selects a tab —
+// used by the sidebar's Quick Links and the Learn banner, both of which
+// can be clicked from within the home view itself.
+function goToHomeTab(tabId) {
+  dashboard.classList.add("hidden");
+  document.getElementById("compareView").classList.add("hidden");
+  homeView.classList.remove("hidden");
+  switchTab(tabId);
 }
 
 // Synchronous now (no fetch) — reads MARKET_TICKERS_SAMPLE instead of
@@ -276,7 +330,12 @@ function renderRecentlyViewed() {
 
 function buildTabs() {
   homeTabsEl.innerHTML = "";
-  const allTabs = [...DYNAMIC_TABS, ...BROWSE_CATEGORIES, { id: "crypto", title: "Crypto" }, { id: "learn", title: "Learn" }, { id: "macro", title: "Macro" }];
+  // "learn" is deliberately NOT in this list (2026-09-22) — Jozsua asked
+  // for it to stop sitting as a peer of Winners/Losers/browse categories,
+  // so it moved to its own banner (learnBanner, wired in initHomeLayout()
+  // below) instead of a tab pill. switchTab("learn") still works exactly
+  // the same either way — only how you GET there changed.
+  const allTabs = [...DYNAMIC_TABS, ...BROWSE_CATEGORIES, { id: "crypto", title: "Crypto" }, { id: "macro", title: "Macro" }];
   allTabs.forEach(tab => {
     const btn = document.createElement("button");
     btn.type = "button";
@@ -301,6 +360,7 @@ function buildViewToggle() {
 async function switchTab(tabId) {
   homeState.activeTab = tabId;
   Array.from(homeTabsEl.children).forEach(btn => btn.classList.toggle("active", btn.dataset.tabId === tabId));
+  learnBannerEl?.classList.toggle("active", tabId === "learn");
 
   if (tabId === "macro") {
     homeViewToggleEl.classList.add("hidden");
