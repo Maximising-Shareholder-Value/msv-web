@@ -118,6 +118,7 @@ const homeViewToggleEl = document.getElementById("homeViewToggle");
 const homeNewsListEl = document.getElementById("homeNewsList");
 const indexStripEl = document.getElementById("indexStrip");
 const recentlyViewedRowEl = document.getElementById("recentlyViewedRow");
+const recentlyViewedEmptyNoteEl = document.getElementById("recentlyViewedEmptyNote");
 const watchlistRowEl = document.getElementById("watchlistRow");
 const watchlistEmptyNoteEl = document.getElementById("watchlistEmptyNote");
 const marketBreadthEl = document.getElementById("marketBreadth");
@@ -125,14 +126,8 @@ const learnBannerEl = document.getElementById("learnBanner");
 const econCalendarContentEl = document.getElementById("econCalendarContent");
 const earningsCalendarContentEl = document.getElementById("earningsCalendarContent");
 const sectorHeatmapContentEl = document.getElementById("sectorHeatmapContent");
-const homeSidebarEl = document.getElementById("homeSidebar");
-const sidebarToggleEl = document.getElementById("sidebarToggle");
-const sidebarSearchInputEl = document.getElementById("sidebarSearchInput");
-const sidebarSearchBtnEl = document.getElementById("sidebarSearchBtn");
 
-const SIDEBAR_COLLAPSED_KEY = "msv_sidebar_collapsed";
-
-// One shared ticker list feeds BOTH the sidebar list AND the world map's
+// One shared ticker list feeds BOTH the index strip AND the world map's
 // per-exchange markers (worldMarkets.js reads homeState.marketTickers by
 // symbol) — one render pass serves two UI surfaces. Country ETFs stand in
 // for each exchange's real index since Finnhub's free tier doesn't offer
@@ -236,45 +231,21 @@ function initHome() {
   initHomeLayout();
 }
 
-// Sidebar + Learn banner wiring — added 2026-09-22 as part of the
-// homepage overhaul (Learn moved out of the tab row into its own
-// banner; a new collapsible sidebar holds quick search, quick links,
-// and Recently Viewed, which used to be a horizontal row above the tabs).
+// Learn banner wiring. The homepage briefly had a collapsible left
+// sidebar (quick search, quick links, Watchlist/Recently Viewed) —
+// Jozsua asked for it to be removed (2026-09-22, "it looks so bad").
+// Watchlist and Recently Viewed moved into the main grid as their own
+// cards instead; the sidebar's Quick Search and Quick Links were dropped
+// entirely rather than relocated, since they duplicated things that
+// already exist elsewhere (the header's own search box, the Learn
+// banner, the Compare button, and the Macro tab).
 function initHomeLayout() {
   learnBannerEl.addEventListener("click", () => goToHomeTab("learn"));
-  document.getElementById("sidebarLearnLink").addEventListener("click", () => goToHomeTab("learn"));
-  document.getElementById("sidebarMacroLink").addEventListener("click", () => goToHomeTab("macro"));
-  document.getElementById("sidebarCompareLink").addEventListener("click", () => {
-    if (typeof showCompareView === "function") showCompareView();
-  });
-
-  // No autocomplete here on purpose — this is a lighter, always-visible
-  // shortcut, not a replacement for the header's full search+suggestions
-  // (autocomplete.js is wired to the single #tickerInput element only).
-  const runSidebarSearch = () => {
-    const sym = sidebarSearchInputEl.value.trim().toUpperCase();
-    if (sym) loadTicker(sym);
-  };
-  sidebarSearchBtnEl.addEventListener("click", runSidebarSearch);
-  sidebarSearchInputEl.addEventListener("keydown", e => {
-    if (e.key === "Enter") runSidebarSearch();
-  });
-
-  let collapsed = false;
-  try { collapsed = localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "true"; } catch { /* private browsing etc. — default expanded */ }
-  homeSidebarEl.classList.toggle("collapsed", collapsed);
-  sidebarToggleEl.textContent = collapsed ? "›" : "‹";
-
-  sidebarToggleEl.addEventListener("click", () => {
-    const nowCollapsed = homeSidebarEl.classList.toggle("collapsed");
-    sidebarToggleEl.textContent = nowCollapsed ? "›" : "‹";
-    try { localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(nowCollapsed)); } catch { /* per-viewer convenience only — fine if this fails */ }
-  });
 }
 
 // Switches to the home view (if not already there) and selects a tab —
-// used by the sidebar's Quick Links and the Learn banner, both of which
-// can be clicked from within the home view itself.
+// used by the Learn banner and the Did You Know card's "Read more" link,
+// both of which can be clicked from within the home view itself.
 function goToHomeTab(tabId) {
   dashboard.classList.add("hidden");
   document.getElementById("compareView").classList.add("hidden");
@@ -477,12 +448,14 @@ function renderSectorHeatmap(results) {
 // categories, so revisiting one is free until actually clicked.
 function renderRecentlyViewed() {
   const recent = getRecentlyViewed();
+  recentlyViewedEmptyNoteEl?.classList.toggle("hidden", recent.length > 0);
   if (recent.length === 0) {
     recentlyViewedRowEl.classList.add("hidden");
+    recentlyViewedRowEl.innerHTML = "";
     return;
   }
   recentlyViewedRowEl.classList.remove("hidden");
-  recentlyViewedRowEl.innerHTML = '<span class="recently-viewed-label">Recently viewed</span>';
+  recentlyViewedRowEl.innerHTML = "";
   recent.forEach(({ symbol, name }) => {
     const chip = document.createElement("button");
     chip.type = "button";
@@ -495,8 +468,8 @@ function renderRecentlyViewed() {
 
 // Zero API cost, same as Recently Viewed — no live price shown, just
 // name/symbol. Called on init and again by toggleWatchlist() (script.js)
-// whenever the ☆ on a ticker page is clicked, so the sidebar stays in
-// sync without a page reload.
+// whenever the ☆ on a ticker page is clicked, so the homepage card stays
+// in sync without a page reload.
 function renderWatchlist() {
   const list = getWatchlist();
   watchlistEmptyNoteEl.classList.toggle("hidden", list.length > 0);
@@ -527,7 +500,7 @@ function buildTabs() {
   // so it moved to its own banner (learnBanner, wired in initHomeLayout()
   // below) instead of a tab pill. switchTab("learn") still works exactly
   // the same either way — only how you GET there changed.
-  const allTabs = [...DYNAMIC_TABS, ...BROWSE_CATEGORIES, { id: "crypto", title: "Crypto" }, { id: "macro", title: "Macro" }];
+  const allTabs = [...DYNAMIC_TABS, ...BROWSE_CATEGORIES, { id: "crypto", title: "Crypto" }, { id: "supply-chain", title: "Supply Chain" }, { id: "macro", title: "Macro" }];
   allTabs.forEach(tab => {
     const btn = document.createElement("button");
     btn.type = "button";
@@ -557,6 +530,12 @@ async function switchTab(tabId) {
   if (tabId === "macro") {
     homeViewToggleEl.classList.add("hidden");
     renderMacroTab();
+    return;
+  }
+
+  if (tabId === "supply-chain") {
+    homeViewToggleEl.classList.add("hidden");
+    renderSupplyChainTab();
     return;
   }
 
