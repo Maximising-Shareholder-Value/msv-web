@@ -14,6 +14,13 @@
 // showing a header per commit.
 const CHANGELOG = [
   {
+    date: "2026-09-22T11:56:00+08:00",
+    items: [
+      "New \"Learn\" tab on the home page — plain-English explanations of what a stock, ETF, bond ETF, and crypto actually are, each with a simple diagram and a real example, for anyone starting from zero.",
+      "More Learn topics (reading the numbers, macro/the economy, options, and how to put it all together) are coming in future updates — you'll see them listed as \"Coming soon\" for now.",
+    ],
+  },
+  {
     date: "2026-09-22T11:29:00+08:00",
     items: [
       "Two new sections on the stock ticker page: Risk (interest coverage, long-term debt/equity, dividend payout ratio) and Efficiency (asset, inventory, and receivables turnover).",
