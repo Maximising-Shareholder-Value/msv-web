@@ -276,7 +276,7 @@ function renderRecentlyViewed() {
 
 function buildTabs() {
   homeTabsEl.innerHTML = "";
-  const allTabs = [...DYNAMIC_TABS, ...BROWSE_CATEGORIES, { id: "crypto", title: "Crypto" }, { id: "macro", title: "Macro" }];
+  const allTabs = [...DYNAMIC_TABS, ...BROWSE_CATEGORIES, { id: "crypto", title: "Crypto" }, { id: "learn", title: "Learn" }, { id: "macro", title: "Macro" }];
   allTabs.forEach(tab => {
     const btn = document.createElement("button");
     btn.type = "button";
@@ -305,6 +305,12 @@ async function switchTab(tabId) {
   if (tabId === "macro") {
     homeViewToggleEl.classList.add("hidden");
     renderMacroTab();
+    return;
+  }
+
+  if (tabId === "learn") {
+    homeViewToggleEl.classList.add("hidden");
+    renderLearnTab();
     return;
   }
 
