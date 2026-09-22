@@ -301,13 +301,24 @@ header { max-width: 1600px; margin: 0 auto 24px; }
   background: var(--bg-surface);
   transition: width 0.18s ease, padding 0.18s ease;
 }
-.home-sidebar.collapsed { width: 44px; padding: 16px 6px; gap: 18px; overflow: hidden; }
-.home-sidebar.collapsed .sidebar-heading-text,
-.home-sidebar.collapsed .sidebar-body,
-.home-sidebar.collapsed .sidebar-soon-badge,
+/* Collapsed = a clean icon rail: only the Quick Links icons (Learn/
+   Compare/Macro) stay visible and functional — Quick Search, Watchlist,
+   and Recently Viewed all need real text/typing to be useful, so they
+   hide entirely rather than becoming unreadable slivers. No
+   `overflow: hidden` here (2026-09-22 fix) — it was clipping the toggle
+   button, which sits deliberately half outside the sidebar's edge. */
+.home-sidebar.collapsed { width: 56px; padding: 16px 8px; gap: 10px; align-items: center; }
+.home-sidebar.collapsed .sidebar-section { display: none; }
+.home-sidebar.collapsed .sidebar-section.sidebar-collapsible-icons {
+  display: flex;
+  width: 100%;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+.home-sidebar.collapsed .sidebar-collapsible-icons .sidebar-heading { display: none; }
+.home-sidebar.collapsed .sidebar-link { justify-content: center; padding: 10px 0; }
 .home-sidebar.collapsed .sidebar-link-text { display: none; }
-.home-sidebar.collapsed .sidebar-heading { justify-content: center; }
-.home-sidebar.collapsed .sidebar-link { justify-content: center; padding: 8px 4px; }
+.home-sidebar.collapsed .sidebar-links { gap: 8px; }
 
 .sidebar-toggle {
   position: absolute;
@@ -325,8 +336,8 @@ header { max-width: 1600px; margin: 0 auto 24px; }
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 1;
 }
-.home-sidebar.collapsed .sidebar-toggle { right: -12px; }
 .sidebar-toggle:hover { border-color: var(--accent); color: var(--accent); }
 
 .sidebar-section { display: flex; flex-direction: column; gap: 8px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
@@ -402,10 +413,21 @@ header { max-width: 1600px; margin: 0 auto 24px; }
 
 @media (max-width: 900px) {
   .home-layout { flex-direction: column; }
-  .home-sidebar { width: 100%; }
-  .home-sidebar.collapsed { width: 100%; padding: 10px 14px; }
+  .home-sidebar,
+  .home-sidebar.collapsed {
+    width: 100%;
+    padding: 16px 14px;
+    align-items: stretch;
+  }
+  /* The collapse toggle is desktop-only real estate (a phone screen is
+     already one narrow column) — always show every section in full on
+     mobile, regardless of whatever collapse state got persisted from a
+     desktop visit. */
+  .home-sidebar.collapsed .sidebar-section { display: flex; }
+  .home-sidebar.collapsed .sidebar-heading { display: flex; justify-content: flex-start; }
   .home-sidebar.collapsed .sidebar-heading-text,
   .home-sidebar.collapsed .sidebar-body,
+  .home-sidebar.collapsed .sidebar-soon-badge,
   .home-sidebar.collapsed .sidebar-link-text { display: flex; }
   .home-sidebar.collapsed .sidebar-link { justify-content: flex-start; padding: 7px 9px; }
   .sidebar-toggle { display: none; }
