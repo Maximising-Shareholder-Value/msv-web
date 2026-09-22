@@ -48,106 +48,81 @@
 <section id="homeView" class="home-view">
   <div class="home-decor" aria-hidden="true"></div>
 
-  <div class="home-layout">
-    <aside id="homeSidebar" class="home-sidebar">
-      <button type="button" id="sidebarToggle" class="sidebar-toggle" aria-label="Collapse sidebar" title="Collapse sidebar">‹</button>
+  <div class="card home-intro-card">
+    <p class="home-intro-lead">$MSV gives you the full picture on any stock, ETF, or crypto ticker — valuation, financial health, and a clear, plain-English read on where it stands, so you understand what you're buying, not just its price. Layer in a snapshot of markets worldwide and the economic forces moving them, and you've got real context to work with. (Bonds and commodities are in here too, via the ETFs that track them.)</p>
+    <button type="button" class="home-how-to-trigger" id="howToTrigger">👋 New here? How to use $MSV</button>
+  </div>
 
-      <div class="sidebar-section">
-        <h4 class="sidebar-heading"><span class="sidebar-heading-text">Quick Search</span></h4>
-        <div class="sidebar-body">
-          <div class="sidebar-search-row">
-            <input type="text" id="sidebarSearchInput" placeholder="Ticker or company" autocomplete="off">
-            <button type="button" id="sidebarSearchBtn" aria-label="Search">Go</button>
-          </div>
-        </div>
-      </div>
+  <button type="button" id="learnBanner" class="learn-banner">
+    <span class="learn-banner-icon">🎓</span>
+    <span class="learn-banner-copy">
+      <span class="learn-banner-title">New to investing? Start here</span>
+      <span class="learn-banner-subtitle">Plain-English explanations of everything on this site — stocks, ETFs, valuation, risk, options, and how to put it all together. No jargon left unexplained.</span>
+    </span>
+    <span class="learn-banner-arrow">→</span>
+  </button>
 
-      <div class="sidebar-section sidebar-collapsible-icons">
-        <h4 class="sidebar-heading"><span class="sidebar-heading-text">Quick Links</span></h4>
-        <div class="sidebar-body sidebar-links">
-          <button type="button" class="sidebar-link" id="sidebarLearnLink" title="Learn"><span class="sidebar-link-icon">🎓</span><span class="sidebar-link-text">Learn</span></button>
-          <button type="button" class="sidebar-link" id="sidebarCompareLink" title="Compare"><span class="sidebar-link-icon">⚖️</span><span class="sidebar-link-text">Compare</span></button>
-          <button type="button" class="sidebar-link" id="sidebarMacroLink" title="Macro"><span class="sidebar-link-icon">🌍</span><span class="sidebar-link-text">Macro</span></button>
-        </div>
-      </div>
-
-      <div class="sidebar-section">
-        <h4 class="sidebar-heading"><span class="sidebar-heading-text">Watchlist</span></h4>
-        <div id="watchlistRow" class="recently-viewed-row sidebar-body hidden"></div>
-        <p id="watchlistEmptyNote" class="sidebar-empty-note">Tap the ☆ on any ticker page to track it here.</p>
-      </div>
-
-      <div class="sidebar-section">
-        <div id="recentlyViewedRow" class="recently-viewed-row sidebar-body hidden"></div>
-      </div>
-    </aside>
-
-    <div class="home-main">
-      <div class="card home-intro-card">
-        <p class="home-intro-lead">$MSV gives you the full picture on any stock, ETF, or crypto ticker — valuation, financial health, and a clear, plain-English read on where it stands, so you understand what you're buying, not just its price. Layer in a snapshot of markets worldwide and the economic forces moving them, and you've got real context to work with. (Bonds and commodities are in here too, via the ETFs that track them.)</p>
-        <button type="button" class="home-how-to-trigger" id="howToTrigger">👋 New here? How to use $MSV</button>
-      </div>
-
-      <button type="button" id="learnBanner" class="learn-banner">
-        <span class="learn-banner-icon">🎓</span>
-        <span class="learn-banner-copy">
-          <span class="learn-banner-title">New to investing? Start here</span>
-          <span class="learn-banner-subtitle">Plain-English explanations of everything on this site — stocks, ETFs, valuation, risk, options, and how to put it all together. No jargon left unexplained.</span>
-        </span>
-        <span class="learn-banner-arrow">→</span>
-      </button>
-
-      <div class="card world-markets-card">
-        <h3>Global Markets <span class="card-subtitle" id="worldMarketsSummary"></span> <span class="sample-data-badge" title="Illustrative sample prices, not live data — kept static so loading this page never uses any of the free-tier API budget.">Sample data</span></h3>
-        <div class="world-markets-layout">
-          <div id="worldMarketsMap" class="world-markets-map"></div>
-          <div id="indexStrip" class="index-strip"></div>
-        </div>
-        <div id="marketBreadth" class="market-breadth"></div>
-        <p class="muted small map-hover-hint">Hover a highlighted country for its index and economic snapshot.</p>
-      </div>
-
-      <div id="mapHoverPopup" class="map-hover-popup hidden"></div>
-
-      <div class="home-grid">
-        <div class="card home-grid-item" id="didYouKnowCard">
-          <h3>Did You Know? <span class="card-subtitle">from the Learn hub</span></h3>
-          <div id="didYouKnowContent"></div>
-        </div>
-
-        <div class="card home-grid-item" id="econCalendarCard">
-          <h3>Economic Calendar</h3>
-          <div id="econCalendarContent"><p class="muted">Loading...</p></div>
-        </div>
-
-        <div class="card home-grid-item" id="earningsCalendarCard">
-          <h3>Earnings This Week</h3>
-          <div id="earningsCalendarContent"><p class="muted">Loading...</p></div>
-        </div>
-
-        <div class="card home-grid-item home-grid-wide" id="sectorHeatmapCard">
-          <h3>Sector Performance <span class="card-subtitle">today</span></h3>
-          <div id="sectorHeatmapContent"><p class="muted">Loading...</p></div>
-        </div>
-      </div>
-
-      <div class="home-controls">
-        <div id="homeTabs" class="home-tabs"></div>
-        <div id="homeViewToggle" class="home-view-toggle">
-          <button type="button" class="active" data-mode="grid">Grid</button>
-          <button type="button" data-mode="heatmap">Heatmap</button>
-        </div>
-      </div>
-
-      <div class="card home-tab-card">
-        <div id="homeContent" class="home-content"><p class="muted">Loading...</p></div>
-      </div>
-
-      <div class="card">
-        <h3>Market News</h3>
-        <div id="homeNewsList"><p class="muted">Loading...</p></div>
-      </div>
+  <div class="card world-markets-card">
+    <h3>Global Markets <span class="card-subtitle" id="worldMarketsSummary"></span> <span class="sample-data-badge" title="Illustrative sample prices, not live data — kept static so loading this page never uses any of the free-tier API budget.">Sample data</span></h3>
+    <div class="world-markets-layout">
+      <div id="worldMarketsMap" class="world-markets-map"></div>
+      <div id="indexStrip" class="index-strip"></div>
     </div>
+    <div id="marketBreadth" class="market-breadth"></div>
+    <p class="muted small map-hover-hint">Hover a highlighted country for its index and economic snapshot.</p>
+  </div>
+
+  <div id="mapHoverPopup" class="map-hover-popup hidden"></div>
+
+  <div class="home-grid">
+    <div class="card home-grid-item" id="watchlistCard">
+      <h3>Watchlist</h3>
+      <div id="watchlistRow" class="recently-viewed-row hidden"></div>
+      <p id="watchlistEmptyNote" class="sidebar-empty-note">Tap the ☆ on any ticker page to track it here.</p>
+    </div>
+
+    <div class="card home-grid-item" id="recentlyViewedCard">
+      <h3>Recently Viewed</h3>
+      <div id="recentlyViewedRow" class="recently-viewed-row hidden"></div>
+      <p id="recentlyViewedEmptyNote" class="sidebar-empty-note">Tickers you look up will show up here.</p>
+    </div>
+
+    <div class="card home-grid-item" id="didYouKnowCard">
+      <h3>Did You Know? <span class="card-subtitle">from the Learn hub</span></h3>
+      <div id="didYouKnowContent"></div>
+    </div>
+
+    <div class="card home-grid-item" id="econCalendarCard">
+      <h3>Economic Calendar</h3>
+      <div id="econCalendarContent"><p class="muted">Loading...</p></div>
+    </div>
+
+    <div class="card home-grid-item" id="earningsCalendarCard">
+      <h3>Earnings This Week</h3>
+      <div id="earningsCalendarContent"><p class="muted">Loading...</p></div>
+    </div>
+
+    <div class="card home-grid-item home-grid-wide" id="sectorHeatmapCard">
+      <h3>Sector Performance <span class="card-subtitle">today</span></h3>
+      <div id="sectorHeatmapContent"><p class="muted">Loading...</p></div>
+    </div>
+  </div>
+
+  <div class="home-controls">
+    <div id="homeTabs" class="home-tabs"></div>
+    <div id="homeViewToggle" class="home-view-toggle">
+      <button type="button" class="active" data-mode="grid">Grid</button>
+      <button type="button" data-mode="heatmap">Heatmap</button>
+    </div>
+  </div>
+
+  <div class="card home-tab-card">
+    <div id="homeContent" class="home-content"><p class="muted">Loading...</p></div>
+  </div>
+
+  <div class="card">
+    <h3>Market News</h3>
+    <div id="homeNewsList"><p class="muted">Loading...</p></div>
   </div>
 </section>
 
@@ -462,6 +437,7 @@
 <script src="worldMarkets.js"></script>
 <script src="home.js"></script>
 <script src="learn.js"></script>
+<script src="supplyChain.js"></script>
 <script src="chart.js"></script>
 <script src="invest.js"></script>
 <script src="autocomplete.js"></script>
