@@ -14,6 +14,16 @@
 // showing a header per commit.
 const CHANGELOG = [
   {
+    date: "2026-09-22T11:29:00+08:00",
+    items: [
+      "Two new sections on the stock ticker page: Risk (interest coverage, long-term debt/equity, dividend payout ratio) and Efficiency (asset, inventory, and receivables turnover).",
+      "Profitability now also shows Return on Assets, Return on Investment, and 5-year average margins alongside the existing figures.",
+      "Growth now also shows quarter-over-quarter growth, not just year-over-year and 5-year.",
+      "Valuation now also shows Price/Sales and Price/Cash-Flow.",
+      "All of the above are stock-only (hidden for ETFs and crypto, same as the existing Growth/Profitability sections) and each has its own plain-English (?) guide.",
+    ],
+  },
+  {
     date: "2026-09-21T20:20:00+08:00",
     items: [
       "Global Markets: hover any highlighted country on the map for its index price and an economic snapshot (GDP growth, inflation, unemployment) in one popup.",

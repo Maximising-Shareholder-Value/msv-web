@@ -103,7 +103,9 @@ const descriptionContent = document.getElementById("descriptionContent");
 const valuationGrid = document.getElementById("valuationGrid");
 const growthGrid = document.getElementById("growthGrid");
 const profitabilityGrid = document.getElementById("profitabilityGrid");
+const efficiencyGrid = document.getElementById("efficiencyGrid");
 const healthGrid = document.getElementById("healthGrid");
+const riskGrid = document.getElementById("riskGrid");
 const dividendsGrid = document.getElementById("dividendsGrid");
 const momentumGrid = document.getElementById("momentumGrid");
 
@@ -238,8 +240,8 @@ function getInstrumentType(symbol, profile) {
 // see renderCryptoRange), SEC Filings (ETFs really do file fund-specific
 // forms; hidden separately for crypto only, which has none).
 const NON_STOCK_HIDDEN_SECTIONS = [
-  "growthSection", "profitabilitySection", "dividendsSection",
-  "earningsSection", "financialsSection", "sharesSection",
+  "growthSection", "profitabilitySection", "efficiencySection", "riskSection",
+  "dividendsSection", "earningsSection", "financialsSection", "sharesSection",
   "insiderSection", "peersSection", "recommendationSection",
 ];
 
@@ -457,8 +459,10 @@ async function loadTicker(symbol) {
       renderValuation(metric, profile);
       renderGrowth(metric);
       renderProfitability(metric);
+      renderEfficiency(metric);
       renderDividends(metric);
       renderHealth(metric);
+      renderRisk(metric);
     }
     renderMomentum(metric);
     renderRange(metric);
@@ -874,6 +878,8 @@ function renderValuation(metric, profile) {
     ["Market Cap ($M)", profile.marketCapitalization, "marketCap", false],
     ["EPS (TTM)", metric.epsTTM, "epsTTM", false],
     ["Shares Outstanding (M)", profile.shareOutstanding, "sharesOutstanding", false],
+    ["Price/Sales (TTM)", metric.psTTM, "priceToSales", false],
+    ["Price/Cash Flow (TTM)", metric.pcfShareTTM, "priceToCashFlow", false],
   ];
   items.forEach(([label, value, defKey, isPercent]) => valuationGrid.appendChild(makeIndicatorCard(label, value, defKey, isPercent)));
 
@@ -892,6 +898,8 @@ function renderGrowth(metric) {
     ["EPS Growth (TTM YoY)", metric.epsGrowthTTMYoy, "epsGrowth", true],
     ["Revenue Growth (5Y)", metric.revenueGrowth5Y, "revenueGrowth", true],
     ["EPS Growth (5Y)", metric.epsGrowth5Y, "epsGrowth", true],
+    ["Revenue Growth (Quarterly YoY)", metric.revenueGrowthQuarterlyYoy, "revenueGrowth", true],
+    ["EPS Growth (Quarterly YoY)", metric.epsGrowthQuarterlyYoy, "epsGrowth", true],
   ];
   items.forEach(([label, value, defKey, isPercent]) => growthGrid.appendChild(makeIndicatorCard(label, value, defKey, isPercent)));
 
@@ -910,6 +918,11 @@ function renderProfitability(metric) {
     ["Operating Margin", metric.operatingMarginTTM, "operatingMargin", true],
     ["Net Margin", metric.netProfitMarginTTM, "netMargin", true],
     ["Return on Equity", metric.roeTTM, "roe", true],
+    ["Return on Assets", metric.roaTTM, "roa", true],
+    ["Return on Investment", metric.roiTTM, "roi", true],
+    ["Gross Margin (5Y avg)", metric.grossMargin5Y, "grossMargin", true],
+    ["Operating Margin (5Y avg)", metric.operatingMargin5Y, "operatingMargin", true],
+    ["Net Margin (5Y avg)", metric.netProfitMargin5Y, "netMargin", true],
   ];
   items.forEach(([label, value, defKey, isPercent]) => profitabilityGrid.appendChild(makeIndicatorCard(label, value, defKey, isPercent)));
 
@@ -937,6 +950,38 @@ function renderHealth(metric) {
   renderRealLifeExample("healthExample", [
     isNum(de) && `For every $100 of the company's own money (shareholder equity), it has borrowed about <strong>$${(de * 100).toFixed(2)}</strong> more from lenders and creditors — that's what a Debt-to-Equity ratio of ${de.toFixed(2)} means.`,
     isNum(currentRatio) && `For every $100 of bills it owes within the next year, it has about <strong>$${(currentRatio * 100).toFixed(2)}</strong> in cash and other assets that could be turned into cash within a year to cover them (its current ratio of ${currentRatio.toFixed(2)}).`,
+  ]);
+}
+
+function renderEfficiency(metric) {
+  efficiencyGrid.innerHTML = "";
+  const items = [
+    ["Asset Turnover", metric.assetTurnoverTTM, "assetTurnover", false],
+    ["Inventory Turnover", metric.inventoryTurnoverTTM, "inventoryTurnover", false],
+    ["Receivables Turnover", metric.receivablesTurnoverTTM, "receivablesTurnover", false],
+  ];
+  items.forEach(([label, value, defKey, isPercent]) => efficiencyGrid.appendChild(makeIndicatorCard(label, value, defKey, isPercent)));
+
+  const assetTurnover = metric.assetTurnoverTTM;
+  renderRealLifeExample("efficiencyExample", [
+    isNum(assetTurnover) && `For every $100 tied up in the company's assets, it generates about <strong>$${(assetTurnover * 100).toFixed(2)}</strong> in annual sales — that's what an asset turnover of ${assetTurnover.toFixed(2)} means.`,
+  ]);
+}
+
+function renderRisk(metric) {
+  riskGrid.innerHTML = "";
+  const items = [
+    ["Interest Coverage", metric.netInterestCoverageAnnual, "interestCoverage", false],
+    ["Long-Term Debt/Equity", metric["longTermDebt/equityAnnual"], "ltDebtToEquity", false],
+    ["Dividend Payout Ratio", metric.payoutRatioAnnual, "payoutRatio", true],
+  ];
+  items.forEach(([label, value, defKey, isPercent]) => riskGrid.appendChild(makeIndicatorCard(label, value, defKey, isPercent)));
+
+  const coverage = metric.netInterestCoverageAnnual;
+  const payout = metric.payoutRatioAnnual;
+  renderRealLifeExample("riskExample", [
+    isNum(coverage) && `Its annual operating profit could cover its interest payments about <strong>${coverage.toFixed(1)}x</strong> over — the higher this number, the more breathing room it has before interest payments become a real strain.`,
+    isNum(payout) && payout > 0 && `Of every $100 it earns in profit, it pays out about <strong>$${payout.toFixed(2)}</strong> as dividends and keeps the rest — a payout ratio of ${payout.toFixed(1)}%.`,
   ]);
 }
 
