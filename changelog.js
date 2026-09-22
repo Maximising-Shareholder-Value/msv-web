@@ -14,6 +14,12 @@
 // showing a header per commit.
 const CHANGELOG = [
   {
+    date: "2026-09-22T18:08:00+08:00",
+    items: [
+      "Fixed the collapsed sidebar — it now shows a clean row of icon-only shortcuts (Learn/Compare/Macro) instead of an empty, half-clipped strip.",
+    ],
+  },
+  {
     date: "2026-09-22T17:07:00+08:00",
     items: [
       "New collapsible sidebar on the home page — quick ticker search, quick links to Learn/Compare/Macro, and Recently Viewed (moved here from its old spot above the tabs).",
