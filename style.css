@@ -1395,6 +1395,49 @@ path.map-hoverable-country:hover { fill-opacity: 0.7; fill: var(--accent); }
 .learn-funnel-label { font-size: 11.5px; color: var(--text-secondary); }
 .learn-funnel-label strong { color: var(--text-primary); }
 
+.learn-chain { display: flex; flex-direction: column; align-items: center; gap: 2px; width: 100%; }
+.learn-chain-step { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 14px; font-size: 12.5px; font-weight: 600; color: var(--text-primary); text-align: center; width: 100%; max-width: 260px; }
+.learn-chain-arrow { font-size: 15px; color: var(--accent); line-height: 1; padding: 1px 0; }
+
+.learn-converge { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 100%; }
+.learn-converge-inputs { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.learn-converge-input { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 7px; padding: 6px 10px; font-size: 11.5px; font-weight: 700; color: var(--text-secondary); }
+.learn-converge-arrow { font-size: 15px; color: var(--accent); }
+.learn-converge-output { background: color-mix(in srgb, var(--accent) 12%, var(--bg-surface)); border: 1px solid var(--accent); border-radius: 8px; padding: 8px 20px; font-size: 13px; font-weight: 700; color: var(--text-primary); }
+
+.learn-dot-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; width: 100%; max-width: 210px; margin-bottom: 8px; }
+.learn-dot { width: 100%; aspect-ratio: 1; border-radius: 50%; background: var(--bg-surface); border: 1px solid var(--border); }
+.learn-dot.filled { background: var(--accent); border-color: var(--accent); }
+
+.learn-two-col { display: flex; gap: 14px; width: 100%; justify-content: center; }
+.learn-two-col-item { flex: 1; max-width: 150px; display: flex; flex-direction: column; align-items: center; gap: 4px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 10px; text-align: center; }
+.learn-two-col-item strong { font-size: 13px; color: var(--text-primary); }
+.learn-two-col-item span:not(.learn-two-col-arrow):not(.learn-two-col-icon) { font-size: 11px; color: var(--text-secondary); line-height: 1.35; }
+.learn-two-col-arrow { font-size: 20px; font-weight: 700; line-height: 1; }
+.learn-two-col-arrow.up { color: var(--accent-strong); }
+.learn-two-col-arrow.down { color: #e5484d; }
+.learn-two-col-icon { font-size: 22px; }
+
+.learn-strike-ladder { display: flex; flex-direction: column; gap: 3px; width: 100%; max-width: 260px; margin-bottom: 6px; }
+.learn-strike-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; border-radius: 6px; font-size: 12px; background: var(--bg-surface); }
+.learn-strike-row.current { background: color-mix(in srgb, var(--accent) 15%, var(--bg-surface)); border: 1px solid var(--accent); }
+.learn-strike-price { font-weight: 700; color: var(--text-primary); font-family: ui-monospace, monospace; }
+.learn-strike-tag { color: var(--text-muted); font-size: 10.5px; }
+.learn-strike-row.current .learn-strike-tag { color: var(--accent); font-weight: 700; }
+
+.learn-visual-pie-pair { display: flex; gap: 28px; justify-content: center; align-items: center; }
+.learn-visual-pie-pair .learn-visual-pie { gap: 6px; }
+.learn-visual-pie-pair .learn-pie-chart { width: 80px; height: 80px; }
+
+.learn-spectrum { width: 100%; max-width: 280px; }
+.learn-spectrum-bar { height: 8px; border-radius: 999px; background: linear-gradient(90deg, var(--text-muted), var(--accent)); }
+.learn-spectrum-labels { display: flex; justify-content: space-between; margin-top: 8px; font-size: 10.5px; color: var(--text-secondary); line-height: 1.4; }
+.learn-spectrum-labels span:last-child { text-align: right; }
+
+.learn-checklist { display: flex; flex-direction: column; gap: 6px; width: 100%; }
+.learn-checklist-row { display: flex; align-items: flex-start; gap: 8px; font-size: 12.5px; color: var(--text-secondary); background: var(--bg-surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; }
+.learn-checklist-icon { color: #f5a524; flex-shrink: 0; }
+
 .learn-topic-text p { font-size: 13.5px; line-height: 1.6; color: var(--text-secondary); margin: 0 0 10px; }
 .learn-topic-text p:last-child { margin-bottom: 0; }
 .learn-example, .learn-tip {
