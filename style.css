@@ -284,6 +284,16 @@ header { max-width: 1600px; margin: 0 auto 24px; }
 .recently-viewed-chip strong { font-weight: 700; }
 .recently-viewed-chip .muted { font-size: 10.5px; }
 
+/* Watchlist reuses the same chip look but isn't itself a <button> (it
+   has two independently-clickable zones: open the ticker, or remove
+   it), so it's a plain div with two child buttons instead. */
+.watchlist-chip { flex-direction: row; align-items: center; justify-content: space-between; padding: 4px 4px 4px 10px; cursor: default; }
+.watchlist-chip-main { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 1px; background: none; border: none; color: var(--text-primary); font-size: 12px; text-align: left; cursor: pointer; padding: 3px 0; }
+.watchlist-chip-main strong { font-weight: 700; }
+.watchlist-chip-main .muted { font-size: 10.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+.watchlist-chip-remove { flex-shrink: 0; width: 22px; height: 22px; border-radius: 6px; border: none; background: none; color: var(--text-muted); font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.watchlist-chip-remove:hover { background: var(--bg-surface); color: #e5484d; }
+
 /* ---- Homepage layout: sidebar + main column (2026-09-22 overhaul) ---- */
 .home-layout { display: flex; align-items: flex-start; gap: 20px; }
 .home-main { flex: 1; min-width: 0; }
@@ -482,6 +492,58 @@ header { max-width: 1600px; margin: 0 auto 24px; }
 .home-content { min-height: 120px; }
 .home-note { margin-top: 12px; }
 
+/* ---- Homepage grid modules (phase 2, 2026-09-22) ---- */
+.home-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.home-grid-item { margin-bottom: 0; }
+.home-grid-wide { grid-column: 1 / -1; }
+@media (max-width: 900px) {
+  .home-grid { grid-template-columns: 1fr; }
+}
+
+.econ-calendar-row { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding: 8px 0; border-top: 1px solid var(--border); font-size: 12.5px; }
+.econ-calendar-row:first-child { border-top: none; padding-top: 0; }
+.econ-calendar-date { font-weight: 700; color: var(--accent); flex-shrink: 0; font-variant-numeric: tabular-nums; }
+.econ-calendar-label { color: var(--text-secondary); text-align: right; }
+
+.earnings-calendar-row {
+  display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  width: 100%;
+  padding: 8px 0;
+  border-top: 1px solid var(--border);
+  background: none;
+  border-left: none; border-right: none; border-bottom: none;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+}
+.earnings-calendar-row:first-child { border-top: none; padding-top: 0; }
+.earnings-calendar-row:hover .earnings-calendar-name strong { color: var(--accent); }
+.earnings-calendar-name { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.earnings-calendar-name strong { font-size: 12.5px; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.earnings-calendar-name .muted { font-size: 10.5px; }
+.earnings-calendar-meta { font-size: 11px; color: var(--text-muted); flex-shrink: 0; white-space: nowrap; }
+
+.sector-heatmap-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
+.sector-heatmap-tile {
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  color: var(--text-primary);
+  transition: transform 0.1s;
+}
+.sector-heatmap-tile:hover { transform: translateY(-1px); border-color: var(--accent); }
+.sector-heatmap-name { font-size: 12px; font-weight: 600; }
+.sector-heatmap-value { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
 /* ---- Home chip grid (reused by tabs) ---- */
 .home-chip-row {
   display: grid;
@@ -598,12 +660,31 @@ header { max-width: 1600px; margin: 0 auto 24px; }
 .card-subtitle { text-transform: none; letter-spacing: normal; font-size: 11px; color: var(--text-muted); font-weight: 400; }
 
 .overview-top { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.overview-title-block { flex: 1; min-width: 0; }
 .logo { width: 44px; height: 44px; border-radius: 10px; object-fit: contain; background: #fff; padding: 4px; }
 .overview h2 { margin: 0 0 6px; font-size: 19px; }
 .overview-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .ticker-badge { font-size: 11px; color: var(--text-secondary); border: 1px solid var(--border); border-radius: 6px; padding: 2px 6px; }
 .meta-badge { font-size: 11px; color: var(--text-muted); }
 .meta-badge:not(:last-child)::after { content: "·"; margin-left: 6px; color: var(--text-muted); }
+
+.watchlist-toggle-btn {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-surface-2);
+  color: var(--text-muted);
+  font-size: 19px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s, color 0.15s, transform 0.1s;
+}
+.watchlist-toggle-btn:hover { border-color: var(--accent); transform: scale(1.05); }
+.watchlist-toggle-btn.active { color: #f5a524; border-color: color-mix(in srgb, #f5a524 45%, var(--border)); background: color-mix(in srgb, #f5a524 10%, var(--bg-surface-2)); }
 
 .price-row { display: flex; align-items: baseline; gap: 12px; margin-bottom: 14px; }
 .price { font-size: 32px; font-weight: 700; letter-spacing: -0.01em; }
@@ -1593,6 +1674,12 @@ path.map-hoverable-country:hover { fill-opacity: 0.7; fill: var(--accent); }
 .learn-checklist { display: flex; flex-direction: column; gap: 6px; width: 100%; }
 .learn-checklist-row { display: flex; align-items: flex-start; gap: 8px; font-size: 12.5px; color: var(--text-secondary); background: var(--bg-surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; }
 .learn-checklist-icon { color: #f5a524; flex-shrink: 0; }
+
+/* ---- "Did You Know" homepage card ---- */
+.did-you-know-oneliner { font-size: 13.5px; color: var(--text-primary); line-height: 1.5; margin: 0 0 8px; }
+.did-you-know-excerpt { font-size: 12.5px; color: var(--text-secondary); line-height: 1.55; margin: 0 0 12px; }
+.did-you-know-link { background: none; border: none; color: var(--accent); font-size: 12.5px; font-weight: 700; cursor: pointer; padding: 0; }
+.did-you-know-link:hover { text-decoration: underline; }
 
 .learn-topic-text p { font-size: 13.5px; line-height: 1.6; color: var(--text-secondary); margin: 0 0 10px; }
 .learn-topic-text p:last-child { margin-bottom: 0; }

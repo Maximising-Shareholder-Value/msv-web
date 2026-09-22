@@ -72,10 +72,9 @@
       </div>
 
       <div class="sidebar-section">
-        <h4 class="sidebar-heading"><span class="sidebar-heading-text">Watchlist</span> <span class="sidebar-soon-badge">Soon</span></h4>
-        <div class="sidebar-body">
-          <p class="sidebar-empty-note">Track tickers you care about — coming in a future update.</p>
-        </div>
+        <h4 class="sidebar-heading"><span class="sidebar-heading-text">Watchlist</span></h4>
+        <div id="watchlistRow" class="recently-viewed-row sidebar-body hidden"></div>
+        <p id="watchlistEmptyNote" class="sidebar-empty-note">Tap the ☆ on any ticker page to track it here.</p>
       </div>
 
       <div class="sidebar-section">
@@ -109,6 +108,28 @@
       </div>
 
       <div id="mapHoverPopup" class="map-hover-popup hidden"></div>
+
+      <div class="home-grid">
+        <div class="card home-grid-item" id="didYouKnowCard">
+          <h3>Did You Know? <span class="card-subtitle">from the Learn hub</span></h3>
+          <div id="didYouKnowContent"></div>
+        </div>
+
+        <div class="card home-grid-item" id="econCalendarCard">
+          <h3>Economic Calendar</h3>
+          <div id="econCalendarContent"><p class="muted">Loading...</p></div>
+        </div>
+
+        <div class="card home-grid-item" id="earningsCalendarCard">
+          <h3>Earnings This Week</h3>
+          <div id="earningsCalendarContent"><p class="muted">Loading...</p></div>
+        </div>
+
+        <div class="card home-grid-item home-grid-wide" id="sectorHeatmapCard">
+          <h3>Sector Performance <span class="card-subtitle">today</span></h3>
+          <div id="sectorHeatmapContent"><p class="muted">Loading...</p></div>
+        </div>
+      </div>
 
       <div class="home-controls">
         <div id="homeTabs" class="home-tabs"></div>
@@ -156,7 +177,7 @@
     <section class="card overview">
       <div class="overview-top">
         <img id="logo" src="" alt="" class="logo hidden">
-        <div>
+        <div class="overview-title-block">
           <h2 id="companyName">--</h2>
           <div class="overview-meta">
             <span id="ticker" class="ticker-badge">--</span>
@@ -164,6 +185,7 @@
             <span id="industry" class="meta-badge">--</span>
           </div>
         </div>
+        <button type="button" id="watchlistToggleBtn" class="watchlist-toggle-btn" aria-label="Add to watchlist" title="Add to watchlist">☆</button>
       </div>
       <div class="price-row">
         <span id="price" class="price">--</span>

@@ -118,8 +118,13 @@ const homeViewToggleEl = document.getElementById("homeViewToggle");
 const homeNewsListEl = document.getElementById("homeNewsList");
 const indexStripEl = document.getElementById("indexStrip");
 const recentlyViewedRowEl = document.getElementById("recentlyViewedRow");
+const watchlistRowEl = document.getElementById("watchlistRow");
+const watchlistEmptyNoteEl = document.getElementById("watchlistEmptyNote");
 const marketBreadthEl = document.getElementById("marketBreadth");
 const learnBannerEl = document.getElementById("learnBanner");
+const econCalendarContentEl = document.getElementById("econCalendarContent");
+const earningsCalendarContentEl = document.getElementById("earningsCalendarContent");
+const sectorHeatmapContentEl = document.getElementById("sectorHeatmapContent");
 const homeSidebarEl = document.getElementById("homeSidebar");
 const sidebarToggleEl = document.getElementById("sidebarToggle");
 const sidebarSearchInputEl = document.getElementById("sidebarSearchInput");
@@ -187,6 +192,36 @@ const MARKET_TICKERS_SAMPLE = {
 // or letting the sidebar scroll independently) to avoid reintroducing the
 // gap, not just appending to this array.
 
+// The 11 SPDR Select Sector ETFs — the standard free way to see "how is
+// each S&P 500 sector doing today" without a paid sector-index feed.
+// Independent of BROWSE_CATEGORIES' "etfs" list (which only has 7 of
+// these, chosen for general browsing, not as a complete/ordered set for
+// a heatmap) — this list needs all 11, specifically.
+const SECTOR_ETFS = [
+  ["XLK", "Technology"], ["XLF", "Financials"], ["XLE", "Energy"],
+  ["XLV", "Health Care"], ["XLY", "Consumer Discretionary"], ["XLP", "Consumer Staples"],
+  ["XLI", "Industrials"], ["XLU", "Utilities"], ["XLB", "Materials"],
+  ["XLRE", "Real Estate"], ["XLC", "Communication Services"],
+];
+
+// Hand-maintained on purpose (2026-09-19 roadmap note: "dates are known
+// well in advance, low maintenance" — not worth a live feed for this).
+// Every date below is a real, sourced date, not guessed:
+// - FOMC meeting dates: federalreserve.gov's published 2026 schedule.
+// - CPI release dates: bls.gov's published release schedule.
+// Update this array periodically as dates pass / new ones are announced
+// — there's no automatic expiry, so a stale list will just quietly stop
+// being useful rather than erroring.
+const ECON_CALENDAR_EVENTS = [
+  { date: "2026-10-14", label: "CPI Release (Sept. data)", source: "bls.gov" },
+  { date: "2026-10-27", label: "FOMC Meeting begins", source: "federalreserve.gov" },
+  { date: "2026-10-28", label: "FOMC Rate Decision", source: "federalreserve.gov" },
+  { date: "2026-11-10", label: "CPI Release (Oct. data)", source: "bls.gov" },
+  { date: "2026-12-08", label: "FOMC Meeting begins", source: "federalreserve.gov" },
+  { date: "2026-12-09", label: "FOMC Rate Decision", source: "federalreserve.gov" },
+  { date: "2026-12-10", label: "CPI Release (Nov. data)", source: "bls.gov" },
+];
+
 function initHome() {
   buildTabs();
   buildViewToggle();
@@ -194,6 +229,10 @@ function initHome() {
   loadMarketNews();
   loadMarketTickers();
   renderRecentlyViewed();
+  renderWatchlist();
+  renderEconCalendar();
+  loadEarningsCalendar();
+  loadSectorHeatmap();
   initHomeLayout();
 }
 
@@ -307,6 +346,132 @@ function renderMarketBreadth(results) {
   `;
 }
 
+// Zero API cost — hand-maintained real dates (see ECON_CALENDAR_EVENTS
+// above for sourcing). Shows the next 4 upcoming events from today.
+function renderEconCalendar() {
+  if (!econCalendarContentEl) return;
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const upcoming = ECON_CALENDAR_EVENTS.filter(e => e.date >= todayStr).slice(0, 4);
+  if (upcoming.length === 0) {
+    econCalendarContentEl.innerHTML = '<p class="muted">No upcoming events on the list right now.</p>';
+    return;
+  }
+  econCalendarContentEl.innerHTML = upcoming.map(e => {
+    const d = new Date(`${e.date}T12:00:00Z`);
+    const dateLabel = d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+    return `
+      <div class="econ-calendar-row">
+        <span class="econ-calendar-date">${dateLabel}</span>
+        <span class="econ-calendar-label">${e.label}</span>
+      </div>
+    `;
+  }).join("");
+}
+
+// One Finnhub call for the whole upcoming week (not per-symbol) — cheap.
+// Finnhub's /calendar/earnings returns EVERY company reporting in the
+// date range, including many microcaps/OTC tickers with no name attached
+// (confirmed live) — filtered down to symbols this app already has a
+// real name for (RANKING_STOCK_SYMBOLS + BROWSE_CATEGORIES), so the
+// homepage shows recognizable companies, not a wall of unknown tickers.
+function buildKnownSymbolNames() {
+  const map = {};
+  RANKING_STOCK_SYMBOLS.forEach(([symbol, name]) => { map[symbol] = name; });
+  BROWSE_CATEGORIES.forEach(cat => cat.items.forEach(([symbol, name]) => { map[symbol] = name; }));
+  return map;
+}
+
+function loadEarningsCalendar() {
+  if (!earningsCalendarContentEl) return;
+  const from = new Date();
+  const to = new Date(from.getTime() + 7 * 24 * 60 * 60 * 1000);
+  const fmt = d => d.toISOString().slice(0, 10);
+
+  fetchJSON(finnhubUrl("/calendar/earnings", { from: fmt(from), to: fmt(to) }))
+    .then(data => renderEarningsCalendar(data.earningsCalendar || []))
+    .catch(() => { earningsCalendarContentEl.innerHTML = '<p class="muted">Couldn\'t load the earnings calendar right now.</p>'; });
+}
+
+function renderEarningsCalendar(items) {
+  const knownNames = buildKnownSymbolNames();
+  const known = items
+    .filter(item => knownNames[item.symbol])
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .slice(0, 8);
+
+  if (known.length === 0) {
+    earningsCalendarContentEl.innerHTML = '<p class="muted">No well-known companies reporting in the next 7 days.</p>';
+    return;
+  }
+
+  earningsCalendarContentEl.innerHTML = known.map(item => {
+    const d = new Date(`${item.date}T12:00:00Z`);
+    const dateLabel = d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+    const hourLabel = item.hour === "bmo" ? "Before open" : item.hour === "amc" ? "After close" : "";
+    return `
+      <button type="button" class="earnings-calendar-row" data-symbol="${item.symbol}">
+        <span class="earnings-calendar-name"><strong>${knownNames[item.symbol]}</strong><span class="muted">${item.symbol}</span></span>
+        <span class="earnings-calendar-meta">${dateLabel}${hourLabel ? ` · ${hourLabel}` : ""}</span>
+      </button>
+    `;
+  }).join("");
+
+  earningsCalendarContentEl.querySelectorAll(".earnings-calendar-row").forEach(row => {
+    row.addEventListener("click", () => loadTicker(row.dataset.symbol));
+  });
+}
+
+// 11 quote calls, staggered (same pattern as ensureRankingLoaded) — the
+// only genuinely new live-data cost in phase 2 alongside the earnings
+// calendar's one call. Fires once on home page load, cached for the
+// session (no re-fetch on every tab switch).
+let sectorHeatmapLoaded = false;
+function loadSectorHeatmap() {
+  if (!sectorHeatmapContentEl || sectorHeatmapLoaded) return;
+  sectorHeatmapLoaded = true;
+  const results = [];
+  Promise.all(SECTOR_ETFS.map(([symbol, name], i) => new Promise(resolve => {
+    setTimeout(async () => {
+      try {
+        const q = await fetchJSON(finnhubUrl("/quote", { symbol }));
+        if (isNum(q.c) && q.c !== 0) results.push({ symbol, name, dp: q.dp ?? 0 });
+      } catch {
+        // leave this sector out of the heatmap rather than showing a wrong number
+      }
+      resolve();
+    }, i * 40);
+  }))).then(() => renderSectorHeatmap(results));
+}
+
+function renderSectorHeatmap(results) {
+  if (results.length === 0) {
+    sectorHeatmapContentEl.innerHTML = '<p class="muted">Couldn\'t load sector data right now.</p>';
+    return;
+  }
+  const sorted = [...results].sort((a, b) => b.dp - a.dp);
+  const maxAbs = Math.max(...sorted.map(r => Math.abs(r.dp)), 1);
+
+  sectorHeatmapContentEl.innerHTML = `
+    <div class="sector-heatmap-grid">
+      ${sorted.map(r => {
+        const intensity = Math.min(Math.abs(r.dp) / maxAbs, 1);
+        const bg = r.dp >= 0
+          ? `color-mix(in srgb, var(--positive) ${(intensity * 55).toFixed(0)}%, var(--bg-surface-2))`
+          : `color-mix(in srgb, var(--negative) ${(intensity * 55).toFixed(0)}%, var(--bg-surface-2))`;
+        return `
+          <button type="button" class="sector-heatmap-tile" data-symbol="${r.symbol}" style="background:${bg}">
+            <span class="sector-heatmap-name">${r.name}</span>
+            <span class="sector-heatmap-value">${r.dp >= 0 ? "+" : ""}${r.dp.toFixed(2)}%</span>
+          </button>
+        `;
+      }).join("")}
+    </div>
+  `;
+  sectorHeatmapContentEl.querySelectorAll(".sector-heatmap-tile").forEach(tile => {
+    tile.addEventListener("click", () => loadTicker(tile.dataset.symbol));
+  });
+}
+
 // Zero API cost — reads what script.js already saved to localStorage
 // after each successful ticker load. Name-only chips, same as browse
 // categories, so revisiting one is free until actually clicked.
@@ -325,6 +490,33 @@ function renderRecentlyViewed() {
     chip.innerHTML = `<strong>${symbol}</strong><span class="muted">${name}</span>`;
     chip.addEventListener("click", () => loadTicker(symbol));
     recentlyViewedRowEl.appendChild(chip);
+  });
+}
+
+// Zero API cost, same as Recently Viewed — no live price shown, just
+// name/symbol. Called on init and again by toggleWatchlist() (script.js)
+// whenever the ☆ on a ticker page is clicked, so the sidebar stays in
+// sync without a page reload.
+function renderWatchlist() {
+  const list = getWatchlist();
+  watchlistEmptyNoteEl.classList.toggle("hidden", list.length > 0);
+  if (list.length === 0) {
+    watchlistRowEl.classList.add("hidden");
+    watchlistRowEl.innerHTML = "";
+    return;
+  }
+  watchlistRowEl.classList.remove("hidden");
+  watchlistRowEl.innerHTML = "";
+  list.forEach(({ symbol, name }) => {
+    const chip = document.createElement("div");
+    chip.className = "recently-viewed-chip watchlist-chip";
+    chip.innerHTML = `
+      <button type="button" class="watchlist-chip-main"><strong>${symbol}</strong><span class="muted">${name}</span></button>
+      <button type="button" class="watchlist-chip-remove" aria-label="Remove ${symbol} from watchlist" title="Remove">×</button>
+    `;
+    chip.querySelector(".watchlist-chip-main").addEventListener("click", () => loadTicker(symbol));
+    chip.querySelector(".watchlist-chip-remove").addEventListener("click", () => toggleWatchlist(symbol, name));
+    watchlistRowEl.appendChild(chip);
   });
 }
 
