@@ -14,6 +14,14 @@
 // showing a header per commit.
 const CHANGELOG = [
   {
+    date: "2026-09-22T17:07:00+08:00",
+    items: [
+      "New collapsible sidebar on the home page — quick ticker search, quick links to Learn/Compare/Macro, and Recently Viewed (moved here from its old spot above the tabs).",
+      "Learn now has its own banner near the top of the home page instead of sitting in the tab row next to Winners/Losers/browse categories.",
+      "More home page modules (a real Watchlist, sector heatmap, economic/earnings calendars, a rotating Learn tip) are coming in a follow-up update.",
+    ],
+  },
+  {
     date: "2026-09-22T16:21:00+08:00",
     items: [
       "Learn tab is now complete — added the final 3 categories: Macro & the Economy (rate hikes, inflation, GDP, unemployment), Options 101 (calls, puts, strikes, premiums), and Putting It Together (diversification, risk tolerance, reading the Outlook, red flags to watch for).",
