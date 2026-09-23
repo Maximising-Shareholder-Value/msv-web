@@ -9,6 +9,44 @@
 </head>
 <body>
 
+<div class="app-shell">
+  <aside id="appSidebar" class="app-sidebar">
+    <div class="app-sidebar-logo">
+      <span class="app-sidebar-badge">$MSV</span>
+    </div>
+
+    <nav class="app-nav-group">
+      <button type="button" class="app-nav-item" data-nav="create-account"><span class="app-nav-icon">🆕</span><span class="app-nav-label">Create Free Account</span></button>
+      <button type="button" class="app-nav-item" data-nav="login"><span class="app-nav-icon">🔑</span><span class="app-nav-label">Log In</span></button>
+      <button type="button" class="app-nav-item" data-nav="explore-products"><span class="app-nav-icon">🧭</span><span class="app-nav-label">Explore Products</span></button>
+    </nav>
+    <hr class="app-nav-divider">
+
+    <nav class="app-nav-group">
+      <button type="button" class="app-nav-item" data-nav="home"><span class="app-nav-icon">🏠</span><span class="app-nav-label">Home</span></button>
+      <button type="button" class="app-nav-item" data-nav="stock-analysis"><span class="app-nav-icon">📊</span><span class="app-nav-label">Stock Analysis</span></button>
+      <button type="button" class="app-nav-item" data-nav="market-data"><span class="app-nav-icon">🗺️</span><span class="app-nav-label">Market Data</span></button>
+      <button type="button" class="app-nav-item" data-nav="market-news"><span class="app-nav-icon">📰</span><span class="app-nav-label">Market News</span></button>
+      <button type="button" class="app-nav-item" data-nav="learn"><span class="app-nav-icon">🎓</span><span class="app-nav-label">Learn</span></button>
+      <button type="button" class="app-nav-item" data-nav="sectors"><span class="app-nav-icon">🏭</span><span class="app-nav-label">Sectors</span></button>
+      <button type="button" class="app-nav-item" data-nav="market-intelligence"><span class="app-nav-icon">🔗</span><span class="app-nav-label">Market Intelligence</span></button>
+      <button type="button" class="app-nav-item" data-nav="etfs"><span class="app-nav-icon">📦</span><span class="app-nav-label">ETFs</span></button>
+      <button type="button" class="app-nav-item" data-nav="crypto"><span class="app-nav-icon">₿</span><span class="app-nav-label">Crypto</span></button>
+      <button type="button" class="app-nav-item" data-nav="performance"><span class="app-nav-icon">📈</span><span class="app-nav-label">Performance</span></button>
+      <button type="button" class="app-nav-item" data-nav="macro"><span class="app-nav-icon">🌍</span><span class="app-nav-label">Macro</span></button>
+    </nav>
+    <hr class="app-nav-divider">
+
+    <nav class="app-nav-group">
+      <button type="button" class="app-nav-item" data-nav="portfolio-builder"><span class="app-nav-icon">🧱</span><span class="app-nav-label">Portfolio Builder</span></button>
+      <button type="button" class="app-nav-item" data-nav="watchlist"><span class="app-nav-icon">⭐</span><span class="app-nav-label">Watchlist</span></button>
+      <button type="button" class="app-nav-item" data-nav="portfolio-health-check"><span class="app-nav-icon">🩺</span><span class="app-nav-label">Portfolio Health Check</span></button>
+      <button type="button" class="app-nav-item" data-nav="compare"><span class="app-nav-icon">⚖️</span><span class="app-nav-label">Compare</span></button>
+    </nav>
+  </aside>
+
+  <div class="app-body">
+
 <header>
   <div class="header-top">
     <div class="brand" id="homeTitle" title="Maximising Shareholder Value (mostly a joke — but the numbers are real)">
@@ -62,7 +100,7 @@
     <span class="learn-banner-arrow">→</span>
   </button>
 
-  <div class="card world-markets-card">
+  <div class="card world-markets-card" id="worldMarketsCard">
     <h3>Global Markets <span class="card-subtitle" id="worldMarketsSummary"></span> <span class="sample-data-badge" title="Illustrative sample prices, not live data — kept static so loading this page never uses any of the free-tier API budget.">Sample data</span></h3>
     <div class="world-markets-layout">
       <div id="worldMarketsMap" class="world-markets-map"></div>
@@ -108,7 +146,7 @@
     </div>
   </div>
 
-  <div class="home-controls">
+  <div class="home-controls" id="homeControlsCard">
     <div id="homeTabs" class="home-tabs"></div>
     <div id="homeViewToggle" class="home-view-toggle">
       <button type="button" class="active" data-mode="grid">Grid</button>
@@ -120,7 +158,7 @@
     <div id="homeContent" class="home-content"><p class="muted">Loading...</p></div>
   </div>
 
-  <div class="card">
+  <div class="card" id="marketNewsCard">
     <h3>Market News</h3>
     <div id="homeNewsList"><p class="muted">Loading...</p></div>
   </div>
@@ -386,6 +424,11 @@
   </div>
 
 </main>
+
+<section id="placeholderView" class="placeholder-view hidden"></section>
+
+  </div>
+</div>
 
 <div id="status" class="status"></div>
 

@@ -755,6 +755,7 @@ function renderDidYouKnowTip() {
     learnState.activeCategory = cat.id;
     learnState.expandedTopics.add(topic.id);
     goToHomeTab("learn");
+    if (typeof setActiveNav === "function") setActiveNav("learn");
     // goToHomeTab already calls switchTab("learn") -> renderLearnTab(),
     // which reads learnState above — no extra render call needed here.
     requestAnimationFrame(() => {

@@ -44,11 +44,13 @@ compareLink.addEventListener("click", showCompareView);
 function showCompareView() {
   dashboard.classList.add("hidden");
   homeView.classList.add("hidden");
+  placeholderView?.classList.add("hidden");
   compareView.classList.remove("hidden");
   tickerInput.value = "";
   setStatus("");
   const firstInput = compareInputRow.querySelector(".compare-ticker-input");
   if (firstInput) firstInput.focus();
+  if (typeof setActiveNav === "function") setActiveNav("compare");
 }
 
 compareAddBtn.addEventListener("click", () => {
