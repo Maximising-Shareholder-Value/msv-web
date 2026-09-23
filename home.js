@@ -241,6 +241,7 @@ function initHome() {
 // banner, the Compare button, and the Macro tab).
 function initHomeLayout() {
   learnBannerEl.addEventListener("click", () => { goToHomeTab("learn"); setActiveNav("learn"); });
+  document.getElementById("heroCtaCreateBtn")?.addEventListener("click", () => triggerNav("create-account"));
   initAppSidebar();
 }
 
@@ -786,7 +787,7 @@ function renderActiveTab() {
   // are the numbers people actually look for with crypto and don't have
   // a real stock-page equivalent, so reusing the stock tile made the tab
   // feel thin. buildGrid/buildHeatmap stay unused for crypto now.
-  homeContentEl.appendChild(tabId === "crypto" ? buildCryptoTable(items) : (homeState.viewMode === "heatmap" ? buildHeatmap(items) : buildGrid(items)));
+  homeContentEl.appendChild(tabId === "crypto" ? buildCryptoTable(items) : (homeState.viewMode === "heatmap" ? buildHeatmap(items) : buildMoversTable(items)));
 
   if (tabId === "active") {
     const note = document.createElement("p");
@@ -878,27 +879,36 @@ function buildSimpleGrid(items, accent) {
   return row;
 }
 
-function buildGrid(items) {
-  const row = document.createElement("div");
-  row.className = "home-chip-row home-chip-row-tab";
+// Compact table (2026-09-23, replacing the card-tile grid) — modeled on
+// the clean, dense list style from the Seeking Alpha reference
+// screenshots. Deliberately has no "Rating" column: that's their own
+// proprietary quant score with real analytical infrastructure behind
+// it, and inventing a fake rating here just to visually match would
+// break this app's no-fabricated-data standard.
+function buildMoversTable(items) {
+  const wrap = document.createElement("div");
+  wrap.className = "movers-table-scroll";
+  const table = document.createElement("table");
+  table.className = "movers-table";
+  table.innerHTML = `<thead><tr><th>Symbol</th><th>Price</th><th>Change</th></tr></thead>`;
+
+  const tbody = document.createElement("tbody");
   items.forEach(({ symbol, name, quote }) => {
-    const chip = document.createElement("button");
-    chip.type = "button";
     const change = quote.dp ?? 0;
     const up = change >= 0;
-    chip.className = "home-chip " + (up ? "chip-up" : "chip-down");
-    chip.innerHTML = `
-      <span class="home-chip-name">${name}</span>
-      <span class="home-chip-symbol">${displaySymbol(symbol)}</span>
-      <span class="home-chip-price ${up ? "positive" : "negative"}">
-        <span class="home-chip-arrow">${up ? "▲" : "▼"}</span>${formatCurrency(quote.c)}
-        <span class="home-chip-pct">${up ? "+" : ""}${change.toFixed(1)}%</span>
-      </span>
+    const row = document.createElement("tr");
+    row.className = "movers-table-row";
+    row.addEventListener("click", () => loadTicker(symbol));
+    row.innerHTML = `
+      <td><strong>${displaySymbol(symbol)}</strong><span class="muted small">${name}</span></td>
+      <td class="movers-table-price">${formatCurrency(quote.c)}</td>
+      <td class="movers-table-change ${up ? "positive" : "negative"}">${up ? "▲" : "▼"} ${up ? "+" : ""}${change.toFixed(2)}%</td>
     `;
-    chip.addEventListener("click", () => loadTicker(symbol));
-    row.appendChild(chip);
+    tbody.appendChild(row);
   });
-  return row;
+  table.appendChild(tbody);
+  wrap.appendChild(table);
+  return wrap;
 }
 
 function buildHeatmap(items) {
@@ -1098,13 +1108,9 @@ async function renderMacroTab() {
   homeContentEl.appendChild(note);
 }
 
-const NEWS_CATEGORY_COLORS = {
-  business: "#1baf7a", general: "#7ea0ff", forex: "#e0ab2e", crypto: "#c77dff", merger: "#e66767", technology: "#3ddc84",
-};
-
 function loadMarketNews() {
   fetchJSON(finnhubUrl("/news", { category: "general" }))
-    .then(items => renderHomeNews(items.slice(0, 9)))
+    .then(items => renderHomeNews(items.slice(0, 14)))
     .catch(() => { homeNewsListEl.innerHTML = '<p class="muted">Couldn\'t load market news right now.</p>'; });
 }
 
@@ -1113,6 +1119,15 @@ function loadMarketNews() {
 // more of what Finnhub already returns (image, category) plus a featured
 // "hero" story up top. Falls back to a colored initial-letter badge if an
 // item has no image or its image fails to load.
+// Compact two-column layout (2026-09-23, replacing the old hero-card +
+// image-grid layout) — modeled on Seeking Alpha's dense text-only news
+// lists. "Top Headlines" is deliberately NOT labeled "Trending": this
+// app has no real trending/search-analytics signal behind it (unlike
+// Seeking Alpha's own, which is backed by real user data), so calling
+// it "Trending" would imply a signal that doesn't exist. It's just
+// Finnhub's own returned order for the first few items, honestly
+// labeled as such — "Latest News" next to it is the same data,
+// re-sorted strictly by timestamp.
 function renderHomeNews(items) {
   homeNewsListEl.innerHTML = "";
   if (!items || items.length === 0) {
@@ -1120,78 +1135,44 @@ function renderHomeNews(items) {
     return;
   }
 
-  const sorted = [...items].sort((a, b) => b.datetime - a.datetime);
-  const [hero, ...rest] = sorted;
+  const topHeadlines = items.slice(0, 4);
+  const latest = [...items].sort((a, b) => b.datetime - a.datetime).slice(0, 10);
 
   const wrap = document.createElement("div");
-  wrap.className = "home-news-wrap";
-
-  wrap.appendChild(buildNewsCard(hero, true));
-
-  const grid = document.createElement("div");
-  grid.className = "home-news-grid";
-  rest.forEach(item => grid.appendChild(buildNewsCard(item, false)));
-  wrap.appendChild(grid);
-
+  wrap.className = "home-news-columns";
+  wrap.appendChild(buildNewsColumn("Top Headlines", topHeadlines, true));
+  wrap.appendChild(buildNewsColumn("Latest News", latest, false));
   homeNewsListEl.appendChild(wrap);
 }
 
-function buildNewsCard(item, isHero) {
-  const source = item.source || "Unknown";
-  const card = document.createElement("a");
-  card.className = isHero ? "home-news-hero" : "home-news-card";
-  card.href = item.url;
-  card.target = "_blank";
-  card.rel = "noopener noreferrer";
+function buildNewsColumn(title, items, numbered) {
+  const col = document.createElement("div");
+  col.className = "home-news-column";
+  const heading = document.createElement("h4");
+  heading.className = "home-news-column-title";
+  heading.textContent = title;
+  col.appendChild(heading);
+  const list = document.createElement("div");
+  list.className = "home-news-compact-list";
+  items.forEach((item, i) => list.appendChild(buildCompactNewsRow(item, numbered ? i + 1 : null)));
+  col.appendChild(list);
+  return col;
+}
 
-  const media = document.createElement("div");
-  media.className = isHero ? "home-news-hero-media" : "home-news-card-media";
-  if (item.image) {
-    const img = document.createElement("img");
-    img.src = item.image;
-    img.alt = "";
-    img.loading = "lazy";
-    img.onerror = () => { media.innerHTML = ""; media.style.background = colorFromString(source); media.textContent = source.charAt(0).toUpperCase(); };
-    media.appendChild(img);
-  } else {
-    media.style.background = colorFromString(source);
-    media.textContent = source.charAt(0).toUpperCase();
-  }
-  card.appendChild(media);
-
-  const body = document.createElement("div");
-  body.className = "home-news-body";
-
-  const metaRow = document.createElement("div");
-  metaRow.className = "home-news-meta-row";
-  if (item.category) {
-    const catBadge = document.createElement("span");
-    catBadge.className = "home-news-category";
-    catBadge.style.color = NEWS_CATEGORY_COLORS[item.category] || "var(--accent)";
-    catBadge.style.borderColor = NEWS_CATEGORY_COLORS[item.category] || "var(--accent)";
-    catBadge.textContent = item.category;
-    metaRow.appendChild(catBadge);
-  }
-  const metaText = document.createElement("span");
-  metaText.className = "muted small";
-  metaText.textContent = `${source} · ${formatRelativeTime(new Date((item.datetime || 0) * 1000))}`;
-  metaRow.appendChild(metaText);
-
-  const headline = document.createElement("div");
-  headline.className = isHero ? "home-news-hero-headline" : "home-news-card-headline";
-  headline.textContent = item.headline || "";
-
-  body.appendChild(metaRow);
-  body.appendChild(headline);
-  if (isHero && item.summary) {
-    const summary = document.createElement("p");
-    summary.className = "home-news-hero-summary muted small";
-    summary.textContent = item.summary;
-    body.appendChild(summary);
-  }
-  card.appendChild(body);
-
-  return card;
+function buildCompactNewsRow(item, num) {
+  const row = document.createElement("a");
+  row.className = "home-news-compact-row";
+  row.href = item.url;
+  row.target = "_blank";
+  row.rel = "noopener noreferrer";
+  row.innerHTML = `
+    ${num ? `<span class="home-news-compact-num">${num}</span>` : ""}
+    <span class="home-news-compact-text">
+      <span class="home-news-compact-headline">${item.headline || ""}</span>
+      <span class="home-news-compact-meta muted small">${item.source || "Unknown"} · ${formatRelativeTime(new Date((item.datetime || 0) * 1000))}</span>
+    </span>
+  `;
+  return row;
 }
 
 // ---- "How to use $MSV" modal — paginated, left/right through 5 slides ----

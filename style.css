@@ -571,18 +571,27 @@ header { max-width: 1600px; margin: 0 auto 24px; }
   transition: border-color 0.15s ease, transform 0.12s ease, box-shadow 0.12s ease;
 }
 .home-chip:hover { border-color: var(--accent); border-left-color: var(--accent); transform: translateY(-2px); box-shadow: var(--shadow); }
-.home-chip.chip-up { border-left-color: var(--positive); }
-.home-chip.chip-down { border-left-color: var(--negative); }
 .home-chip-name { font-size: 13px; font-weight: 600; color: var(--text-primary); display: block; }
 .home-chip-symbol { font-size: 11px; color: var(--text-muted); display: block; margin: 4px 0 8px; }
 .home-chip-simple .home-chip-symbol { margin-bottom: 0; }
 .home-chip-simple { border-left-color: color-mix(in srgb, var(--chip-accent, var(--border)) 55%, var(--border)); }
 .home-chip-simple:hover { border-left-color: var(--chip-accent, var(--accent)); border-color: var(--chip-accent, var(--accent)); }
-.home-chip-price { font-size: 15px; font-weight: 700; color: var(--text-secondary); display: flex; align-items: center; gap: 4px; }
-.home-chip-price.positive { color: var(--positive); }
-.home-chip-price.negative { color: var(--negative); }
-.home-chip-arrow { font-size: 11px; }
-.home-chip-pct { font-size: 12px; font-weight: 600; opacity: 0.85; }
+
+/* ---- Winners/Losers/Most Active — compact table (2026-09-23,
+   replacing the card-tile grid; the "Heatmap" view toggle still uses
+   the original tile heatmap below, unchanged). ---- */
+.movers-table-scroll { overflow-x: auto; }
+.movers-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.movers-table thead th { text-align: left; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted); padding: 0 10px 8px; border-bottom: 1px solid var(--border); }
+.movers-table thead th:not(:first-child) { text-align: right; }
+.movers-table-row { cursor: pointer; }
+.movers-table-row:hover { background: var(--bg-surface-2); }
+.movers-table-row td { padding: 10px; border-bottom: 1px solid var(--border); }
+.movers-table-row td:first-child strong { display: block; font-size: 13px; color: var(--text-primary); }
+.movers-table-row td:first-child .muted { font-size: 11px; }
+.movers-table-price, .movers-table-change { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.movers-table-change.positive { color: var(--positive); }
+.movers-table-change.negative { color: var(--negative); }
 
 /* ---- Heatmap view ---- */
 .heatmap-grid {
@@ -1005,46 +1014,31 @@ canvas#priceChart { width: 100%; height: 160px; display: block; }
 .news-headline::after { content: "↗"; font-size: 11px; color: var(--text-muted); flex-shrink: 0; }
 .news-meta { font-size: 11px; color: var(--text-muted); margin-top: 5px; }
 
-/* ---- Homepage market news (richer than the plain ticker-page list above) ---- */
-.home-news-wrap { display: flex; flex-direction: column; gap: 14px; }
-.home-news-hero {
-  display: flex; gap: 16px;
+/* ---- Homepage market news — compact two-column list (2026-09-23,
+   replacing the old hero-card + image-grid layout with a denser,
+   Seeking-Alpha-style text list). "Top Headlines" is deliberately not
+   labeled "Trending" — see the comment on renderHomeNews() in home.js
+   for why. ---- */
+.home-news-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+.home-news-column-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted); margin: 0 0 8px; }
+.home-news-compact-list { display: flex; flex-direction: column; }
+.home-news-compact-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 8px 0;
+  border-top: 1px solid var(--border);
   text-decoration: none;
-  border-radius: 12px;
-  overflow: hidden;
-  border: 1px solid var(--border);
-  background: var(--bg-surface-2);
-  transition: border-color 0.15s ease;
 }
-.home-news-hero:hover { border-color: var(--accent); }
-.home-news-hero-media { flex-shrink: 0; width: 220px; min-height: 140px; display: flex; align-items: center; justify-content: center; font-size: 36px; font-weight: 800; color: #fff; overflow: hidden; }
-.home-news-hero-media img { width: 100%; height: 100%; object-fit: cover; }
-.home-news-hero .home-news-body { padding: 14px 16px 14px 0; display: flex; flex-direction: column; justify-content: center; gap: 6px; min-width: 0; }
-.home-news-hero-headline { font-size: 18px; font-weight: 700; color: var(--text-primary); line-height: 1.3; }
-.home-news-hero-summary { line-height: 1.5; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-
-.home-news-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-.home-news-card {
-  display: flex; gap: 10px;
-  text-decoration: none;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: var(--bg-surface-2);
-  padding: 10px;
-  transition: border-color 0.15s ease;
-}
-.home-news-card:hover { border-color: var(--accent); }
-.home-news-card-media { flex-shrink: 0; width: 56px; height: 56px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800; color: #fff; overflow: hidden; }
-.home-news-card-media img { width: 100%; height: 100%; object-fit: cover; }
-.home-news-body { min-width: 0; }
-.home-news-card-headline { font-size: 12.5px; font-weight: 600; color: var(--text-primary); line-height: 1.35; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
-.home-news-meta-row { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; flex-wrap: wrap; }
-.home-news-category { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.03em; border: 1px solid; border-radius: 4px; padding: 1px 5px; font-weight: 700; }
+.home-news-compact-row:first-child { border-top: none; padding-top: 0; }
+.home-news-compact-row:hover .home-news-compact-headline { color: var(--accent); }
+.home-news-compact-num { font-size: 11px; font-weight: 700; color: var(--text-muted); flex-shrink: 0; width: 14px; }
+.home-news-compact-text { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.home-news-compact-headline { font-size: 12.5px; font-weight: 600; color: var(--text-primary); line-height: 1.4; }
+.home-news-compact-meta { font-size: 10.5px; }
 
 @media (max-width: 700px) {
-  .home-news-hero { flex-direction: column; }
-  .home-news-hero-media { width: 100%; height: 140px; }
-  .home-news-grid { grid-template-columns: 1fr; }
+  .home-news-columns { grid-template-columns: 1fr; gap: 20px; }
 }
 
 /* Outlook */
@@ -1303,10 +1297,18 @@ canvas#priceChart, canvas#volumeChart, canvas#rsiChart, canvas#macdChart { width
 .market-breadth-stats .positive { color: var(--positive); }
 .market-breadth-stats .negative { color: var(--negative); }
 
-/* ---- Home intro + how-to-use ---- */
-.home-intro-card { margin-bottom: 16px; }
-.home-intro-lead { margin: 0 0 10px; color: var(--text-secondary); line-height: 1.5; }
+/* ---- Home hero (2026-09-23, Seeking-Alpha-inspired: headline + copy on
+   the left, a "create account" CTA block on the right). The CTA is
+   real-looking but everything in it routes to the Create Free Account
+   Coming Soon page — no fake Google/Apple sign-in buttons, since this
+   app has no real OAuth behind it and faking those specifically would
+   imply working auth that doesn't exist. ---- */
+.home-hero-card { display: flex; gap: 28px; align-items: stretch; margin-bottom: 16px; }
+.home-hero-main { flex: 1.5; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
+.home-hero-title { margin: 0 0 10px; font-size: 22px; line-height: 1.25; }
+.home-intro-lead { margin: 0 0 14px; color: var(--text-secondary); line-height: 1.5; }
 .home-how-to-trigger {
+  align-self: flex-start;
   background: none;
   border: 1px solid var(--border);
   border-radius: 999px;
@@ -1317,6 +1319,46 @@ canvas#priceChart, canvas#volumeChart, canvas#rsiChart, canvas#macdChart { width
   cursor: pointer;
 }
 .home-how-to-trigger:hover { background: var(--bg-surface-2); }
+
+.home-hero-cta {
+  flex: 1;
+  min-width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 20px;
+  border-radius: 12px;
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border);
+}
+.home-hero-cta-label { margin: 0; font-size: 14px; font-weight: 700; color: var(--text-primary); }
+.home-hero-cta-sub { margin: 0 0 4px; font-size: 12px; color: var(--text-secondary); line-height: 1.45; }
+.home-hero-cta-input {
+  padding: 9px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-size: 13px;
+}
+.home-hero-cta-input:focus { outline: none; border-color: var(--accent); }
+.home-hero-cta-primary {
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: none;
+  background: var(--accent);
+  color: var(--accent-contrast);
+  font-weight: 700;
+  font-size: 13.5px;
+  cursor: pointer;
+}
+.home-hero-cta-primary:hover { background: var(--accent-strong); }
+.home-hero-cta-soon { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; color: var(--text-muted); text-align: center; margin-top: 2px; }
+
+@media (max-width: 900px) {
+  .home-hero-card { flex-direction: column; }
+  .home-hero-cta { min-width: 0; }
+}
 
 /* Paginated "how to use" modal — same overlay pattern as .tooltip-overlay/
    .tooltip-popup (see that rule set), just its own card since the content

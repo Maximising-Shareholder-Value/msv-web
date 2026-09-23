@@ -14,6 +14,14 @@
 // showing a header per commit.
 const CHANGELOG = [
   {
+    date: "2026-09-23T11:50:00+08:00",
+    items: [
+      "New hero section on the home page, with a \"Create a free account\" panel (Coming Soon).",
+      "Market News is now two compact columns — Top Headlines and Latest News — instead of one big list.",
+      "Winners/Losers/Most Active now show as a clean table (Symbol, Price, Change) instead of tiles — the Heatmap view option is still there too.",
+    ],
+  },
+  {
     date: "2026-09-23T11:20:00+08:00",
     items: [
       "Sidebar icons are now clean line-style icons instead of emoji, and the $MSV logo at the top is smaller.",
