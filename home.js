@@ -240,7 +240,138 @@ function initHome() {
 // already exist elsewhere (the header's own search box, the Learn
 // banner, the Compare button, and the Macro tab).
 function initHomeLayout() {
-  learnBannerEl.addEventListener("click", () => goToHomeTab("learn"));
+  learnBannerEl.addEventListener("click", () => { goToHomeTab("learn"); setActiveNav("learn"); });
+  initAppSidebar();
+}
+
+// ---- Persistent app sidebar (v2 overhaul, 2026-09-23) ----
+// Full mapping agreed with Jozsua before building — see the org
+// governance repo's TODO.md "Homepage overhaul v2" entry for the
+// reasoning behind each choice. Three kinds of destination:
+// 1. Maps to an existing tab (learn/etfs/crypto/macro/supply-chain) —
+//    goToHomeTab() + scroll down to the content card.
+// 2. Maps to part of the home page that's already always visible
+//    (market data/news/sectors/watchlist) — goHome() + scroll to it.
+// 3. Genuinely new, not built yet — a real "Coming Soon" page, not
+//    fake-functional UI (create-account/login/performance/
+//    portfolio-builder/portfolio-health-check), or the Explore
+//    Products directory, which IS real (just a menu of the above).
+const PLACEHOLDER_INFO = {
+  "create-account": { icon: "🆕", title: "Create Free Account", description: "User accounts aren't built yet — this needs real authentication and a backend to store anything per-user. On the roadmap, not started." },
+  "login": { icon: "🔑", title: "Log In", description: "Depends on accounts existing first — see Create Free Account." },
+  "performance": { icon: "📈", title: "Performance", description: "A planned asset-class performance comparison — stocks vs. bonds vs. commodities vs. crypto returns over time. Distinct from the Sectors heatmap. Not built yet." },
+  "portfolio-builder": { icon: "🧱", title: "Portfolio Builder", description: "Depends on accounts existing first — a portfolio needs to belong to someone." },
+  "portfolio-health-check": { icon: "🩺", title: "Portfolio Health Check", description: "Depends on Portfolio Builder existing first." },
+};
+
+const EXPLORE_DIRECTORY = [
+  { icon: "🏠", title: "Home", description: "The dashboard — markets, your watchlist, news, and more.", nav: "home", live: true },
+  { icon: "📊", title: "Stock Analysis", description: "Winners, losers, most active, and browse by category.", nav: "stock-analysis", live: true },
+  { icon: "🗺️", title: "Market Data", description: "The world map of major exchanges, with live open/closed status.", nav: "market-data", live: true },
+  { icon: "📰", title: "Market News", description: "Latest headlines across the market.", nav: "market-news", live: true },
+  { icon: "🎓", title: "Learn", description: "Plain-English explanations of everything on this site.", nav: "learn", live: true },
+  { icon: "🏭", title: "Sectors", description: "How each market sector is performing today.", nav: "sectors", live: true },
+  { icon: "🔗", title: "Market Intelligence", description: "Real, sourced company relationships in the AI infrastructure space.", nav: "market-intelligence", live: true },
+  { icon: "📦", title: "ETFs", description: "Browse index, sector, and bond ETFs.", nav: "etfs", live: true },
+  { icon: "₿", title: "Crypto", description: "Track major cryptocurrencies.", nav: "crypto", live: true },
+  { icon: "📈", title: "Performance", description: "Asset-class performance comparison.", nav: "performance", live: false },
+  { icon: "🌍", title: "Macro", description: "Interest rates, inflation, GDP, and unemployment by country.", nav: "macro", live: true },
+  { icon: "🧱", title: "Portfolio Builder", description: "Build and track a real portfolio.", nav: "portfolio-builder", live: false },
+  { icon: "⭐", title: "Watchlist", description: "Tickers you're tracking.", nav: "watchlist", live: true },
+  { icon: "🩺", title: "Portfolio Health Check", description: "A diagnostic read on your portfolio.", nav: "portfolio-health-check", live: false },
+  { icon: "⚖️", title: "Compare", description: "Up to 4 tickers side by side.", nav: "compare", live: true },
+  { icon: "🆕", title: "Create Free Account", description: "Save your data across visits.", nav: "create-account", live: false },
+  { icon: "🔑", title: "Log In", description: "Access your account.", nav: "login", live: false },
+];
+
+function scrollToEl(id) {
+  requestAnimationFrame(() => {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+}
+
+function setActiveNav(navKey) {
+  document.querySelectorAll(".app-nav-item").forEach(btn => btn.classList.toggle("active", btn.dataset.nav === navKey));
+}
+
+function showPlaceholderPage(key) {
+  dashboard.classList.add("hidden");
+  document.getElementById("compareView").classList.add("hidden");
+  homeView.classList.add("hidden");
+  const info = PLACEHOLDER_INFO[key];
+  placeholderView.classList.remove("hidden");
+  placeholderView.innerHTML = `
+    <div class="card placeholder-card">
+      <span class="placeholder-icon">${info.icon}</span>
+      <span class="placeholder-badge">Coming soon</span>
+      <h2>${info.title}</h2>
+      <p>${info.description}</p>
+      <button type="button" class="placeholder-home-btn" id="placeholderHomeBtn">← Back to Home</button>
+    </div>
+  `;
+  document.getElementById("placeholderHomeBtn").addEventListener("click", goHome);
+  setActiveNav(key);
+}
+
+function showExploreProducts() {
+  dashboard.classList.add("hidden");
+  document.getElementById("compareView").classList.add("hidden");
+  homeView.classList.add("hidden");
+  placeholderView.classList.remove("hidden");
+  placeholderView.innerHTML = `
+    <div class="card">
+      <h2>Explore $MSV</h2>
+      <p class="muted">Everything this app offers, in one place — including what's still on the way.</p>
+      <div class="explore-grid">
+        ${EXPLORE_DIRECTORY.map(item => `
+          <button type="button" class="explore-tile${item.live ? "" : " soon"}" data-nav="${item.nav}">
+            <span class="explore-tile-icon">${item.icon}</span>
+            <strong>${item.title}</strong>
+            ${item.live ? "" : '<span class="explore-tile-badge">Coming soon</span>'}
+            <span class="explore-tile-desc">${item.description}</span>
+          </button>
+        `).join("")}
+      </div>
+    </div>
+  `;
+  placeholderView.querySelectorAll(".explore-tile").forEach(tile => {
+    tile.addEventListener("click", () => triggerNav(tile.dataset.nav));
+  });
+  setActiveNav("explore-products");
+}
+
+const NAV_ACTIONS = {
+  "home": () => goHome(),
+  "stock-analysis": () => { goToHomeTab("winners"); scrollToEl("homeControlsCard"); },
+  "market-data": () => { goHome(); scrollToEl("worldMarketsCard"); },
+  "market-news": () => { goHome(); scrollToEl("marketNewsCard"); },
+  "learn": () => { goToHomeTab("learn"); scrollToEl("homeControlsCard"); },
+  "sectors": () => { goHome(); scrollToEl("sectorHeatmapCard"); },
+  "market-intelligence": () => { goToHomeTab("supply-chain"); scrollToEl("homeControlsCard"); },
+  "etfs": () => { goToHomeTab("etfs"); scrollToEl("homeControlsCard"); },
+  "crypto": () => { goToHomeTab("crypto"); scrollToEl("homeControlsCard"); },
+  "performance": () => showPlaceholderPage("performance"),
+  "macro": () => { goToHomeTab("macro"); scrollToEl("homeControlsCard"); },
+  "portfolio-builder": () => showPlaceholderPage("portfolio-builder"),
+  "watchlist": () => { goHome(); scrollToEl("watchlistCard"); },
+  "portfolio-health-check": () => showPlaceholderPage("portfolio-health-check"),
+  "compare": () => { if (typeof showCompareView === "function") showCompareView(); },
+  "create-account": () => showPlaceholderPage("create-account"),
+  "login": () => showPlaceholderPage("login"),
+  "explore-products": () => showExploreProducts(),
+};
+
+function triggerNav(navKey) {
+  const action = NAV_ACTIONS[navKey];
+  if (action) action();
+  setActiveNav(navKey);
+}
+
+function initAppSidebar() {
+  document.querySelectorAll(".app-nav-item").forEach(btn => {
+    btn.addEventListener("click", () => triggerNav(btn.dataset.nav));
+  });
+  setActiveNav("home");
 }
 
 // Switches to the home view (if not already there) and selects a tab —
@@ -249,6 +380,7 @@ function initHomeLayout() {
 function goToHomeTab(tabId) {
   dashboard.classList.add("hidden");
   document.getElementById("compareView").classList.add("hidden");
+  placeholderView?.classList.add("hidden");
   homeView.classList.remove("hidden");
   switchTab(tabId);
 }

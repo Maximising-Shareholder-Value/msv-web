@@ -119,6 +119,7 @@ const tickerInput = document.getElementById("tickerInput");
 const searchBtn = document.getElementById("searchBtn");
 const homeView = document.getElementById("homeView");
 const dashboard = document.getElementById("dashboard");
+const placeholderView = document.getElementById("placeholderView");
 const statusEl = document.getElementById("status");
 
 const companyName = document.getElementById("companyName");
@@ -353,10 +354,13 @@ document.addEventListener("keydown", e => {
 function goHome() {
   dashboard.classList.add("hidden");
   document.getElementById("compareView").classList.add("hidden");
+  placeholderView?.classList.add("hidden");
   homeView.classList.remove("hidden");
   tickerInput.value = "";
   setStatus("");
   if (typeof renderRecentlyViewed === "function") renderRecentlyViewed();
+  if (typeof renderWatchlist === "function") renderWatchlist();
+  if (typeof setActiveNav === "function") setActiveNav("home");
 }
 
 // ---- Fetch helper ----
@@ -458,6 +462,7 @@ async function loadTicker(symbol) {
   homeView.classList.add("hidden");
   dashboard.classList.add("hidden");
   document.getElementById("compareView").classList.add("hidden");
+  placeholderView?.classList.add("hidden");
   setStatus(`Loading ${displaySymbol(symbol)}...`);
 
   try {
@@ -571,6 +576,7 @@ async function loadCryptoTicker(symbol) {
   homeView.classList.add("hidden");
   dashboard.classList.add("hidden");
   document.getElementById("compareView").classList.add("hidden");
+  placeholderView?.classList.add("hidden");
   setStatus(`Loading ${displaySymbol(symbol)}...`);
 
   try {
