@@ -14,6 +14,12 @@
 // showing a header per commit.
 const CHANGELOG = [
   {
+    date: "2026-09-23T11:20:00+08:00",
+    items: [
+      "Sidebar icons are now clean line-style icons instead of emoji, and the $MSV logo at the top is smaller.",
+    ],
+  },
+  {
     date: "2026-09-23T10:21:00+08:00",
     items: [
       "A new sidebar is back — this time it stays with you on every page, not just the home page, with 18 destinations organized into Account, Explore, and Your Tools sections.",
