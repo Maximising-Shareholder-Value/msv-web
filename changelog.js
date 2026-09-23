@@ -14,6 +14,15 @@
 // showing a header per commit.
 const CHANGELOG = [
   {
+    date: "2026-09-23T10:21:00+08:00",
+    items: [
+      "A new sidebar is back — this time it stays with you on every page, not just the home page, with 18 destinations organized into Account, Explore, and Your Tools sections.",
+      "New \"Explore Products\" page — a full directory of everything $MSV offers, including what's still being built.",
+      "\"Stock Analysis\", \"Market Data\", \"Sectors\", and \"Market Intelligence\" are now their own dedicated sections instead of sitting in one long tab row.",
+      "A few new sections are visible but marked \"Coming Soon\" for now: Create Free Account, Log In, Performance, Portfolio Builder, and Portfolio Health Check.",
+    ],
+  },
+  {
     date: "2026-09-22T19:14:00+08:00",
     items: [
       "Removed the left sidebar — Watchlist and Recently Viewed now live as cards on the home page instead.",
