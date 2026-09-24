@@ -71,7 +71,7 @@ mobile-friendly.
   [github.com/Maximising-Shareholder-Value/.github](https://github.com/Maximising-Shareholder-Value/.github))
 - `config.js` (gitignored) / `config.example.js` (template) — API keys
 
-## Deploying publicly (Cloudflare Pages)
+## Deploying publicly (Cloudflare Workers static assets)
 
 Locally, the app calls Finnhub/Twelve Data/CoinGecko directly using
 `config.js`. For a public URL, that file is gitignored on purpose —
@@ -82,9 +82,13 @@ keys. Instead:
    first (it needs the real keys as Cloudflare secrets) and note its
    deployed URL.
 2. Set `API_BASE_URL` in `script.js` to that URL.
-3. Deploy this repo as a Cloudflare Pages project (static site, no
-   Worker/build step needed) — **Workers & Pages** → **Create** →
-   **Pages** → **Connect to Git**.
+3. Deploy this repo with `npx wrangler deploy` (uses `wrangler.jsonc`'s
+   `assets.directory` config — a plain static-assets Worker, not
+   Cloudflare Pages, despite this section's old wording; no
+   Worker/build step needed either way). **Never deploy without the
+   tracked `.assetsignore` file present** — see `CLAUDE.md`'s "Deploy
+   safety" section for why (it was confirmed live to otherwise upload
+   `.git/` and `node_modules/` as public files).
 
 The deployed site then calls `API_BASE_URL + /api/finnhub` etc.
 automatically (the app detects it's not running on `localhost`) — your

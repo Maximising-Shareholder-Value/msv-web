@@ -385,3 +385,32 @@ nothing here needs building.
 template. The deployed site never uses `config.js` at all — it calls the
 `msv-api` backend instead, which holds the real keys as Cloudflare
 secrets (see that repo).
+
+## Deploy safety: `.assetsignore` is not optional
+
+`wrangler.jsonc`'s `assets.directory` is `"./"` — the whole repo root.
+**Confirmed live, 2026-09-24:** deploying without a `.assetsignore` file
+uploads literally everything as a publicly fetchable static asset,
+including `.git/` (full commit history, branch names, refs) and
+`node_modules/.cache/wrangler/wrangler-account.json` (Cloudflare account
+ID + email — not an auth token, but still not meant to be public). This
+happened on a real deploy before `.assetsignore` existed; both were
+directly confirmed fetchable at `https://msv-web.jozsua-heng.workers.dev/.git/config`
+before being fixed. `.assetsignore` (tracked, at the repo root) now
+excludes `.git`, `.github`, `node_modules`, `.wrangler`, `test-results`,
+`playwright-report`, `config.js`, and `wrangler.jsonc` itself — **never
+remove or bypass this file**, and if the assets directory or repo
+structure ever changes, re-audit what's excluded before the next deploy.
+
+**Verifying it actually worked is trickier than it looks**, because
+`not_found_handling: "single-page-application"` (see below) makes
+*every* unmatched path return HTTP 200 with the app shell — checking
+only the status code (`curl -o /dev/null -w "%{http_code}"`) will always
+show 200 whether a path is properly excluded or genuinely still exposed.
+Check the response **body** instead: a `<!DOCTYPE html>...$MSV` shell
+means it's correctly falling through (excluded), while real file content
+means it's still exposed. Also worth knowing: a redeploy that uploads
+zero new bytes (`wrangler deploy` prints "No updated asset files to
+upload") can still take a few seconds for Cloudflare's edge cache
+(`cf-cache-status`) to stop serving the previous version's response for
+a given path — don't conclude a fix failed from one immediate check.
