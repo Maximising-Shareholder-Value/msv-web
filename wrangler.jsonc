@@ -2,6 +2,12 @@
   "name": "msv-web",
   "compatibility_date": "2026-09-18",
   "assets": {
-    "directory": "./"
+    "directory": "./",
+    // Added 2026-09-24: sidebar navigation now uses real URLs (History
+    // API, see home.js's ROUTES/navigateTo) — without this, a hard
+    // refresh or direct link to e.g. /macro would 404 at the edge since
+    // no literal macro.html file exists. Confirmed against Cloudflare's
+    // Workers static-assets docs before adding.
+    "not_found_handling": "single-page-application"
   }
 }

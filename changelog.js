@@ -14,6 +14,18 @@
 // showing a header per commit.
 const CHANGELOG = [
   {
+    date: "2026-09-24T18:00:00+08:00",
+    items: [
+      "Sidebar links now take you to a real page with its own address — you can bookmark it, share it, or use your browser's back/forward buttons like normal.",
+      "\"Supply Chain\" is now called \"Market Intelligence\" everywhere, and the home page has a new preview of it with real company logos.",
+      "There's now just one $MSV logo (in the sidebar), and it no longer looks off in light mode.",
+      "\"Explore Products\" is now organized into categories (Stock Analysis, Market Outlook, Portfolio Tools, and more) instead of one long list, plus a new \"Premium\" section (coming soon).",
+      "Options now let you pick a different expiration date, see every strike price (not just the closest few), and optionally show last trade price and volume.",
+      "The Macro tab can now search any country World Bank tracks, compare up to 4 countries side by side, and shows new governance indicators (political stability, rule of law, and more) alongside the economic ones.",
+      "The world map can now color countries by GDP growth or inflation, and the São Paulo marker no longer sits out in the ocean.",
+    ],
+  },
+  {
     date: "2026-09-23T11:50:00+08:00",
     items: [
       "New hero section on the home page, with a \"Create a free account\" panel (Coming Soon).",

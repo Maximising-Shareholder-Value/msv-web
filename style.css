@@ -86,15 +86,15 @@ body {
   background: var(--bg-surface);
   border-right: 1px solid var(--border);
 }
-.app-sidebar-logo { padding: 2px 10px 14px; }
+.app-sidebar-logo { padding: 2px 10px 14px; cursor: pointer; width: fit-content; }
 .app-sidebar-badge {
   display: inline-block;
   font-family: ui-monospace, monospace;
   font-weight: 800;
   font-size: 12px;
   letter-spacing: -0.01em;
-  color: #fff;
-  background: #06120d;
+  color: var(--accent-contrast);
+  background: var(--accent);
   padding: 4px 9px;
   border-radius: 6px;
 }
@@ -193,43 +193,7 @@ body {
 
 header { max-width: 1600px; margin: 0 auto 24px; }
 
-.header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
-.brand { display: flex; align-items: center; cursor: pointer; }
-
-/* Fixed-color lockup (like a real ticker/coin brand mark) — stays white on
-   its own dark chip regardless of the page's light/dark theme, since a
-   brand mark shouldn't have to compromise its own color to stay legible. */
-.brand-lockup {
-  display: inline-flex;
-  flex-direction: row;
-  align-items: baseline;
-  gap: 12px;
-  background: #06120d;
-  border: 1px solid rgba(27,175,122,0.35);
-  border-radius: 12px;
-  padding: 12px 20px;
-  transition: border-color 0.15s ease, transform 0.15s ease;
-}
-.brand:hover .brand-lockup { border-color: #1baf7a; transform: translateY(-1px); }
-.brand-lockup h1 {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 33px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: #ffffff;
-  margin: 0;
-  line-height: 1;
-  white-space: nowrap;
-}
-.brand-tagline {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  color: rgba(255,255,255,0.7);
-  white-space: nowrap;
-}
+.header-top { display: flex; align-items: center; justify-content: flex-end; margin-bottom: 4px; }
 .tagline { margin: 6px 0 16px; color: var(--text-secondary); font-size: 13px; max-width: 540px; line-height: 1.5; }
 
 .theme-toggle, .whats-new-trigger {
@@ -359,6 +323,21 @@ header { max-width: 1600px; margin: 0 auto 24px; }
 .home-decor {
   display: none;
 }
+
+/* ---- Map color-by toggle (2026-09-24, "smarter map") ---- */
+.map-color-toggle { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+.map-color-toggle button {
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--bg-surface-2);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.map-color-toggle button:hover { border-color: var(--accent); }
+.map-color-toggle button.active { background: var(--accent); border-color: var(--accent); color: var(--accent-contrast); }
 
 /* ---- World Markets layout: map (2/3) + index sidebar (1/3) ---- */
 .world-markets-layout { display: flex; gap: 20px; align-items: stretch; }
@@ -634,6 +613,65 @@ header { max-width: 1600px; margin: 0 auto 24px; }
 .macro-country-btn:hover { border-color: var(--accent); color: var(--text-primary); }
 .macro-country-btn.active { background: var(--accent); border-color: var(--accent); color: var(--accent-contrast); }
 
+/* ---- Macro tab: search, compare mode, governance section (2026-09-24) ---- */
+.macro-controls { margin-bottom: 4px; }
+.macro-search-wrap { position: relative; max-width: 360px; margin-bottom: 12px; }
+.macro-country-search {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-size: 12.5px;
+}
+.macro-country-search:focus { outline: none; border-color: var(--accent); }
+.macro-country-suggestions {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 5;
+  max-height: 220px;
+  overflow-y: auto;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+}
+.macro-country-suggestion {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 12px;
+  border: none;
+  background: none;
+  color: var(--text-primary);
+  font-size: 12.5px;
+  font-family: inherit;
+  cursor: pointer;
+}
+.macro-country-suggestion:hover { background: var(--bg-surface-2); }
+.macro-compare-toggle { margin-bottom: 10px; }
+.macro-compare-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+.macro-compare-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 8px 5px 12px;
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--accent) 14%, var(--bg-surface-2));
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+}
+.macro-compare-chip-remove { border: none; background: none; color: inherit; font-size: 15px; line-height: 1; cursor: pointer; padding: 0 2px; }
+.macro-governance-title { margin-top: 22px; }
+.macro-compare-table-scroll { overflow-x: auto; }
+.macro-compare-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.macro-compare-table th, .macro-compare-table td { padding: 9px 12px; text-align: center; white-space: nowrap; }
+.macro-compare-table thead th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+.macro-compare-table td.macro-compare-label, .macro-compare-table th:first-child { text-align: left; font-weight: 600; }
+.macro-compare-table tbody tr:not(:last-child) td { border-bottom: 1px solid var(--border); }
+
 #homeNewsList .news-list { max-height: 420px; overflow-y: auto; }
 
 /* ---- Dashboard layout ---- */
@@ -733,6 +771,21 @@ header { max-width: 1600px; margin: 0 auto 24px; }
 .mini-stat-placeholder span:last-child { color: var(--text-muted); font-style: italic; }
 
 /* Options table */
+.options-expiry-row { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+.options-expiry-btn {
+  padding: 5px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-surface-2);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.options-expiry-btn:hover { border-color: var(--accent); }
+.options-expiry-btn.active { background: var(--accent); border-color: var(--accent); color: var(--accent-contrast); }
+.options-controls { display: flex; gap: 16px; flex-wrap: wrap; margin: 6px 0 12px; }
+.options-toggle { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--text-secondary); cursor: pointer; }
 .options-table-scroll { overflow-x: auto; }
 .options-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .options-table th, .options-table td { padding: 9px 10px; text-align: center; }
@@ -1746,7 +1799,10 @@ path.map-hoverable-country:hover { fill-opacity: 0.7; fill: var(--accent); }
 .learn-tip { background: var(--bg-surface); border: 1px dashed var(--border); color: var(--text-secondary); }
 .learn-example p:last-child, .learn-tip p:last-child { margin: 0; color: var(--text-primary); }
 
-/* ---- Supply Chain tab (Pillar 2+3 pilot, 2026-09-22) ---- */
+/* ---- Market Intelligence tab (formerly "Supply Chain" — renamed
+   2026-09-24; internal id/CSS class names below kept as "supply-chain"
+   to avoid an all-selector rename with no user-facing benefit) — Pillar
+   2+3 pilot, 2026-09-22 ---- */
 .supply-chain-disclosure {
   padding: 12px 16px;
   margin-bottom: 20px;
@@ -1791,6 +1847,32 @@ path.map-hoverable-country:hover { fill-opacity: 0.7; fill: var(--accent); }
 .supply-chain-confidence { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; border-radius: 999px; padding: 3px 9px; flex-shrink: 0; }
 .supply-chain-confidence-high { background: color-mix(in srgb, var(--positive) 16%, var(--bg-surface)); color: var(--positive); }
 .supply-chain-confidence-medium { background: color-mix(in srgb, #f5a524 18%, var(--bg-surface)); color: #f5a524; }
+
+/* ---- Market Intelligence homepage teaser (2026-09-24) ---- */
+.mi-teaser-grid { display: flex; flex-wrap: wrap; gap: 10px; margin: 12px 0 14px; }
+.mi-teaser-logo-tile {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  width: 76px;
+  padding: 10px 6px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-surface-2);
+  cursor: pointer;
+  font-family: inherit;
+}
+.mi-teaser-logo-tile:hover { border-color: var(--accent); }
+.mi-teaser-logo {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  object-fit: contain;
+  background: var(--bg-surface);
+  padding: 4px;
+}
+.mi-teaser-logo-tile span { font-size: 11px; font-weight: 700; color: var(--text-secondary); }
+
+/* ---- Explore Products category sections (2026-09-24) ---- */
+.explore-category { margin-bottom: 22px; }
+.explore-category-title { font-size: 13.5px; font-weight: 700; color: var(--text-primary); margin: 0 0 10px; }
 
 @media (max-width: 640px) {
   .app-body { padding: 14px; }

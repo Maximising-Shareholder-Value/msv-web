@@ -110,6 +110,11 @@ const homeState = {
   cryptoLoaded: false,
   marketTickers: {}, // symbol -> quote, from MARKET_TICKERS — read by worldMarkets.js too
   macroCountry: "USA", // ISO3 — which country the Macro tab is showing
+  macroCustomCountry: null, // { iso3, name } from the free-text search — overrides macroCountry when set
+  macroCompareMode: false,
+  macroCompareCountries: [], // ISO3 list, max 4 (2026-09-24 pillar 4 expansion)
+  countryInfoCache: {}, // ISO3 -> { label, flag } for countries picked via search
+  macroRenderToken: 0, // guards against a stale in-flight render applying after the user switched away
 };
 
 const homeTabsEl = document.getElementById("homeTabs");
@@ -228,6 +233,7 @@ function initHome() {
   renderEconCalendar();
   loadEarningsCalendar();
   loadSectorHeatmap();
+  if (typeof renderMarketIntelTeaser === "function") renderMarketIntelTeaser();
   initHomeLayout();
 }
 
@@ -240,59 +246,122 @@ function initHome() {
 // already exist elsewhere (the header's own search box, the Learn
 // banner, the Compare button, and the Macro tab).
 function initHomeLayout() {
-  learnBannerEl.addEventListener("click", () => { goToHomeTab("learn"); setActiveNav("learn"); });
+  learnBannerEl.addEventListener("click", () => navigateTo("learn"));
   document.getElementById("heroCtaCreateBtn")?.addEventListener("click", () => triggerNav("create-account"));
   initAppSidebar();
 }
 
-// ---- Persistent app sidebar (v2 overhaul, 2026-09-23) ----
+// ---- Persistent app sidebar (v2 overhaul, 2026-09-23; routed views
+// added 2026-09-24) ----
 // Full mapping agreed with Jozsua before building — see the org
 // governance repo's TODO.md "Homepage overhaul v2" entry for the
-// reasoning behind each choice. Three kinds of destination:
-// 1. Maps to an existing tab (learn/etfs/crypto/macro/supply-chain) —
-//    goToHomeTab() + scroll down to the content card.
-// 2. Maps to part of the home page that's already always visible
-//    (market data/news/sectors/watchlist) — goHome() + scroll to it.
+// reasoning behind each choice. Every destination is now a real,
+// focused "view" via navigateTo()/ROUTES (below) rather than a scroll
+// target — Jozsua explicitly asked for sidebar clicks to feel like
+// leaving the page, not scrolling down it. Three kinds of destination:
+// 1. Maps to an existing tab (learn/etfs/crypto/macro/market-intel) —
+//    goToHomeTab() + showHomeFocused("home-tabs").
+// 2. Maps to part of the home page that already exists as its own card
+//    (market data/news/sectors/watchlist) — goHome() +
+//    showHomeFocused(theCardsSectionKey).
 // 3. Genuinely new, not built yet — a real "Coming Soon" page, not
 //    fake-functional UI (create-account/login/performance/
-//    portfolio-builder/portfolio-health-check), or the Explore
-//    Products directory, which IS real (just a menu of the above).
+//    portfolio-builder/portfolio-health-check/premium/etc.), or the
+//    Explore Products directory, which IS real (just a menu of the
+//    above).
 const PLACEHOLDER_INFO = {
   "create-account": { icon: "🆕", title: "Create Free Account", description: "User accounts aren't built yet — this needs real authentication and a backend to store anything per-user. On the roadmap, not started." },
   "login": { icon: "🔑", title: "Log In", description: "Depends on accounts existing first — see Create Free Account." },
   "performance": { icon: "📈", title: "Performance", description: "A planned asset-class performance comparison — stocks vs. bonds vs. commodities vs. crypto returns over time. Distinct from the Sectors heatmap. Not built yet." },
   "portfolio-builder": { icon: "🧱", title: "Portfolio Builder", description: "Depends on accounts existing first — a portfolio needs to belong to someone." },
   "portfolio-health-check": { icon: "🩺", title: "Portfolio Health Check", description: "Depends on Portfolio Builder existing first." },
+  // Added 2026-09-24 for the Explore Products retaxonomy (see EXPLORE_CATEGORIES) —
+  // real gaps worth naming even before they're built, not filler.
+  "premium": { icon: "💎", title: "Premium", description: "A planned paid tier — not built yet. What's included and pricing haven't been decided." },
+  "stock-ideas": { icon: "💡", title: "Stock Ideas", description: "Curated stock ideas with a stated thesis — not built yet; needs an editorial or screening process behind it." },
+  "stock-sentiment": { icon: "💬", title: "Stock Sentiment", description: "Aggregated analyst/news sentiment per ticker — no free sentiment data source has been vetted yet." },
+  "analyst-actions": { icon: "🔀", title: "Analyst Upgrades & Downgrades", description: "A feed of recent rating changes across tickers — distinct from the per-ticker Analyst Recommendations trend chart already on the ticker page. Finnhub's free tier hasn't been checked for a ratings-change feed yet." },
+  "stock-screener": { icon: "🧮", title: "Stock Screener", description: "Filter stocks by valuation/growth/health criteria. This app is deliberately one-ticker-at-a-time today (see this repo's CLAUDE.md) — listed here as a real gap, not a commitment to reverse that." },
+  "precious-metals": { icon: "🥇", title: "Precious Metals", description: "A dedicated gold/silver/platinum/palladium view — today these tickers only live mixed into the general Commodities browse category." },
+  "forex": { icon: "💱", title: "Forex", description: "Currency pairs — not built yet. Finnhub has zero forex coverage on its free tier (confirmed), but Twelve Data's free tier does return real forex quotes (confirmed live 2026-09-24, e.g. EUR/USD) — a real candidate to build, not a dead end." },
 };
 
+// Inline SVG fallbacks for Explore Products tiles that have no sidebar
+// nav item of their own to clone an icon from (see showExploreProducts).
+// Same stroke-based style as the sidebar icons (style.css .app-nav-icon).
+const EXPLORE_ICON_FALLBACKS = {
+  "stock-ideas": '<circle cx="10" cy="8" r="4.3"/><line x1="8.3" y1="15" x2="11.7" y2="15"/><line x1="8.8" y1="17" x2="11.2" y2="17"/><line x1="10" y1="3.5" x2="10" y2="1.8"/>',
+  "stock-sentiment": '<path d="M3,5 H17 V13 H8 L4.5,16 V13 H3 Z"/>',
+  "analyst-actions": '<line x1="6" y1="16" x2="6" y2="4"/><polyline points="3.5,7 6,4 8.5,7"/><line x1="14" y1="4" x2="14" y2="16"/><polyline points="11.5,13 14,16 16.5,13"/>',
+  "stock-screener": '<path d="M3,4 H17 L12,10.5 V16 L8,14 V10.5 Z"/>',
+  "precious-metals": '<ellipse cx="10" cy="6" rx="6" ry="2.3"/><path d="M4,6 V14 C4,15.3 6.7,16.3 10,16.3 C13.3,16.3 16,15.3 16,14 V6"/><path d="M4,10 C4,11.3 6.7,12.3 10,12.3 C13.3,12.3 16,11.3 16,10"/>',
+  "forex": '<line x1="3" y1="7" x2="15" y2="7"/><polyline points="12,4 15,7 12,10"/><line x1="17" y1="13" x2="5" y2="13"/><polyline points="8,10 5,13 8,16"/>',
+  "indexes": '<circle cx="10" cy="10" r="7.3"/><path d="M10,10 L10,3.5 A6.5,6.5 0 0 1 15.7,13.2 Z"/>',
+  "bonds": '<rect x="4" y="3" width="12" height="14" rx="1.2"/><line x1="7" y1="7" x2="13" y2="7"/><line x1="7" y1="10" x2="13" y2="10"/><line x1="7" y1="13" x2="10.5" y2="13"/>',
+  "commodities": '<rect x="4" y="5" width="12" height="10" rx="1.5"/><line x1="4" y1="8.5" x2="16" y2="8.5"/><line x1="4" y1="11.5" x2="16" y2="11.5"/>',
+};
+const DEFAULT_EXPLORE_ICON = '<circle cx="10" cy="10" r="3"/>';
+
 const EXPLORE_DIRECTORY = [
-  { icon: "🏠", title: "Home", description: "The dashboard — markets, your watchlist, news, and more.", nav: "home", live: true },
-  { icon: "📊", title: "Stock Analysis", description: "Winners, losers, most active, and browse by category.", nav: "stock-analysis", live: true },
-  { icon: "🗺️", title: "Market Data", description: "The world map of major exchanges, with live open/closed status.", nav: "market-data", live: true },
-  { icon: "📰", title: "Market News", description: "Latest headlines across the market.", nav: "market-news", live: true },
-  { icon: "🎓", title: "Learn", description: "Plain-English explanations of everything on this site.", nav: "learn", live: true },
-  { icon: "🏭", title: "Sectors", description: "How each market sector is performing today.", nav: "sectors", live: true },
-  { icon: "🔗", title: "Market Intelligence", description: "Real, sourced company relationships in the AI infrastructure space.", nav: "market-intelligence", live: true },
-  { icon: "📦", title: "ETFs", description: "Browse index, sector, and bond ETFs.", nav: "etfs", live: true },
-  { icon: "₿", title: "Crypto", description: "Track major cryptocurrencies.", nav: "crypto", live: true },
-  { icon: "📈", title: "Performance", description: "Asset-class performance comparison.", nav: "performance", live: false },
-  { icon: "🌍", title: "Macro", description: "Interest rates, inflation, GDP, and unemployment by country.", nav: "macro", live: true },
-  { icon: "🧱", title: "Portfolio Builder", description: "Build and track a real portfolio.", nav: "portfolio-builder", live: false },
-  { icon: "⭐", title: "Watchlist", description: "Tickers you're tracking.", nav: "watchlist", live: true },
-  { icon: "🩺", title: "Portfolio Health Check", description: "A diagnostic read on your portfolio.", nav: "portfolio-health-check", live: false },
-  { icon: "⚖️", title: "Compare", description: "Up to 4 tickers side by side.", nav: "compare", live: true },
-  { icon: "🆕", title: "Create Free Account", description: "Save your data across visits.", nav: "create-account", live: false },
-  { icon: "🔑", title: "Log In", description: "Access your account.", nav: "login", live: false },
+  { title: "Home", description: "The dashboard — markets, your watchlist, news, and more.", nav: "home", live: true },
+  { title: "Stock Analysis", description: "Winners, losers, most active, and browse by category.", nav: "stock-analysis", live: true },
+  { title: "Market Data", description: "The world map of major exchanges, with live open/closed status.", nav: "market-data", live: true },
+  { title: "Market News", description: "Latest headlines across the market.", nav: "market-news", live: true },
+  { title: "Learn", description: "Plain-English explanations of everything on this site.", nav: "learn", live: true },
+  { title: "Sectors", description: "How each market sector is performing today.", nav: "sectors", live: true },
+  { title: "Market Intelligence", description: "Real, sourced company relationships in the AI infrastructure space.", nav: "market-intelligence", live: true },
+  { title: "ETFs", description: "Browse index, sector, and bond ETFs.", nav: "etfs", live: true },
+  { title: "Crypto", description: "Track major cryptocurrencies.", nav: "crypto", live: true },
+  { title: "Performance", description: "Asset-class performance comparison.", nav: "performance", live: false },
+  { title: "Macro", description: "Interest rates, inflation, GDP, and unemployment by country.", nav: "macro", live: true },
+  { title: "Portfolio Builder", description: "Build and track a real portfolio.", nav: "portfolio-builder", live: false },
+  { title: "Watchlist", description: "Tickers you're tracking.", nav: "watchlist", live: true },
+  { title: "Portfolio Health Check", description: "A diagnostic read on your portfolio.", nav: "portfolio-health-check", live: false },
+  { title: "Compare", description: "Up to 4 tickers side by side.", nav: "compare", live: true },
+  { title: "Create Free Account", description: "Save your data across visits.", nav: "create-account", live: false },
+  { title: "Log In", description: "Access your account.", nav: "login", live: false },
+  { title: "Premium", description: "A paid tier — coming eventually.", nav: "premium", live: false },
+  { title: "Stock Ideas", description: "Curated ideas with a stated thesis.", nav: "stock-ideas", live: false },
+  { title: "Stock Sentiment", description: "Aggregated analyst/news sentiment per ticker.", nav: "stock-sentiment", live: false },
+  { title: "Analyst Upgrades & Downgrades", description: "Recent rating-change feed across tickers.", nav: "analyst-actions", live: false },
+  { title: "Stock Screener", description: "Filter stocks by valuation/growth/health criteria.", nav: "stock-screener", live: false },
+  { title: "Precious Metals", description: "A dedicated gold/silver/platinum/palladium view.", nav: "precious-metals", live: false },
+  { title: "Forex", description: "Currency pairs — not built yet, but Twelve Data's free tier does support it.", nav: "forex", live: false },
+  { title: "Indexes", description: "Major index funds — S&P 500, Nasdaq 100, Dow, Russell 2000.", nav: "indexes", live: true },
+  { title: "Bonds", description: "Bond ETFs — individual bonds have no free data source anywhere.", nav: "bonds", live: true },
+  { title: "Commodities", description: "Gold, oil, agriculture, and other commodity ETFs.", nav: "commodities", live: true },
 ];
 
-function scrollToEl(id) {
-  requestAnimationFrame(() => {
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
-  });
-}
+// Named groupings for the Explore Products page (2026-09-24 retaxonomy) —
+// each `nav` here must have a matching EXPLORE_DIRECTORY entry above. An
+// item can only appear in one category; ordering here is display order.
+const EXPLORE_CATEGORIES = [
+  { title: "Get Started", items: ["home", "create-account", "login", "compare"] },
+  { title: "Stock Analysis", items: ["stock-analysis", "stock-ideas", "stock-sentiment", "analyst-actions", "stock-screener"] },
+  { title: "Market Outlook", items: ["macro", "indexes", "etfs", "bonds", "commodities", "precious-metals", "forex", "crypto"] },
+  { title: "Market Intelligence & Data", items: ["market-intelligence", "market-data", "sectors", "market-news"] },
+  { title: "Portfolio Tools", items: ["watchlist", "portfolio-builder", "portfolio-health-check", "performance"] },
+  { title: "Learn & Premium", items: ["learn", "premium"] },
+];
 
 function setActiveNav(navKey) {
   document.querySelectorAll(".app-nav-item").forEach(btn => btn.classList.toggle("active", btn.dataset.nav === navKey));
+}
+
+// Shows only the homepage section(s) tagged with this key via
+// data-home-section (index.html), hiding every other tagged section —
+// this is what makes a sidebar destination feel like its own page instead
+// of a spot to scroll to. sectionKey === null means "the normal, full
+// homepage" (everything except Watchlist, which only shows when directly
+// focused). Elements with no data-home-section (the decorative background,
+// the map hover popup) are never touched by this.
+function showHomeFocused(sectionKey) {
+  document.querySelectorAll("#homeView [data-home-section]").forEach(el => {
+    const show = sectionKey === null
+      ? el.dataset.homeSection !== "watchlist"
+      : el.dataset.homeSection === sectionKey;
+    el.classList.toggle("hidden", !show);
+  });
 }
 
 function showPlaceholderPage(key) {
@@ -310,68 +379,131 @@ function showPlaceholderPage(key) {
       <button type="button" class="placeholder-home-btn" id="placeholderHomeBtn">← Back to Home</button>
     </div>
   `;
-  document.getElementById("placeholderHomeBtn").addEventListener("click", goHome);
+  document.getElementById("placeholderHomeBtn").addEventListener("click", () => navigateTo("home"));
   setActiveNav(key);
 }
 
+// Clones the actual sidebar icon for a nav key so Explore Products' icons
+// are guaranteed pixel-identical to the sidebar's, with zero duplicated
+// markup (2026-09-24, replacing emoji). Falls back to a small inline SVG
+// for destinations with no sidebar item of their own (EXPLORE_ICON_FALLBACKS).
+function exploreTileIconHtml(navKey) {
+  const sidebarIcon = document.querySelector(`.app-nav-item[data-nav="${navKey}"] .app-nav-icon`);
+  if (sidebarIcon) return sidebarIcon.outerHTML;
+  const inner = EXPLORE_ICON_FALLBACKS[navKey] || DEFAULT_EXPLORE_ICON;
+  return `<span class="app-nav-icon"><svg viewBox="0 0 20 20">${inner}</svg></span>`;
+}
+
+// Grouped into named categories (EXPLORE_CATEGORIES) rather than one flat
+// grid (2026-09-24 retaxonomy, at Jozsua's request for a richer directory).
 function showExploreProducts() {
   dashboard.classList.add("hidden");
   document.getElementById("compareView").classList.add("hidden");
   homeView.classList.add("hidden");
   placeholderView.classList.remove("hidden");
+
+  const byNav = {};
+  EXPLORE_DIRECTORY.forEach(item => { byNav[item.nav] = item; });
+
   placeholderView.innerHTML = `
     <div class="card">
       <h2>Explore $MSV</h2>
       <p class="muted">Everything this app offers, in one place — including what's still on the way.</p>
-      <div class="explore-grid">
-        ${EXPLORE_DIRECTORY.map(item => `
-          <button type="button" class="explore-tile${item.live ? "" : " soon"}" data-nav="${item.nav}">
-            <span class="explore-tile-icon">${item.icon}</span>
-            <strong>${item.title}</strong>
-            ${item.live ? "" : '<span class="explore-tile-badge">Coming soon</span>'}
-            <span class="explore-tile-desc">${item.description}</span>
-          </button>
-        `).join("")}
-      </div>
+      ${EXPLORE_CATEGORIES.map(cat => `
+        <div class="explore-category">
+          <h3 class="explore-category-title">${cat.title}</h3>
+          <div class="explore-grid">
+            ${cat.items.map(navKey => {
+              const item = byNav[navKey];
+              if (!item) return "";
+              return `
+                <button type="button" class="explore-tile${item.live ? "" : " soon"}" data-nav="${item.nav}">
+                  ${exploreTileIconHtml(item.nav)}
+                  <strong>${item.title}</strong>
+                  ${item.live ? "" : '<span class="explore-tile-badge">Coming soon</span>'}
+                  <span class="explore-tile-desc">${item.description}</span>
+                </button>
+              `;
+            }).join("")}
+          </div>
+        </div>
+      `).join("")}
     </div>
   `;
   placeholderView.querySelectorAll(".explore-tile").forEach(tile => {
-    tile.addEventListener("click", () => triggerNav(tile.dataset.nav));
+    tile.addEventListener("click", () => navigateTo(tile.dataset.nav));
   });
   setActiveNav("explore-products");
 }
 
-const NAV_ACTIONS = {
-  "home": () => goHome(),
-  "stock-analysis": () => { goToHomeTab("winners"); scrollToEl("homeControlsCard"); },
-  "market-data": () => { goHome(); scrollToEl("worldMarketsCard"); },
-  "market-news": () => { goHome(); scrollToEl("marketNewsCard"); },
-  "learn": () => { goToHomeTab("learn"); scrollToEl("homeControlsCard"); },
-  "sectors": () => { goHome(); scrollToEl("sectorHeatmapCard"); },
-  "market-intelligence": () => { goToHomeTab("supply-chain"); scrollToEl("homeControlsCard"); },
-  "etfs": () => { goToHomeTab("etfs"); scrollToEl("homeControlsCard"); },
-  "crypto": () => { goToHomeTab("crypto"); scrollToEl("homeControlsCard"); },
-  "performance": () => showPlaceholderPage("performance"),
-  "macro": () => { goToHomeTab("macro"); scrollToEl("homeControlsCard"); },
-  "portfolio-builder": () => showPlaceholderPage("portfolio-builder"),
-  "watchlist": () => { goHome(); scrollToEl("watchlistCard"); },
-  "portfolio-health-check": () => showPlaceholderPage("portfolio-health-check"),
-  "compare": () => { if (typeof showCompareView === "function") showCompareView(); },
-  "create-account": () => showPlaceholderPage("create-account"),
-  "login": () => showPlaceholderPage("login"),
-  "explore-products": () => showExploreProducts(),
+// ---- Router (2026-09-24) ----
+// One table drives every sidebar/Explore/hero-CTA/learn-banner destination.
+// `render` only ever calls EXISTING view functions (goHome/goToHomeTab/
+// showPlaceholderPage/showCompareView/showExploreProducts) plus
+// showHomeFocused() to pick which homepage section is visible — no tab or
+// card rendering logic lives here, only "where is it shown."
+const ROUTES = {
+  "home": { path: "/", render: () => goHome() },
+  "stock-analysis": { path: "/stock-analysis", render: () => { goToHomeTab("winners"); showHomeFocused("home-tabs"); } },
+  "market-data": { path: "/market-data", render: () => { goHome(); showHomeFocused("world-markets"); } },
+  "market-news": { path: "/market-news", render: () => { goHome(); showHomeFocused("market-news"); } },
+  "learn": { path: "/learn", render: () => { goToHomeTab("learn"); showHomeFocused("home-tabs"); } },
+  "sectors": { path: "/sectors", render: () => { goHome(); showHomeFocused("sector-heatmap"); } },
+  "market-intelligence": { path: "/market-intelligence", render: () => { goToHomeTab("supply-chain"); showHomeFocused("home-tabs"); } },
+  "etfs": { path: "/etfs", render: () => { goToHomeTab("etfs"); showHomeFocused("home-tabs"); } },
+  "indexes": { path: "/indexes", render: () => { goToHomeTab("etfs"); showHomeFocused("home-tabs"); } },
+  "bonds": { path: "/bonds", render: () => { goToHomeTab("bond-etfs"); showHomeFocused("home-tabs"); } },
+  "commodities": { path: "/commodities", render: () => { goToHomeTab("commodities"); showHomeFocused("home-tabs"); } },
+  "crypto": { path: "/crypto", render: () => { goToHomeTab("crypto"); showHomeFocused("home-tabs"); } },
+  "performance": { path: "/performance", render: () => showPlaceholderPage("performance") },
+  "macro": { path: "/macro", render: () => { goToHomeTab("macro"); showHomeFocused("home-tabs"); } },
+  "portfolio-builder": { path: "/portfolio-builder", render: () => showPlaceholderPage("portfolio-builder") },
+  "watchlist": { path: "/watchlist", render: () => { goHome(); showHomeFocused("watchlist"); } },
+  "portfolio-health-check": { path: "/portfolio-health-check", render: () => showPlaceholderPage("portfolio-health-check") },
+  "compare": { path: "/compare", render: () => { if (typeof showCompareView === "function") showCompareView(); } },
+  "create-account": { path: "/create-account", render: () => showPlaceholderPage("create-account") },
+  "login": { path: "/login", render: () => showPlaceholderPage("login") },
+  "explore-products": { path: "/explore-products", render: () => showExploreProducts() },
+  "premium": { path: "/premium", render: () => showPlaceholderPage("premium") },
+  "stock-ideas": { path: "/stock-ideas", render: () => showPlaceholderPage("stock-ideas") },
+  "stock-sentiment": { path: "/stock-sentiment", render: () => showPlaceholderPage("stock-sentiment") },
+  "analyst-actions": { path: "/analyst-actions", render: () => showPlaceholderPage("analyst-actions") },
+  "stock-screener": { path: "/stock-screener", render: () => showPlaceholderPage("stock-screener") },
+  "precious-metals": { path: "/precious-metals", render: () => showPlaceholderPage("precious-metals") },
+  "forex": { path: "/forex", render: () => showPlaceholderPage("forex") },
 };
+const PATH_TO_NAV = Object.fromEntries(Object.entries(ROUTES).map(([key, route]) => [route.path, key]));
 
-function triggerNav(navKey) {
-  const action = NAV_ACTIONS[navKey];
-  if (action) action();
+// The single entry point every nav click goes through — shows the right
+// view, resets scroll, marks the sidebar item active, and updates the URL
+// (History API) so back/forward/refresh behave like real pages.
+// `push: false` is used when responding to a popstate/deep-link instead of
+// a fresh click, so it doesn't create a spurious extra history entry.
+function navigateTo(navKey, { push = true } = {}) {
+  const route = ROUTES[navKey];
+  if (!route) return;
+  route.render();
+  window.scrollTo(0, 0);
   setActiveNav(navKey);
+  if (push) {
+    if (location.pathname !== route.path) history.pushState({ navKey }, "", route.path);
+  } else {
+    history.replaceState({ navKey }, "", route.path);
+  }
+}
+
+// Kept as a thin wrapper — every existing call site (sidebar clicks,
+// Explore tiles, the Learn banner, the hero CTA button, Did You Know's
+// "read more" link in learn.js) calls this name.
+function triggerNav(navKey) {
+  navigateTo(navKey);
 }
 
 function initAppSidebar() {
   document.querySelectorAll(".app-nav-item").forEach(btn => {
     btn.addEventListener("click", () => triggerNav(btn.dataset.nav));
   });
+  document.querySelector(".app-sidebar-logo")?.addEventListener("click", () => navigateTo("home"));
   setActiveNav("home");
 }
 
@@ -633,7 +765,11 @@ function buildTabs() {
   // so it moved to its own banner (learnBanner, wired in initHomeLayout()
   // below) instead of a tab pill. switchTab("learn") still works exactly
   // the same either way — only how you GET there changed.
-  const allTabs = [...DYNAMIC_TABS, ...BROWSE_CATEGORIES, { id: "crypto", title: "Crypto" }, { id: "supply-chain", title: "Supply Chain" }, { id: "macro", title: "Macro" }];
+  // Tab id stays "supply-chain" (internal, matches supplyChain.js/CSS
+  // class names) even though the user-facing label is now "Market
+  // Intelligence" (renamed 2026-09-24) — renaming the id would ripple
+  // through switchTab()/routing/CSS for no user-visible benefit.
+  const allTabs = [...DYNAMIC_TABS, ...BROWSE_CATEGORIES, { id: "crypto", title: "Crypto" }, { id: "supply-chain", title: "Market Intelligence" }, { id: "macro", title: "Macro" }];
   allTabs.forEach(tab => {
     const btn = document.createElement("button");
     btn.type = "button";
@@ -972,17 +1108,52 @@ const MACRO_COUNTRIES = [
   { iso3: "GBR", label: "United Kingdom", flag: "🇬🇧", source: "worldbank" },
 ];
 
-// World Bank indicator codes — chosen after live-testing several
+// World Bank indicator codes. The original 4 (GDP growth/inflation/
+// unemployment/current account) were chosen after live-testing several
 // candidates: policy/lending interest rates (FR.INR.RINR, FR.INR.LEND)
 // come back null for the US/UK/Germany/Japan in recent years (World
 // Bank's own reporting gap for advanced economies, confirmed directly),
-// so a rate indicator was swapped for current account balance, which
-// has real recent data for all 5 countries.
-const WORLD_BANK_INDICATORS = [
+// so a rate indicator was swapped for current account balance instead.
+//
+// Split into two tiers (2026-09-24, pillar 4 expansion):
+// - HOVER: small, shown in the world map's hover popup for all 13
+//   tracked countries — kept short so the popup stays glanceable.
+// - ECON/GOVERNANCE: the fuller set shown only in the Macro tab itself,
+//   which isn't size-constrained the way a hover popup is.
+// Governance codes are World Bank's Worldwide Governance Indicators
+// (source database 3, not the default WDI database) — confirmed live
+// 2026-09-24 for all 5 default countries. Note the real codes are
+// prefixed `GOV_WGI_` (e.g. `GOV_WGI_CC.EST`) — the bare `CC.EST`/
+// `PV.EST`/etc. codes sometimes seen referenced elsewhere don't exist in
+// World Bank's default indicator catalog and return a real "not found"
+// error if queried as-is; this was checked directly before shipping, not
+// assumed. Never referenced or researched anywhere in this codebase
+// before this pass — see the org's BLOCKERS.md/TODO.md for the trail.
+const WORLD_BANK_HOVER_INDICATORS = [
   { id: "NY.GDP.MKTP.KD.ZG", label: "GDP Growth", unit: "%" },
   { id: "FP.CPI.TOTL.ZG", label: "Inflation (CPI, YoY)", unit: "%" },
   { id: "SL.UEM.TOTL.ZS", label: "Unemployment Rate", unit: "%" },
   { id: "BN.CAB.XOKA.GD.ZS", label: "Current Account Balance", unit: "% of GDP" },
+  { id: "GOV_WGI_PV.EST", label: "Political Stability", unit: "" },
+];
+const WORLD_BANK_ECON_INDICATORS = [
+  { id: "NY.GDP.MKTP.KD.ZG", label: "GDP Growth", unit: "%" },
+  { id: "FP.CPI.TOTL.ZG", label: "Inflation (CPI, YoY)", unit: "%" },
+  { id: "SL.UEM.TOTL.ZS", label: "Unemployment Rate", unit: "%" },
+  { id: "BN.CAB.XOKA.GD.ZS", label: "Current Account Balance", unit: "% of GDP" },
+  { id: "NY.GDP.PCAP.CD", label: "GDP per Capita", formatter: formatCompactUsd },
+  { id: "NE.RSB.GNFS.ZS", label: "Trade Balance", unit: "% of GDP" },
+  { id: "GC.DOD.TOTL.GD.ZS", label: "Government Debt", unit: "% of GDP" },
+  { id: "FI.RES.TOTL.CD", label: "Total Reserves", formatter: formatCompactUsd },
+  { id: "SP.POP.TOTL", label: "Population", formatter: v => v.toLocaleString() },
+];
+const WORLD_BANK_GOVERNANCE_INDICATORS = [
+  { id: "GOV_WGI_VA.EST", label: "Voice & Accountability", unit: "" },
+  { id: "GOV_WGI_PV.EST", label: "Political Stability", unit: "" },
+  { id: "GOV_WGI_GE.EST", label: "Government Effectiveness", unit: "" },
+  { id: "GOV_WGI_RQ.EST", label: "Regulatory Quality", unit: "" },
+  { id: "GOV_WGI_RL.EST", label: "Rule of Law", unit: "" },
+  { id: "GOV_WGI_CC.EST", label: "Control of Corruption", unit: "" },
 ];
 
 function worldBankUrl(indicatorId, countryIso3) {
@@ -994,25 +1165,189 @@ function worldBankUrl(indicatorId, countryIso3) {
   return `${API_BASE_URL}/api/worldbank?${search.toString()}`;
 }
 
-function buildMacroCountryPicker() {
-  const row = document.createElement("div");
-  row.className = "macro-country-picker";
+// Figures are annual, so "as of" means the most recent year World Bank
+// has a real (non-null) value for, not necessarily this year — picks the
+// first non-null entry from a small recent-years page rather than
+// assuming the latest year is populated.
+async function fetchWorldBankIndicator(ind, countryIso3) {
+  const data = await fetchJSON(worldBankUrl(ind.id, countryIso3));
+  const rows = Array.isArray(data) && Array.isArray(data[1]) ? data[1] : [];
+  const latest = rows.find(row => isNum(row.value));
+  return latest ? { value: latest.value, date: latest.date } : { value: null, date: null };
+}
+
+// One-time fetch of every country World Bank tracks (confirmed ~295 rows,
+// most of which are real countries; aggregate/region/income-group rows
+// carry region.value === "Aggregates" and are filtered out — confirmed
+// directly against a live response before shipping). Powers the Macro
+// tab's free-text search, which sits alongside the 5 "Featured" quick
+// picks rather than replacing them.
+let worldBankCountryListPromise = null;
+function fetchWorldBankCountryList() {
+  if (!worldBankCountryListPromise) {
+    const search = new URLSearchParams({ path: "/country", format: "json", per_page: "320" });
+    worldBankCountryListPromise = fetchJSON(`${API_BASE_URL}/api/worldbank?${search.toString()}`)
+      .then(data => {
+        const rows = Array.isArray(data) && Array.isArray(data[1]) ? data[1] : [];
+        return rows
+          .filter(c => c.region && c.region.value !== "Aggregates")
+          .map(c => ({ iso3: c.id, name: c.name }));
+      })
+      .catch(() => []);
+  }
+  return worldBankCountryListPromise;
+}
+
+// A country picked via the free-text search only carries {iso3, name} —
+// no flag, and MACRO_COUNTRIES doesn't know about it. This small cache
+// remembers a display flag/label for any country this session has shown,
+// so compare-mode chips and table headers always have something sensible
+// to show regardless of how the country was picked.
+function recordCountryInfo(iso3, label, flag) {
+  homeState.countryInfoCache[iso3] = { label, flag: flag || "🌐" };
+}
+function lookupCountryInfo(iso3) {
+  if (homeState.countryInfoCache[iso3]) return homeState.countryInfoCache[iso3];
+  const known = MACRO_COUNTRIES.find(c => c.iso3 === iso3);
+  if (known) return { label: known.label, flag: known.flag };
+  return { label: iso3, flag: "🌐" };
+}
+
+// The country currently driving the single-country view — a free-text
+// search pick (homeState.macroCustomCountry) takes priority over the 5
+// quick-pick defaults. US is always FRED-backed regardless of how it was
+// selected (matches the existing MACRO_COUNTRIES entry for consistency).
+function getActiveMacroCountry() {
+  if (homeState.macroCustomCountry) {
+    const c = homeState.macroCustomCountry;
+    return { iso3: c.iso3, label: c.name, flag: "🌐", source: c.iso3 === "USA" ? "fred" : "worldbank" };
+  }
+  return MACRO_COUNTRIES.find(c => c.iso3 === homeState.macroCountry) || MACRO_COUNTRIES[0];
+}
+
+function toggleMacroCompareCountry(iso3, name, flag) {
+  const idx = homeState.macroCompareCountries.indexOf(iso3);
+  if (idx >= 0) {
+    homeState.macroCompareCountries.splice(idx, 1);
+  } else {
+    if (homeState.macroCompareCountries.length >= 4) return; // same cap as the Compare feature
+    homeState.macroCompareCountries.push(iso3);
+    const known = MACRO_COUNTRIES.find(c => c.iso3 === iso3);
+    recordCountryInfo(iso3, name || known?.label || iso3, flag || known?.flag);
+  }
+  renderMacroTab();
+}
+
+// Builds the shared controls block (quick picks + search + compare
+// toggle + compare chips) — appended at the top of every macro render,
+// single-country or comparison alike.
+function buildMacroControls() {
+  const wrap = document.createElement("div");
+  wrap.className = "macro-controls";
+
+  const pickerRow = document.createElement("div");
+  pickerRow.className = "macro-country-picker";
   MACRO_COUNTRIES.forEach(c => {
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.className = "macro-country-btn" + (c.iso3 === homeState.macroCountry ? " active" : "");
+    const active = homeState.macroCompareMode
+      ? homeState.macroCompareCountries.includes(c.iso3)
+      : (!homeState.macroCustomCountry && homeState.macroCountry === c.iso3);
+    btn.className = "macro-country-btn" + (active ? " active" : "");
     btn.textContent = `${c.flag} ${c.label}`;
     btn.addEventListener("click", () => {
-      if (homeState.macroCountry === c.iso3) return;
-      homeState.macroCountry = c.iso3;
-      renderMacroTab();
+      if (homeState.macroCompareMode) {
+        toggleMacroCompareCountry(c.iso3, c.label, c.flag);
+      } else {
+        if (!homeState.macroCustomCountry && homeState.macroCountry === c.iso3) return;
+        homeState.macroCustomCountry = null;
+        homeState.macroCountry = c.iso3;
+        renderMacroTab();
+      }
     });
-    row.appendChild(btn);
+    pickerRow.appendChild(btn);
   });
-  return row;
+  wrap.appendChild(pickerRow);
+
+  const searchWrap = document.createElement("div");
+  searchWrap.className = "macro-search-wrap";
+  searchWrap.innerHTML = `
+    <input type="text" class="macro-country-search" id="macroCountrySearch" placeholder="Search any other country (World Bank covers ~200)..." autocomplete="off">
+    <div class="macro-country-suggestions hidden" id="macroCountrySuggestions"></div>
+  `;
+  wrap.appendChild(searchWrap);
+
+  const toggleLabel = document.createElement("label");
+  toggleLabel.className = "options-toggle macro-compare-toggle";
+  toggleLabel.innerHTML = `<input type="checkbox" id="macroCompareToggle" ${homeState.macroCompareMode ? "checked" : ""}> Compare countries side by side (up to 4)`;
+  wrap.appendChild(toggleLabel);
+
+  if (homeState.macroCompareMode && homeState.macroCompareCountries.length > 0) {
+    const chipsRow = document.createElement("div");
+    chipsRow.className = "macro-compare-chips";
+    chipsRow.innerHTML = homeState.macroCompareCountries.map(iso3 => {
+      const info = lookupCountryInfo(iso3);
+      return `<span class="macro-compare-chip">${info.flag} ${info.label}<button type="button" class="macro-compare-chip-remove" data-iso3="${iso3}" aria-label="Remove ${info.label}">×</button></span>`;
+    }).join("");
+    wrap.appendChild(chipsRow);
+    wrap.querySelectorAll(".macro-compare-chip-remove").forEach(btn => {
+      btn.addEventListener("click", () => toggleMacroCompareCountry(btn.dataset.iso3));
+    });
+  }
+
+  const searchInput = searchWrap.querySelector("#macroCountrySearch");
+  const suggestionsBox = searchWrap.querySelector("#macroCountrySuggestions");
+  let searchDebounce = null;
+  searchInput.addEventListener("input", () => {
+    clearTimeout(searchDebounce);
+    const q = searchInput.value.trim().toLowerCase();
+    if (q.length < 2) { suggestionsBox.classList.add("hidden"); suggestionsBox.innerHTML = ""; return; }
+    searchDebounce = setTimeout(async () => {
+      const list = await fetchWorldBankCountryList();
+      // The debounce/fetch above can resolve after renderMacroTab() has
+      // already torn down and rebuilt these controls (e.g. the loading
+      // state finished, or a country switch re-rendered) — writing into a
+      // detached suggestionsBox would be invisible and silently do
+      // nothing useful. Bail if this instance is no longer in the page.
+      if (!document.body.contains(suggestionsBox)) return;
+      const matches = list.filter(c => c.name.toLowerCase().includes(q)).slice(0, 8);
+      if (matches.length === 0) {
+        suggestionsBox.innerHTML = '<p class="muted small" style="padding:8px 10px;margin:0;">No matches.</p>';
+        suggestionsBox.classList.remove("hidden");
+        return;
+      }
+      suggestionsBox.innerHTML = matches.map(c => `<button type="button" class="macro-country-suggestion" data-iso3="${c.iso3}" data-name="${c.name}">${c.name}</button>`).join("");
+      suggestionsBox.classList.remove("hidden");
+      suggestionsBox.querySelectorAll(".macro-country-suggestion").forEach(btn => {
+        btn.addEventListener("click", () => {
+          searchInput.value = "";
+          suggestionsBox.classList.add("hidden");
+          suggestionsBox.innerHTML = "";
+          if (homeState.macroCompareMode) {
+            toggleMacroCompareCountry(btn.dataset.iso3, btn.dataset.name);
+          } else {
+            homeState.macroCustomCountry = { iso3: btn.dataset.iso3, name: btn.dataset.name };
+            renderMacroTab();
+          }
+        });
+      });
+    }, 300);
+  });
+
+  wrap.querySelector("#macroCompareToggle").addEventListener("change", e => {
+    homeState.macroCompareMode = e.target.checked;
+    if (homeState.macroCompareMode && homeState.macroCompareCountries.length === 0) {
+      const current = getActiveMacroCountry();
+      homeState.macroCompareCountries = [current.iso3];
+      recordCountryInfo(current.iso3, current.label, current.flag);
+    }
+    renderMacroTab();
+  });
+
+  return wrap;
 }
 
-function buildIndicatorCard(label, value, unit, prefix, dateLabel) {
+function buildIndicatorCard(label, value, unit, prefix, dateLabel, formatter) {
   const card = document.createElement("div");
   card.className = "indicator";
   const labelEl = document.createElement("div");
@@ -1022,7 +1357,7 @@ function buildIndicatorCard(label, value, unit, prefix, dateLabel) {
   valueEl.className = "indicator-value";
   card.appendChild(labelEl);
   if (isNum(value)) {
-    valueEl.textContent = `${prefix || ""}${value.toFixed(2)}${unit}`;
+    valueEl.textContent = formatter ? formatter(value) : `${prefix || ""}${value.toFixed(2)}${unit || ""}`;
     card.appendChild(valueEl);
     const dateNote = document.createElement("div");
     dateNote.className = "macro-date";
@@ -1035,15 +1370,32 @@ function buildIndicatorCard(label, value, unit, prefix, dateLabel) {
   return card;
 }
 
-async function renderMacroTab() {
-  const country = MACRO_COUNTRIES.find(c => c.iso3 === homeState.macroCountry) || MACRO_COUNTRIES[0];
+function buildIndicatorGrid(indicators, results) {
+  const grid = document.createElement("div");
+  grid.className = "grid macro-grid";
+  results.forEach((r, i) => {
+    const ind = indicators[i];
+    const ok = r.status === "fulfilled" && isNum(r.value.value);
+    grid.appendChild(buildIndicatorCard(ind.label, ok ? r.value.value : null, ind.unit, ind.prefix, ok ? r.value.date : null, ind.formatter));
+  });
+  return grid;
+}
 
+async function renderMacroTab() {
+  const myToken = ++homeState.macroRenderToken;
   homeContentEl.innerHTML = "";
-  homeContentEl.appendChild(buildMacroCountryPicker());
+  homeContentEl.appendChild(buildMacroControls());
   const loading = document.createElement("p");
   loading.className = "muted";
   loading.textContent = "Loading...";
   homeContentEl.appendChild(loading);
+
+  if (homeState.macroCompareMode) {
+    await renderMacroCompareView(myToken);
+    return;
+  }
+
+  const country = getActiveMacroCountry();
 
   if (country.source === "fred") {
     if (typeof FRED_API_KEY === "undefined" || !FRED_API_KEY || FRED_API_KEY === "YOUR_FRED_KEY_HERE") {
@@ -1056,19 +1408,11 @@ async function renderMacroTab() {
       const obs = data.observations && data.observations[0];
       return { value: obs ? parseFloat(obs.value) : null, date: obs ? obs.date : null };
     }));
-    if (homeState.macroCountry !== country.iso3) return; // switched countries while this was in flight
-
-    const grid = document.createElement("div");
-    grid.className = "grid macro-grid";
-    results.forEach((r, i) => {
-      const series = MACRO_SERIES[i];
-      const ok = r.status === "fulfilled" && isNum(r.value.value);
-      grid.appendChild(buildIndicatorCard(series.label, ok ? r.value.value : null, series.unit, series.prefix, ok ? r.value.date : null));
-    });
+    if (myToken !== homeState.macroRenderToken) return; // switched away while this was in flight
 
     homeContentEl.innerHTML = "";
-    homeContentEl.appendChild(buildMacroCountryPicker());
-    homeContentEl.appendChild(grid);
+    homeContentEl.appendChild(buildMacroControls());
+    homeContentEl.appendChild(buildIndicatorGrid(MACRO_SERIES, results));
 
     const note = document.createElement("p");
     note.className = "muted small home-note";
@@ -1078,34 +1422,81 @@ async function renderMacroTab() {
   }
 
   // World Bank path — genuinely free, no key needed (see .github repo's
-  // API_RESEARCH.md). Figures are annual, so "As of" here means the
-  // most recent year World Bank has a real (non-null) value for, not
-  // necessarily this year — picks the first non-null entry from a small
-  // recent-years page rather than assuming the latest year is populated.
-  const results = await Promise.allSettled(WORLD_BANK_INDICATORS.map(async ind => {
-    const data = await fetchJSON(worldBankUrl(ind.id, country.iso3));
-    const rows = Array.isArray(data) && Array.isArray(data[1]) ? data[1] : [];
-    const latest = rows.find(row => isNum(row.value));
-    return latest ? { value: latest.value, date: latest.date } : { value: null, date: null };
-  }));
-  if (homeState.macroCountry !== country.iso3) return;
-
-  const grid = document.createElement("div");
-  grid.className = "grid macro-grid";
-  results.forEach((r, i) => {
-    const ind = WORLD_BANK_INDICATORS[i];
-    const ok = r.status === "fulfilled" && isNum(r.value.value);
-    grid.appendChild(buildIndicatorCard(ind.label, ok ? r.value.value : null, ind.unit, null, ok ? r.value.date : null));
-  });
+  // API_RESEARCH.md). Economic and Governance indicators fetched in
+  // parallel, shown as two separate grids.
+  const [econResults, govResults] = await Promise.all([
+    Promise.allSettled(WORLD_BANK_ECON_INDICATORS.map(ind => fetchWorldBankIndicator(ind, country.iso3))),
+    Promise.allSettled(WORLD_BANK_GOVERNANCE_INDICATORS.map(ind => fetchWorldBankIndicator(ind, country.iso3))),
+  ]);
+  if (myToken !== homeState.macroRenderToken) return;
 
   homeContentEl.innerHTML = "";
-  homeContentEl.appendChild(buildMacroCountryPicker());
-  homeContentEl.appendChild(grid);
+  homeContentEl.appendChild(buildMacroControls());
+  homeContentEl.appendChild(buildIndicatorGrid(WORLD_BANK_ECON_INDICATORS, econResults));
+
+  const govHeading = document.createElement("h4");
+  govHeading.className = "supply-chain-section-title macro-governance-title";
+  govHeading.innerHTML = `Governance <span class="card-subtitle">World Bank Worldwide Governance Indicators — roughly -2.5 (weak) to +2.5 (strong)</span>`;
+  homeContentEl.appendChild(govHeading);
+  homeContentEl.appendChild(buildIndicatorGrid(WORLD_BANK_GOVERNANCE_INDICATORS, govResults));
 
   const note = document.createElement("p");
   note.className = "muted small home-note";
-  note.textContent = `${country.label}'s economic indicators from the World Bank. These are annual figures, not monthly like the US/FRED tab — "as of" the most recent year with real data, which can lag a year or more.`;
+  note.textContent = `${country.label}'s economic and governance indicators from the World Bank. These are annual figures, not monthly like the US/FRED tab — "as of" the most recent year with real data, which can lag a year or more.`;
   homeContentEl.appendChild(note);
+}
+
+// Economic indicators only (not Governance) — keeps the comparison table
+// a manageable width; the fuller governance breakdown stays a
+// single-country feature for now (noted in TODO.md as a possible
+// fast-follow, not built this round).
+async function renderMacroCompareView(myToken) {
+  const countries = homeState.macroCompareCountries;
+  if (countries.length === 0) {
+    homeContentEl.innerHTML = "";
+    homeContentEl.appendChild(buildMacroControls());
+    homeContentEl.appendChild(Object.assign(document.createElement("p"), { className: "muted", textContent: "Pick up to 4 countries above to compare them side by side." }));
+    return;
+  }
+
+  const perCountry = await Promise.all(countries.map(async iso3 => ({
+    iso3,
+    results: await Promise.allSettled(WORLD_BANK_ECON_INDICATORS.map(ind => fetchWorldBankIndicator(ind, iso3))),
+  })));
+  if (myToken !== homeState.macroRenderToken) return;
+
+  const table = document.createElement("table");
+  table.className = "macro-compare-table";
+  table.innerHTML = `<thead><tr><th>Indicator</th>${countries.map(iso3 => {
+    const info = lookupCountryInfo(iso3);
+    return `<th>${info.flag} ${info.label}</th>`;
+  }).join("")}</tr></thead>`;
+
+  const tbody = document.createElement("tbody");
+  WORLD_BANK_ECON_INDICATORS.forEach((ind, i) => {
+    const row = document.createElement("tr");
+    const cells = perCountry.map(pc => {
+      const r = pc.results[i];
+      const ok = r.status === "fulfilled" && isNum(r.value.value);
+      const text = ok ? (ind.formatter ? ind.formatter(r.value.value) : `${ind.prefix || ""}${r.value.value.toFixed(2)}${ind.unit || ""}`) : "N/A";
+      return `<td>${text}</td>`;
+    }).join("");
+    row.innerHTML = `<td class="macro-compare-label">${ind.label}</td>${cells}`;
+    tbody.appendChild(row);
+  });
+  table.appendChild(tbody);
+
+  const scroll = document.createElement("div");
+  scroll.className = "macro-compare-table-scroll";
+  scroll.appendChild(table);
+
+  homeContentEl.innerHTML = "";
+  homeContentEl.appendChild(buildMacroControls());
+  homeContentEl.appendChild(scroll);
+  homeContentEl.appendChild(Object.assign(document.createElement("p"), {
+    className: "muted small home-note",
+    textContent: "Economic indicators from the World Bank, side by side. Governance indicators (Voice & Accountability, Political Stability, etc.) are shown in the single-country view.",
+  }));
 }
 
 function loadMarketNews() {
@@ -1247,3 +1638,20 @@ function initHowToModal() {
 
 initHome();
 initHowToModal();
+
+// ---- Deep-link + back/forward support for the router (2026-09-24) ----
+// initHome() above already built every tab/card unconditionally — this
+// just re-points which view is visible if the page loaded on a non-home
+// URL (a shared link, or a refresh) or the user hits back/forward.
+window.addEventListener("popstate", e => {
+  const navKey = (e.state && e.state.navKey) || PATH_TO_NAV[location.pathname] || "home";
+  navigateTo(navKey, { push: false });
+});
+(function resolveInitialRoute() {
+  // Always runs, including for "/" itself — this is what actually calls
+  // showHomeFocused(null) on first load; without it, the homepage's
+  // default HTML markup (no "hidden" classes applied yet) would leave
+  // Watchlist visible in the grid until the user clicked something.
+  const navKey = PATH_TO_NAV[location.pathname] || "home";
+  navigateTo(navKey, { push: false });
+})();

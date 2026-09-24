@@ -19,6 +19,7 @@
       <button type="button" class="app-nav-item" data-nav="create-account"><span class="app-nav-icon"><svg viewBox="0 0 20 20"><circle cx="8" cy="6.3" r="2.6"/><path d="M3.3,16 C3.3,12.2 5.6,10.5 8,10.5 C8.9,10.5 9.7,10.7 10.4,11.2"/><line x1="16" y1="4" x2="16" y2="9"/><line x1="13.5" y1="6.5" x2="18.5" y2="6.5"/></svg></span><span class="app-nav-label">Create Free Account</span></button>
       <button type="button" class="app-nav-item" data-nav="login"><span class="app-nav-icon"><svg viewBox="0 0 20 20"><path d="M9,3.3 H5.5 a1,1 0 0 0 -1,1 V15.7 a1,1 0 0 0 1,1 H9"/><line x1="8" y1="10" x2="17" y2="10"/><polyline points="13.3,6.3 17,10 13.3,13.7"/></svg></span><span class="app-nav-label">Log In</span></button>
       <button type="button" class="app-nav-item" data-nav="explore-products"><span class="app-nav-icon"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="7.3"/><polygon points="12.3,7.7 9.2,9.2 7.7,12.3 10.8,10.8"/></svg></span><span class="app-nav-label">Explore Products</span></button>
+      <button type="button" class="app-nav-item" data-nav="premium"><span class="app-nav-icon"><svg viewBox="0 0 20 20"><polygon points="4,7.5 7,3.5 13,3.5 16,7.5 10,16"/><line x1="4" y1="7.5" x2="16" y2="7.5"/><line x1="7" y1="3.5" x2="10" y2="7.5"/><line x1="13" y1="3.5" x2="10" y2="7.5"/></svg></span><span class="app-nav-label">Premium</span></button>
     </nav>
     <hr class="app-nav-divider">
 
@@ -49,12 +50,6 @@
 
 <header>
   <div class="header-top">
-    <div class="brand" id="homeTitle" title="Maximising Shareholder Value (mostly a joke — but the numbers are real)">
-      <div class="brand-lockup">
-        <h1>$MSV</h1>
-        <span class="brand-tagline">Maximising Shareholder Value</span>
-      </div>
-    </div>
     <div class="header-right">
       <div class="api-usage" id="apiUsageWidget" title="Approximate — counts requests your browser has sent, not actual Finnhub hits (some are served from cache and never reach Finnhub at all).">
         <div class="api-usage-label">Finnhub usage (est.)</div>
@@ -86,7 +81,7 @@
 <section id="homeView" class="home-view">
   <div class="home-decor" aria-hidden="true"></div>
 
-  <div class="card home-hero-card">
+  <div class="card home-hero-card" data-home-section="home-intro">
     <div class="home-hero-main">
       <h2 class="home-hero-title">The full picture, before you decide</h2>
       <p class="home-intro-lead">$MSV gives you the full picture on any stock, ETF, or crypto ticker — valuation, financial health, and a clear, plain-English read on where it stands, so you understand what you're buying, not just its price. Layer in a snapshot of markets worldwide and the economic forces moving them, and you've got real context to work with. (Bonds and commodities are in here too, via the ETFs that track them.)</p>
@@ -101,7 +96,7 @@
     </div>
   </div>
 
-  <button type="button" id="learnBanner" class="learn-banner">
+  <button type="button" id="learnBanner" class="learn-banner" data-home-section="home-intro">
     <span class="learn-banner-icon">🎓</span>
     <span class="learn-banner-copy">
       <span class="learn-banner-title">New to investing? Start here</span>
@@ -110,8 +105,13 @@
     <span class="learn-banner-arrow">→</span>
   </button>
 
-  <div class="card world-markets-card" id="worldMarketsCard">
+  <div class="card world-markets-card" id="worldMarketsCard" data-home-section="world-markets">
     <h3>Global Markets <span class="card-subtitle" id="worldMarketsSummary"></span> <span class="sample-data-badge" title="Illustrative sample prices, not live data — kept static so loading this page never uses any of the free-tier API budget.">Sample data</span></h3>
+    <div class="map-color-toggle" id="mapColorToggle">
+      <button type="button" class="active" data-mode="market">Color by: Market</button>
+      <button type="button" data-mode="gdp">GDP Growth</button>
+      <button type="button" data-mode="inflation">Inflation</button>
+    </div>
     <div class="world-markets-layout">
       <div id="worldMarketsMap" class="world-markets-map"></div>
       <div id="indexStrip" class="index-strip"></div>
@@ -123,40 +123,40 @@
   <div id="mapHoverPopup" class="map-hover-popup hidden"></div>
 
   <div class="home-grid">
-    <div class="card home-grid-item" id="watchlistCard">
-      <h3>Watchlist</h3>
-      <div id="watchlistRow" class="recently-viewed-row hidden"></div>
-      <p id="watchlistEmptyNote" class="sidebar-empty-note">Tap the ☆ on any ticker page to track it here.</p>
-    </div>
-
-    <div class="card home-grid-item" id="recentlyViewedCard">
+    <div class="card home-grid-item" id="recentlyViewedCard" data-home-section="home-grid-misc">
       <h3>Recently Viewed</h3>
       <div id="recentlyViewedRow" class="recently-viewed-row hidden"></div>
       <p id="recentlyViewedEmptyNote" class="sidebar-empty-note">Tickers you look up will show up here.</p>
     </div>
 
-    <div class="card home-grid-item" id="didYouKnowCard">
+    <div class="card home-grid-item" id="didYouKnowCard" data-home-section="home-grid-misc">
       <h3>Did You Know? <span class="card-subtitle">from the Learn hub</span></h3>
       <div id="didYouKnowContent"></div>
     </div>
 
-    <div class="card home-grid-item" id="econCalendarCard">
+    <div class="card home-grid-item" id="econCalendarCard" data-home-section="home-grid-misc">
       <h3>Economic Calendar</h3>
       <div id="econCalendarContent"><p class="muted">Loading...</p></div>
     </div>
 
-    <div class="card home-grid-item" id="earningsCalendarCard">
+    <div class="card home-grid-item" id="earningsCalendarCard" data-home-section="home-grid-misc">
       <h3>Earnings This Week</h3>
       <div id="earningsCalendarContent"><p class="muted">Loading...</p></div>
     </div>
 
-    <div class="card home-grid-item home-grid-wide" id="sectorHeatmapCard">
+    <div class="card home-grid-item home-grid-wide" id="sectorHeatmapCard" data-home-section="sector-heatmap">
       <h3>Sector Performance <span class="card-subtitle">today</span></h3>
       <div id="sectorHeatmapContent"><p class="muted">Loading...</p></div>
     </div>
   </div>
 
-  <div class="home-controls" id="homeControlsCard">
+  <div class="card" id="watchlistCard" data-home-section="watchlist">
+    <h3>Watchlist</h3>
+    <div id="watchlistRow" class="recently-viewed-row hidden"></div>
+    <p id="watchlistEmptyNote" class="sidebar-empty-note">Tap the ☆ on any ticker page to track it here.</p>
+  </div>
+
+  <div class="home-controls" id="homeControlsCard" data-home-section="home-tabs">
     <div id="homeTabs" class="home-tabs"></div>
     <div id="homeViewToggle" class="home-view-toggle">
       <button type="button" class="active" data-mode="grid">Grid</button>
@@ -164,11 +164,17 @@
     </div>
   </div>
 
-  <div class="card home-tab-card">
+  <div class="card home-tab-card" data-home-section="home-tabs">
     <div id="homeContent" class="home-content"><p class="muted">Loading...</p></div>
   </div>
 
-  <div class="card" id="marketNewsCard">
+  <div class="card" id="marketIntelTeaserCard" data-home-section="home-grid-misc">
+    <h3>Market Intelligence <span class="card-subtitle">real, sourced company relationships</span></h3>
+    <div id="marketIntelTeaserContent"><p class="muted">Loading...</p></div>
+    <button type="button" class="did-you-know-link" id="marketIntelTeaserBtn">See the full picture →</button>
+  </div>
+
+  <div class="card" id="marketNewsCard" data-home-section="market-news">
     <h3>Market News</h3>
     <div id="homeNewsList"><p class="muted">Loading...</p></div>
   </div>
@@ -347,7 +353,7 @@
     <section class="card hidden" id="optionsSection">
       <h3>Options
         <button id="optionsHelpBtn" class="help-btn">?</button>
-        <span class="card-subtitle">(simplified — nearest expiration only)</span>
+        <span class="card-subtitle">(more strikes/expirations available — no Greeks/IV on the free data feed)</span>
       </h3>
       <div id="optionsContent"></div>
     </section>
@@ -488,9 +494,9 @@
 <script src="script.js"></script>
 <script src="apiUsage.js"></script>
 <script src="worldMarkets.js"></script>
+<script src="supplyChain.js"></script>
 <script src="home.js"></script>
 <script src="learn.js"></script>
-<script src="supplyChain.js"></script>
 <script src="chart.js"></script>
 <script src="invest.js"></script>
 <script src="autocomplete.js"></script>

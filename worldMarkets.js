@@ -36,7 +36,7 @@
 const EXCHANGES = [
   { code: "NYSE", name: "NYSE / Nasdaq", ticker: "SPY", flag: "🇺🇸", city: "New York", country: "US", tz: "America/New_York", open: "09:30", close: "16:00", lat: 40.71, lon: -74.01, boxX: 1030, boxY: 530 },
   { code: "TSX", name: "Toronto Stock Exchange", ticker: "EWC", flag: "🇨🇦", city: "Toronto", country: "CA", tz: "America/Toronto", open: "09:30", close: "16:00", lat: 43.65, lon: -79.38, boxX: 1030, boxY: 300 },
-  { code: "B3", name: "B3", ticker: "EWZ", flag: "🇧🇷", city: "São Paulo", country: "BR", tz: "America/Sao_Paulo", open: "10:00", close: "17:00", lat: -23.55, lon: -46.63, boxX: 1300, boxY: 1030 },
+  { code: "B3", name: "B3", ticker: "EWZ", flag: "🇧🇷", city: "São Paulo", country: "BR", tz: "America/Sao_Paulo", open: "10:00", close: "17:00", lat: -23.55, lon: -46.63, dotDx: -110, dotDy: -28, boxX: 1300, boxY: 1030 },
   { code: "LSE", name: "London Stock Exchange", ticker: "EWU", flag: "🇬🇧", city: "London", country: "GB", tz: "Europe/London", open: "08:00", close: "16:30", lat: 51.51, lon: -0.13, boxX: 1050, boxY: 130 },
   { code: "EPA", name: "Euronext Paris", ticker: "EWQ", flag: "🇫🇷", city: "Paris", country: "FR", tz: "Europe/Paris", open: "09:00", close: "17:30", lat: 48.86, lon: 2.35, boxX: 1720, boxY: 165 },
   { code: "FRA", name: "Deutsche Börse (Xetra)", ticker: "EWG", flag: "🇩🇪", city: "Frankfurt", country: "DE", tz: "Europe/Berlin", open: "09:00", close: "17:30", lat: 50.11, lon: 8.68, boxX: 1720, boxY: 400 },
@@ -179,7 +179,17 @@ async function renderWorldMarkets() {
   EXCHANGES.forEach(ex => {
     const { isOpen } = getExchangeStatus(ex);
     if (isOpen) openCount++;
-    const x = lonToX(ex.lon), y = latToY(ex.lat);
+    // `dotDx`/`dotDy` (viewBox units, optional) — a manual correction for
+    // the rare case where the plain lon/lat formula lands the dot off this
+    // specific basemap's own landmass shape. Confirmed 2026-09-24 for
+    // Brazil specifically: this file's "br" path itself sits offset from
+    // where the equirectangular formula expects it (its own bounding box,
+    // measured directly via getBBox(), doesn't line up with São Paulo's
+    // real lon/lat) — a basemap data-quality quirk, not a bad lat/lon
+    // value. Fixing the SVG polygon itself would be far riskier (a
+    // hand-authored 1.3MB file), so this nudges just the dot, the same
+    // hand-calibration approach boxX/boxY already use above.
+    const x = lonToX(ex.lon) + (ex.dotDx || 0), y = latToY(ex.lat) + (ex.dotDy || 0);
     const tickerQuote = (typeof homeState !== "undefined" && homeState.marketTickers) ? homeState.marketTickers[ex.ticker] : null;
     const dp = tickerQuote ? (tickerQuote.dp ?? 0) : null;
 
@@ -278,8 +288,8 @@ const macroHoverCache = {}; // ISO3 -> Promise<[{label, unit, value, date}]>, so
 function fetchMacroSnapshot(iso3) {
   if (macroHoverCache[iso3]) return macroHoverCache[iso3];
   macroHoverCache[iso3] = Promise.allSettled(
-    WORLD_BANK_INDICATORS.map(ind => fetchJSON(worldBankUrl(ind.id, iso3)))
-  ).then(results => WORLD_BANK_INDICATORS.map((ind, i) => {
+    WORLD_BANK_HOVER_INDICATORS.map(ind => fetchJSON(worldBankUrl(ind.id, iso3)))
+  ).then(results => WORLD_BANK_HOVER_INDICATORS.map((ind, i) => {
     const r = results[i];
     if (r.status !== "fulfilled") return { label: ind.label, value: null };
     const rows = Array.isArray(r.value) && Array.isArray(r.value[1]) ? r.value[1] : [];
@@ -363,5 +373,83 @@ const COUNTRY_ISO2_TO_ISO3 = {
   ZA: "ZAF", IN: "IND", SG: "SGP", CN: "CHN", HK: "HKG", JP: "JPN", AU: "AUS",
 };
 
+// ---- "Smarter map": choropleth coloring by a macro indicator (2026-09-24) ----
+// Default ("market") is today's behavior — dots only, no landmass tint.
+// Switching to GDP Growth/Inflation tints each of the 13 tracked
+// countries' real landmass paths (same [class~="xx"] selectors the hover
+// binding already uses) with a color-mix() intensity, the same technique
+// already used for the sector heatmap tiles (renderSectorHeatmap in
+// home.js) — just applied to map paths instead of grid tiles. Land paths
+// are part of the cached, persistent worldMapSvgRoot (not rebuilt by the
+// 30s renderWorldMarkets re-render, unlike the marker layer), so a tint
+// applied once stays put without needing to be reapplied on every tick.
+const MAP_COLOR_INDICATORS = {
+  gdp: { id: "NY.GDP.MKTP.KD.ZG", bipolar: true },
+  inflation: { id: "FP.CPI.TOTL.ZG", bipolar: false },
+};
+let mapColorMode = "market";
+let mapColorFetchToken = 0;
+
+function clearMapColorTint() {
+  if (!worldMapSvgRoot) return;
+  worldMapSvgRoot.querySelectorAll(".choropleth-tinted").forEach(el => {
+    el.style.fill = "";
+    el.classList.remove("choropleth-tinted");
+  });
+}
+
+async function applyMapColorMode() {
+  const myToken = ++mapColorFetchToken;
+  clearMapColorTint();
+  if (mapColorMode === "market" || !worldMapSvgRoot) return;
+
+  const config = MAP_COLOR_INDICATORS[mapColorMode];
+  const values = await Promise.all(EXCHANGES.map(async ex => {
+    const iso3 = COUNTRY_ISO2_TO_ISO3[ex.country];
+    if (!iso3) return { ex, value: null };
+    try {
+      const data = await fetchJSON(worldBankUrl(config.id, iso3));
+      const rows = Array.isArray(data) && Array.isArray(data[1]) ? data[1] : [];
+      const latest = rows.find(r => typeof r.value === "number");
+      return { ex, value: latest ? latest.value : null };
+    } catch {
+      return { ex, value: null };
+    }
+  }));
+  if (myToken !== mapColorFetchToken) return; // user switched modes again while this was in flight
+
+  const nums = values.map(v => v.value).filter(v => typeof v === "number");
+  if (nums.length === 0) return;
+  const maxAbs = Math.max(...nums.map(v => Math.abs(v)), 1);
+
+  values.forEach(({ ex, value }) => {
+    if (typeof value !== "number") return;
+    const shapes = worldMapSvgRoot.querySelectorAll(`[class~="${ex.country.toLowerCase()}"]`);
+    const intensity = Math.min(Math.abs(value) / maxAbs, 1) * 55;
+    const color = config.bipolar
+      ? (value >= 0
+          ? `color-mix(in srgb, var(--positive) ${intensity.toFixed(0)}%, var(--bg-surface-2))`
+          : `color-mix(in srgb, var(--negative) ${intensity.toFixed(0)}%, var(--bg-surface-2))`)
+      : `color-mix(in srgb, var(--negative) ${intensity.toFixed(0)}%, var(--bg-surface-2))`;
+    shapes.forEach(el => {
+      el.style.fill = color;
+      el.classList.add("choropleth-tinted");
+    });
+  });
+}
+
+function initMapColorToggle() {
+  const el = document.getElementById("mapColorToggle");
+  if (!el) return;
+  el.querySelectorAll("button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      mapColorMode = btn.dataset.mode;
+      el.querySelectorAll("button").forEach(b => b.classList.toggle("active", b === btn));
+      applyMapColorMode();
+    });
+  });
+}
+
 renderWorldMarkets();
+initMapColorToggle();
 setInterval(renderWorldMarkets, 30000);

@@ -9,12 +9,26 @@
 ## Name
 
 The app is called **$MSV** ("Maximising Shareholder Value" — a joke name;
-the dashboard itself is genuinely useful). Logo is an emerald circular
-badge with "MSV" lettering and a small uptick-arrow accent, styled after
-coin/badge-style crypto logos (e.g. CoinMarketCap) per the user's request
-— fixed-color (not currentColor), so it looks the same in both themes.
-Favicon is a simplified version without the arrow accent (illegible at
-16px with it — tested visually before shipping).
+the dashboard itself is genuinely useful). Favicon is an emerald circular
+badge with "MSV" lettering (a simplified version without an uptick-arrow
+accent that was tried and dropped — illegible at 16px, tested visually
+before shipping).
+
+**One logo total, in the sidebar only** (`.app-sidebar-badge`,
+index.html) — a header copy (`.brand-lockup`) used to exist too, but was
+removed 2026-09-24 at Jozsua's request ("there should only be one $MSV
+logo"); click-to-home moved from that header element onto the sidebar
+logo instead (wired in home.js's `initAppSidebar()`, since the sidebar
+doesn't exist until home.js runs). The sidebar badge itself was
+originally fixed-color (`#06120d` background, not theme-aware) so it
+"looked the same in both themes" — but a fixed dark chip reads as an odd
+near-black hole once sitting on the light theme's white page background,
+which is what "looks weird in light mode" (Jozsua's report, 2026-09-24)
+turned out to mean. Fixed by switching it to the theme's own
+`--accent`/`--accent-contrast` custom properties (the same pairing
+`#searchBtn` already uses) — still a solid, brand-colored badge, but one
+that correctly swaps between the dark and light theme's own accent
+colors instead of staying fixed.
 
 ## What this repo is
 

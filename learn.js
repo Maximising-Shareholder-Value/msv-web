@@ -754,10 +754,10 @@ function renderDidYouKnowTip() {
   el.querySelector(".did-you-know-link").addEventListener("click", () => {
     learnState.activeCategory = cat.id;
     learnState.expandedTopics.add(topic.id);
-    goToHomeTab("learn");
-    if (typeof setActiveNav === "function") setActiveNav("learn");
-    // goToHomeTab already calls switchTab("learn") -> renderLearnTab(),
-    // which reads learnState above — no extra render call needed here.
+    if (typeof navigateTo === "function") navigateTo("learn"); else goToHomeTab("learn");
+    // navigateTo("learn") -> goToHomeTab("learn") -> switchTab("learn") ->
+    // renderLearnTab(), which reads learnState above — no extra render
+    // call needed here.
     requestAnimationFrame(() => {
       document.getElementById(`learn-topic-${topic.id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
     });

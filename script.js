@@ -113,7 +113,6 @@ function alpacaUrl(path, params) {
 }
 
 // ---- DOM refs ----
-const homeTitle = document.getElementById("homeTitle");
 const themeToggle = document.getElementById("themeToggle");
 const tickerInput = document.getElementById("tickerInput");
 const searchBtn = document.getElementById("searchBtn");
@@ -328,7 +327,10 @@ themeToggle.addEventListener("click", () => {
 });
 
 // ---- Nav ----
-homeTitle.addEventListener("click", goHome);
+// Click-to-home used to live on a header logo (removed 2026-09-24 — see
+// CLAUDE.md, there's now exactly one $MSV logo, in the sidebar); that
+// click handler is wired in home.js's initAppSidebar() instead, since the
+// sidebar logo element doesn't exist until home.js runs.
 searchBtn.addEventListener("click", () => {
   if (typeof hideSuggestions === "function") hideSuggestions();
   const sym = tickerInput.value.trim().toUpperCase();
@@ -361,6 +363,7 @@ function goHome() {
   if (typeof renderRecentlyViewed === "function") renderRecentlyViewed();
   if (typeof renderWatchlist === "function") renderWatchlist();
   if (typeof setActiveNav === "function") setActiveNav("home");
+  if (typeof showHomeFocused === "function") showHomeFocused(null);
 }
 
 // ---- Fetch helper ----
@@ -1159,6 +1162,13 @@ function renderETFTradingActivity(metric) {
 // msv-api's /api/alpaca proxy (see .github/HISTORY.md Phase 9). Shown
 // for stocks and ETFs (many ETFs have real listed options); hidden for
 // crypto, which Alpaca's US-equities options endpoint doesn't cover.
+// Holds everything fetched for the currently-viewed ticker's options, so
+// switching expiration or expanding strikes (renderOptionsView, below)
+// re-slices already-fetched data instead of re-fetching — Alpaca's
+// snapshot response already contains every expiration/strike in the
+// requested window, loadOptions just used to throw most of it away.
+const optionsState = { parsed: [], price: 0, expiry: null, showAllStrikes: false, showActivity: false };
+
 async function loadOptions(symbol, quote, instrumentType) {
   if (instrumentType === "crypto" || !optionsSection) {
     if (optionsSection) optionsSection.classList.add("hidden");
@@ -1195,22 +1205,13 @@ async function loadOptions(symbol, quote, instrumentType) {
       return;
     }
 
-    const nearestExpiry = parsed.reduce((min, o) => (o.expiry < min ? o.expiry : min), parsed[0].expiry);
-    const forExpiry = parsed.filter(o => o.expiry === nearestExpiry);
+    optionsState.parsed = parsed;
+    optionsState.price = price;
+    optionsState.expiry = parsed.reduce((min, o) => (o.expiry < min ? o.expiry : min), parsed[0].expiry);
+    optionsState.showAllStrikes = false;
+    optionsState.showActivity = false;
 
-    const strikeDistances = [...new Set(forExpiry.map(o => o.strike))]
-      .map(s => ({ strike: s, dist: Math.abs(s - price) }))
-      .sort((a, b) => a.dist - b.dist)
-      .slice(0, 7);
-    const closestStrikes = strikeDistances.map(s => s.strike).sort((a, b) => a - b);
-
-    const byStrike = {};
-    forExpiry.forEach(o => {
-      byStrike[o.strike] = byStrike[o.strike] || {};
-      byStrike[o.strike][o.type] = o.snap;
-    });
-
-    renderOptionsTable(closestStrikes, byStrike, price, nearestExpiry);
+    renderOptionsView();
   } catch {
     optionsContent.innerHTML = '<p class="muted">Couldn\'t load options data right now.</p>';
   }
@@ -1235,34 +1236,108 @@ function parseOptionSymbol(occSymbol, underlying, snap) {
   };
 }
 
-function renderOptionsTable(strikes, byStrike, price, expiry) {
+function buildOptionsByStrike(forExpiry) {
+  const byStrike = {};
+  forExpiry.forEach(o => {
+    byStrike[o.strike] = byStrike[o.strike] || {};
+    byStrike[o.strike][o.type] = o.snap;
+  });
+  return byStrike;
+}
+
+// Re-renders from optionsState — never re-fetches. Confirmed live
+// (2026-09-24) that Alpaca's free "indicative" feed has no `greeks` or
+// `impliedVolatility` field at all (see BLOCKERS.md), so this maximizes
+// what IS free instead: more strikes/expirations (data already fetched,
+// just previously discarded) and the last-trade-price/today's-volume
+// fields (already present on every snapshot, simply never read before).
+// Default view stays as light as the original — extras are opt-in
+// toggles, per Jozsua's explicit "keep it light" request when this
+// shipped (2026-09-21).
+function renderOptionsView() {
+  const { parsed, price, expiry, showAllStrikes, showActivity } = optionsState;
+  const expiries = [...new Set(parsed.map(o => o.expiry))].sort();
+  const forExpiry = parsed.filter(o => o.expiry === expiry);
+  const byStrike = buildOptionsByStrike(forExpiry);
+
+  const allStrikes = [...new Set(forExpiry.map(o => o.strike))].sort((a, b) => a - b);
+  const defaultStrikes = allStrikes
+    .map(s => ({ strike: s, dist: Math.abs(s - price) }))
+    .sort((a, b) => a.dist - b.dist)
+    .slice(0, 9)
+    .map(s => s.strike)
+    .sort((a, b) => a - b);
+  const strikesToShow = showAllStrikes ? allStrikes : defaultStrikes;
+
+  const expiryPickerHtml = expiries.length > 1 ? `
+    <div class="options-expiry-row">
+      ${expiries.map(e => `<button type="button" class="options-expiry-btn${e === expiry ? " active" : ""}" data-expiry="${e}">${formatExpiryDate(e)}</button>`).join("")}
+    </div>
+  ` : "";
+
+  optionsContent.innerHTML = `
+    ${expiryPickerHtml}
+    <p class="muted small">${expiries.length > 1 ? "Expiration" : "Nearest available expiration"}: <strong>${formatExpiryDate(expiry)}</strong> — ${strikesToShow.length} of ${allStrikes.length} strikes shown.</p>
+    <div class="options-controls">
+      ${allStrikes.length > defaultStrikes.length ? `<label class="options-toggle"><input type="checkbox" id="optionsShowAllStrikes" ${showAllStrikes ? "checked" : ""}> Show all ${allStrikes.length} strikes</label>` : ""}
+      <label class="options-toggle"><input type="checkbox" id="optionsShowActivity" ${showActivity ? "checked" : ""}> Show last trade &amp; volume</label>
+    </div>
+    ${buildOptionsTableHtml(strikesToShow, byStrike, price, showActivity)}
+    <p class="muted small">Bid/ask are indicative quotes, not guaranteed tradeable prices. Greeks and implied volatility aren't available on this free data feed (confirmed directly) — not shown rather than guessed.</p>
+  `;
+
+  optionsContent.querySelectorAll(".options-expiry-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      optionsState.expiry = btn.dataset.expiry;
+      optionsState.showAllStrikes = false; // back to the light default on a fresh expiration
+      renderOptionsView();
+    });
+  });
+  document.getElementById("optionsShowAllStrikes")?.addEventListener("change", e => {
+    optionsState.showAllStrikes = e.target.checked;
+    renderOptionsView();
+  });
+  document.getElementById("optionsShowActivity")?.addEventListener("change", e => {
+    optionsState.showActivity = e.target.checked;
+    renderOptionsView();
+  });
+}
+
+function buildOptionsTableHtml(strikes, byStrike, price, showActivity) {
   const closestDist = Math.min(...strikes.map(s => Math.abs(s - price)));
+  const activityCells = (snap) => `<td>${isNum(snap?.latestTrade?.p) ? formatCurrency(snap.latestTrade.p) : "--"}</td><td>${isNum(snap?.dailyBar?.v) ? snap.dailyBar.v.toLocaleString() : "--"}</td>`;
+
   const rows = strikes.map(strike => {
-    const call = byStrike[strike]?.call?.latestQuote;
-    const put = byStrike[strike]?.put?.latestQuote;
+    const callSnap = byStrike[strike]?.call;
+    const putSnap = byStrike[strike]?.put;
+    const call = callSnap?.latestQuote;
+    const put = putSnap?.latestQuote;
     const isATM = Math.abs(strike - price) === closestDist;
     return `
       <tr class="${isATM ? "options-atm-row" : ""}">
+        ${showActivity ? activityCells(callSnap) : ""}
         <td>${isNum(call?.bp) ? formatCurrency(call.bp) : "--"}</td>
         <td>${isNum(call?.ap) ? formatCurrency(call.ap) : "--"}</td>
         <td class="options-strike-cell">${formatCurrency(strike)}</td>
         <td>${isNum(put?.bp) ? formatCurrency(put.bp) : "--"}</td>
         <td>${isNum(put?.ap) ? formatCurrency(put.ap) : "--"}</td>
+        ${showActivity ? activityCells(putSnap) : ""}
       </tr>`;
   }).join("");
 
-  optionsContent.innerHTML = `
-    <p class="muted small">Nearest available expiration: <strong>${formatExpiryDate(expiry)}</strong> — the ${strikes.length} strikes closest to the current price, highlighted below.</p>
+  const sideSpan = showActivity ? 4 : 2;
+  return `
     <div class="options-table-scroll">
       <table class="options-table">
         <thead>
-          <tr><th colspan="2">Call</th><th></th><th colspan="2">Put</th></tr>
-          <tr><th>Bid</th><th>Ask</th><th>Strike</th><th>Bid</th><th>Ask</th></tr>
+          <tr><th colspan="${sideSpan}">Call</th><th></th><th colspan="${sideSpan}">Put</th></tr>
+          <tr>
+            ${showActivity ? "<th>Last</th><th>Vol</th>" : ""}<th>Bid</th><th>Ask</th><th>Strike</th><th>Bid</th><th>Ask</th>${showActivity ? "<th>Last</th><th>Vol</th>" : ""}
+          </tr>
         </thead>
         <tbody>${rows}</tbody>
       </table>
     </div>
-    <p class="muted small">Bid/ask are indicative quotes, not guaranteed tradeable prices. Simplified first pass — no Greeks or implied volatility yet.</p>
   `;
 }
 

@@ -53,6 +53,44 @@ const SUPPLY_CHAIN_RELATIONSHIPS = [
   { a: "NVIDIA", b: "Microsoft / Meta / Google / Amazon", relationship: "customer-of", description: "NVIDIA's own SEC filings show customer concentration (4 direct customers = 61% of a recent quarter's revenue, top single customer ~22%), anonymized as “Customer A/B/C/D.” NVIDIA does not officially name them; multiple outlets have identified the likely hyperscalers as Microsoft, Meta, Google and Amazon.", source: "NVIDIA SEC filings (concentration language); CNBC, “Nvidia's top two mystery customers made up 39% of Q2 revenue” (Aug 28, 2025)", confidence: "Medium", confidenceNote: "The concentration disclosure itself is real and SEC-sourced. The specific company IDENTITIES behind “Customer A/B/C/D” are analyst/journalist inference, NOT confirmed by NVIDIA — reported/inferred, not a confirmed fact." },
 ];
 
+// ---- Homepage teaser (2026-09-24) ----
+// A compact showcase of a few real companies from SUPPLY_CHAIN_NODES,
+// with real logos — separate from the full renderSupplyChainTab() page
+// (reached via the sidebar), which shows all 17 nodes/20 relationships.
+// Logos come from Finnhub's /stock/profile2 `logo` field — the exact
+// same field already used for the ticker deep-dive page's own logo
+// (script.js) — so this is zero new API integration, just a few more
+// staggered calls on homepage load.
+const SUPPLY_CHAIN_TEASER_TICKERS = ["NVDA", "TSM", "AMD", "MSFT", "GOOGL"];
+
+function renderMarketIntelTeaser() {
+  const el = document.getElementById("marketIntelTeaserContent");
+  const btn = document.getElementById("marketIntelTeaserBtn");
+  if (!el) return;
+
+  el.innerHTML = `<div class="mi-teaser-grid">${SUPPLY_CHAIN_TEASER_TICKERS.map(symbol =>
+    `<button type="button" class="mi-teaser-logo-tile" data-symbol="${symbol}"><img class="mi-teaser-logo" alt="${symbol} logo"><span>${symbol}</span></button>`
+  ).join("")}</div>`;
+
+  el.querySelectorAll(".mi-teaser-logo-tile").forEach(tile => {
+    tile.addEventListener("click", () => loadTicker(tile.dataset.symbol));
+  });
+
+  btn?.addEventListener("click", () => navigateTo("market-intelligence"));
+
+  SUPPLY_CHAIN_TEASER_TICKERS.forEach((symbol, i) => {
+    setTimeout(async () => {
+      try {
+        const profile = await fetchJSON(finnhubUrl("/stock/profile2", { symbol }));
+        const img = el.querySelector(`.mi-teaser-logo-tile[data-symbol="${symbol}"] img`);
+        if (img && profile.logo) img.src = profile.logo;
+      } catch {
+        // leave the tile logo-less rather than showing a broken image
+      }
+    }, i * 100);
+  });
+}
+
 function prettyRelationship(rel) {
   return rel.split(" / ").map(part => {
     const words = part.split("-");
