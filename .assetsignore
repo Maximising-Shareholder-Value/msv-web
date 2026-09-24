@@ -1,0 +1,9 @@
+.git
+.github
+node_modules
+.wrangler
+test-results
+playwright-report
+config.js
+wrangler.jsonc
+.assetsignore
