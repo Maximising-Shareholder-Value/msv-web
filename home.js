@@ -106,7 +106,8 @@ const DYNAMIC_TABS = [
 
 const homeState = {
   activeTab: "trending-tech", // cheap default — a browse category costs zero API calls
-  viewMode: "grid",
+  browseQuotes: {}, // symbol -> { symbol, name, quote } for opened browse categories
+  browseLoading: {}, // category id -> in-flight fetch promise
   quotes: {}, // ranking-universe symbol -> { symbol, name, quote }
   rankingLoaded: false,
   cryptoLoaded: false,
@@ -121,7 +122,6 @@ const homeState = {
 
 const homeTabsEl = document.getElementById("homeTabs");
 const homeContentEl = document.getElementById("homeContent");
-const homeViewToggleEl = document.getElementById("homeViewToggle");
 const homeNewsListEl = document.getElementById("homeNewsList");
 const indexStripEl = document.getElementById("indexStrip");
 const recentlyViewedRowEl = document.getElementById("recentlyViewedRow");
@@ -208,25 +208,54 @@ const SECTOR_ETFS = [
 
 // Hand-maintained on purpose (2026-09-19 roadmap note: "dates are known
 // well in advance, low maintenance" — not worth a live feed for this).
-// Every date below is a real, sourced date, not guessed:
-// - FOMC meeting dates: federalreserve.gov's published 2026 schedule.
-// - CPI release dates: bls.gov's published release schedule.
-// Update this array periodically as dates pass / new ones are announced
-// — there's no automatic expiry, so a stale list will just quietly stop
-// being useful rather than erroring.
+// Expanded 2026-09-26 (Jozsua: "more dates, clickable links"). Every date
+// below was read directly off the publisher's own schedule page that day,
+// not guessed — and each row links to that same page:
+// - FOMC: federalreserve.gov/monetarypolicy/fomccalendars.htm
+// - CPI / PPI / Jobs report / JOLTS: bls.gov/schedule/news_release/*.htm
+// - GDP / Personal Income & Outlays (PCE inflation): bea.gov/news/schedule
+// BLS/BEA only publish a few months ahead, so this list ends around the
+// year-end. Update it periodically — there's no automatic expiry, so a
+// stale list just quietly stops being useful rather than erroring.
+const ECON_SOURCES = {
+  fomc: { cat: "Fed", url: "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm" },
+  cpi: { cat: "Inflation", url: "https://www.bls.gov/schedule/news_release/cpi.htm" },
+  ppi: { cat: "Inflation", url: "https://www.bls.gov/schedule/news_release/ppi.htm" },
+  pce: { cat: "Inflation", url: "https://www.bea.gov/news/schedule" },
+  jobs: { cat: "Jobs", url: "https://www.bls.gov/schedule/news_release/empsit.htm" },
+  jolts: { cat: "Jobs", url: "https://www.bls.gov/schedule/news_release/jolts.htm" },
+  gdp: { cat: "Growth", url: "https://www.bea.gov/news/schedule" },
+};
 const ECON_CALENDAR_EVENTS = [
-  { date: "2026-10-14", label: "CPI Release (Sept. data)", source: "bls.gov" },
-  { date: "2026-10-27", label: "FOMC Meeting begins", source: "federalreserve.gov" },
-  { date: "2026-10-28", label: "FOMC Rate Decision", source: "federalreserve.gov" },
-  { date: "2026-11-10", label: "CPI Release (Oct. data)", source: "bls.gov" },
-  { date: "2026-12-08", label: "FOMC Meeting begins", source: "federalreserve.gov" },
-  { date: "2026-12-09", label: "FOMC Rate Decision", source: "federalreserve.gov" },
-  { date: "2026-12-10", label: "CPI Release (Nov. data)", source: "bls.gov" },
+  { date: "2026-09-30", label: "GDP, Q2 (third estimate)", src: "gdp" },
+  { date: "2026-09-30", label: "PCE inflation — Personal Income & Outlays (Aug.)", src: "pce" },
+  { date: "2026-10-02", label: "Jobs report (Sept. data)", src: "jobs" },
+  { date: "2026-10-14", label: "CPI Release (Sept. data)", src: "cpi" },
+  { date: "2026-10-15", label: "PPI Release (Sept. data)", src: "ppi" },
+  { date: "2026-10-27", label: "FOMC Meeting begins", src: "fomc" },
+  { date: "2026-10-28", label: "FOMC Rate Decision", src: "fomc" },
+  { date: "2026-10-29", label: "GDP, Q3 (advance estimate)", src: "gdp" },
+  { date: "2026-10-29", label: "PCE inflation — Personal Income & Outlays (Sept.)", src: "pce" },
+  { date: "2026-11-03", label: "JOLTS job openings (Sept. data)", src: "jolts" },
+  { date: "2026-11-06", label: "Jobs report (Oct. data)", src: "jobs" },
+  { date: "2026-11-10", label: "CPI Release (Oct. data)", src: "cpi" },
+  { date: "2026-11-13", label: "PPI Release (Oct. data)", src: "ppi" },
+  { date: "2026-11-25", label: "GDP, Q3 (second estimate)", src: "gdp" },
+  { date: "2026-11-25", label: "PCE inflation — Personal Income & Outlays (Oct.)", src: "pce" },
+  { date: "2026-12-01", label: "JOLTS job openings (Oct. data)", src: "jolts" },
+  { date: "2026-12-04", label: "Jobs report (Nov. data)", src: "jobs" },
+  { date: "2026-12-08", label: "FOMC Meeting begins", src: "fomc" },
+  { date: "2026-12-09", label: "FOMC Rate Decision", src: "fomc" },
+  { date: "2026-12-10", label: "CPI Release (Nov. data)", src: "cpi" },
+  { date: "2026-12-15", label: "PPI Release (Nov. data)", src: "ppi" },
+  { date: "2026-12-23", label: "GDP, Q3 (third estimate)", src: "gdp" },
+  { date: "2026-12-23", label: "PCE inflation — Personal Income & Outlays (Nov.)", src: "pce" },
+  { date: "2027-01-26", label: "FOMC Meeting begins", src: "fomc" },
+  { date: "2027-01-27", label: "FOMC Rate Decision", src: "fomc" },
 ];
 
 function initHome() {
   buildTabs();
-  buildViewToggle();
   switchTab(homeState.activeTab);
   loadMarketNews();
   loadMarketTickers();
@@ -235,7 +264,7 @@ function initHome() {
   renderEconCalendar();
   loadEarningsCalendar();
   loadSectorHeatmap();
-  if (typeof renderMarketIntelTeaser === "function") renderMarketIntelTeaser();
+  if (typeof renderMarketIntel === "function") renderMarketIntel();
   initHomeLayout();
 }
 
@@ -286,6 +315,15 @@ const PLACEHOLDER_INFO = {
   "stock-screener": { icon: "🧮", title: "Stock Screener", description: "Filter stocks by valuation/growth/health criteria. This app is deliberately one-ticker-at-a-time today (see this repo's CLAUDE.md) — listed here as a real gap, not a commitment to reverse that." },
   "precious-metals": { icon: "🥇", title: "Precious Metals", description: "A dedicated gold/silver/platinum/palladium view — today these tickers only live mixed into the general Commodities browse category." },
   "forex": { icon: "💱", title: "Forex", description: "Currency pairs — not built yet. Finnhub has zero forex coverage on its free tier (confirmed), but Twelve Data's free tier does return real forex quotes (confirmed live 2026-09-24, e.g. EUR/USD) — a real candidate to build, not a dead end." },
+  "insider-activity": { icon: "🕵️", title: "Insider Activity Feed", description: "A market-wide feed of recent insider buying and selling. Each ticker page already shows its own insider transactions — a cross-market feed isn't built yet." },
+  "short-interest": { icon: "📉", title: "Short Interest", description: "Which stocks are most heavily shorted. No free short-interest source has been vetted yet." },
+  "energy-markets": { icon: "🛢️", title: "Energy Markets", description: "A dedicated oil, gas and power view. Today these only exist as tickers inside the Commodities category." },
+  "options-explorer": { icon: "🎯", title: "Options Explorer", description: "Screen and compare options across tickers. Each stock's own page already has a live options chain — a cross-market explorer isn't built yet." },
+  "energy-theme": { icon: "⚡", title: "Energy & Power Map", description: "A dependency map of the power and grid supply chain, like the AI infrastructure one. Not researched yet." },
+  "ev-theme": { icon: "🔋", title: "EV & Battery Map", description: "A dependency map of the electric-vehicle and battery supply chain. Not researched yet." },
+  "defense-theme": { icon: "🛡️", title: "Defense & Aerospace Map", description: "A dependency map of the defense and aerospace supply chain. Not researched yet." },
+  "price-alerts": { icon: "🔔", title: "Price Alerts", description: "Get notified when a ticker crosses a level. Needs accounts and a backend first — see Create Free Account." },
+  "dividend-tracker": { icon: "💵", title: "Dividend Tracker", description: "Upcoming dividends across your watchlist. Needs a dividend-calendar data source that hasn't been vetted." },
 };
 
 // Inline SVG fallbacks for Explore Products tiles that have no sidebar
@@ -304,46 +342,80 @@ const EXPLORE_ICON_FALLBACKS = {
 };
 const DEFAULT_EXPLORE_ICON = '<circle cx="10" cy="10" r="3"/>';
 
+// `icon` (optional) borrows another nav key's sidebar icon; `live: true`
+// means it goes somewhere real today. Many "sub-products" are live shortcuts
+// into existing tabs/sections (2026-09-26 expansion, Jozsua: "more products
+// and sub products").
 const EXPLORE_DIRECTORY = [
-  { title: "Home", description: "The dashboard — markets, your watchlist, news, and more.", nav: "home", live: true },
-  { title: "Stock Analysis", description: "Winners, losers, most active, and browse by category.", nav: "stock-analysis", live: true },
-  { title: "Market Data", description: "The world map of major exchanges, with live open/closed status.", nav: "market-data", live: true },
-  { title: "Market News", description: "Latest headlines across the market.", nav: "market-news", live: true },
-  { title: "Learn", description: "Plain-English explanations of everything on this site.", nav: "learn", live: true },
-  { title: "Sectors", description: "How each market sector is performing today.", nav: "sectors", live: true },
-  { title: "Market Intelligence", description: "Real, sourced company relationships in the AI infrastructure space.", nav: "market-intelligence", live: true },
-  { title: "ETFs", description: "Browse index, sector, and bond ETFs.", nav: "etfs", live: true },
-  { title: "Crypto", description: "Track major cryptocurrencies.", nav: "crypto", live: true },
-  { title: "Performance", description: "Asset-class performance comparison.", nav: "performance", live: false },
-  { title: "Macro", description: "Interest rates, inflation, GDP, and unemployment by country.", nav: "macro", live: true },
-  { title: "Portfolio Builder", description: "Build and track a real portfolio.", nav: "portfolio-builder", live: false },
-  { title: "Watchlist", description: "Tickers you're tracking.", nav: "watchlist", live: true },
-  { title: "Portfolio Health Check", description: "A diagnostic read on your portfolio.", nav: "portfolio-health-check", live: false },
-  { title: "Compare", description: "Up to 4 tickers side by side.", nav: "compare", live: true },
+  { title: "Home", description: "Markets, stocks, news, and more.", nav: "home", live: true },
   { title: "Create Free Account", description: "Save your data across visits.", nav: "create-account", live: false },
   { title: "Log In", description: "Access your account.", nav: "login", live: false },
+  { title: "Compare", description: "Up to 4 tickers side by side.", nav: "compare", live: true },
+  { title: "How to use $MSV", description: "A 5-step walkthrough.", nav: "how-to", live: true, icon: "learn" },
+  { title: "What's New", description: "Recent changes to the app.", nav: "whats-new", live: true, icon: "market-news" },
+
+  { title: "Stock Analysis", description: "Winners, losers, most active.", nav: "stock-analysis", live: true },
+  { title: "Winners", description: "Today's biggest gainers.", nav: "winners", live: true, icon: "performance" },
+  { title: "Losers", description: "Today's biggest decliners.", nav: "losers", live: true, icon: "stock-analysis" },
+  { title: "Most Active", description: "Largest moves of the day.", nav: "most-active", live: true, icon: "stock-analysis" },
+  { title: "Trending Tech", description: "Big-tech and software names.", nav: "trending-tech", live: true, icon: "market-intelligence" },
+  { title: "Blue Chip", description: "Established household names.", nav: "blue-chip", live: true, icon: "etfs" },
+  { title: "Dividend Payers", description: "Income-focused stocks.", nav: "dividend-payers", live: true, icon: "premium" },
+  { title: "Growth Stocks", description: "Faster-growing companies.", nav: "growth-stocks", live: true, icon: "performance" },
+  { title: "Earnings Calendar", description: "Who reports this week.", nav: "earnings-calendar", live: true, icon: "market-news" },
+  { title: "Stock Ideas", description: "Curated ideas with a thesis.", nav: "stock-ideas", live: false },
+  { title: "Stock Sentiment", description: "Analyst/news sentiment per ticker.", nav: "stock-sentiment", live: false },
+  { title: "Analyst Upgrades & Downgrades", description: "Rating-change feed.", nav: "analyst-actions", live: false },
+  { title: "Stock Screener", description: "Filter by valuation and growth.", nav: "stock-screener", live: false },
+  { title: "Insider Activity Feed", description: "Market-wide insider trades.", nav: "insider-activity", live: false },
+  { title: "Short Interest", description: "Most heavily shorted stocks.", nav: "short-interest", live: false },
+
+  { title: "Macro", description: "Rates, inflation, GDP by country.", nav: "macro", live: true },
+  { title: "US Economy", description: "Fed funds, CPI, jobs, yields.", nav: "us-economy", live: true, icon: "macro" },
+  { title: "Global Economy", description: "Compare the big four economies.", nav: "global-economy", live: true, icon: "compare" },
+  { title: "Governance & Politics", description: "Stability, rule of law, corruption.", nav: "governance", live: true, icon: "macro" },
+  { title: "Economic Calendar", description: "Fed, CPI, jobs, GDP dates.", nav: "economic-calendar", live: true, icon: "market-news" },
+  { title: "Indexes", description: "S&P 500, Nasdaq, Dow, Russell.", nav: "indexes", live: true },
+  { title: "ETFs", description: "Index, sector and thematic ETFs.", nav: "etfs", live: true },
+  { title: "Bonds", description: "Bond ETFs (no free bond data).", nav: "bonds", live: true },
+  { title: "Commodities", description: "Gold, oil, grains, metals.", nav: "commodities", live: true },
+  { title: "Precious Metals", description: "Gold, silver, platinum.", nav: "precious-metals", live: false },
+  { title: "Energy Markets", description: "Oil, gas and power.", nav: "energy-markets", live: false },
+  { title: "Forex", description: "Currency pairs (data available).", nav: "forex", live: false },
+  { title: "Crypto", description: "Major coins with market data.", nav: "crypto", live: true },
+  { title: "Options Explorer", description: "Cross-market options screen.", nav: "options-explorer", live: false },
+
+  { title: "Market Intelligence", description: "Who depends on whom in AI.", nav: "market-intelligence", live: true },
+  { title: "Energy & Power Map", description: "Grid supply-chain map.", nav: "energy-theme", live: false, icon: "market-intelligence" },
+  { title: "EV & Battery Map", description: "EV supply-chain map.", nav: "ev-theme", live: false, icon: "market-intelligence" },
+  { title: "Defense & Aerospace Map", description: "Defense supply-chain map.", nav: "defense-theme", live: false, icon: "market-intelligence" },
+  { title: "Market Data", description: "World map, exchange hours.", nav: "market-data", live: true },
+  { title: "Sectors", description: "Sector performance heatmap.", nav: "sectors", live: true },
+  { title: "Market News", description: "Latest market headlines.", nav: "market-news", live: true },
+
+  { title: "Watchlist", description: "Tickers you're tracking.", nav: "watchlist", live: true },
+  { title: "Recently Viewed", description: "Your last looked-up tickers.", nav: "recently-viewed", live: true, icon: "watchlist" },
+  { title: "Portfolio Builder", description: "Build and track a portfolio.", nav: "portfolio-builder", live: false },
+  { title: "Portfolio Health Check", description: "Diagnose your portfolio.", nav: "portfolio-health-check", live: false },
+  { title: "Performance", description: "Asset-class comparison.", nav: "performance", live: false },
+  { title: "Price Alerts", description: "Notify me at a price.", nav: "price-alerts", live: false },
+  { title: "Dividend Tracker", description: "Upcoming dividends.", nav: "dividend-tracker", live: false },
+
+  { title: "Learn", description: "Plain-English explainers.", nav: "learn", live: true },
+  { title: "Glossary", description: "Every term, explained.", nav: "glossary", live: true, icon: "learn" },
   { title: "Premium", description: "A paid tier — coming eventually.", nav: "premium", live: false },
-  { title: "Stock Ideas", description: "Curated ideas with a stated thesis.", nav: "stock-ideas", live: false },
-  { title: "Stock Sentiment", description: "Aggregated analyst/news sentiment per ticker.", nav: "stock-sentiment", live: false },
-  { title: "Analyst Upgrades & Downgrades", description: "Recent rating-change feed across tickers.", nav: "analyst-actions", live: false },
-  { title: "Stock Screener", description: "Filter stocks by valuation/growth/health criteria.", nav: "stock-screener", live: false },
-  { title: "Precious Metals", description: "A dedicated gold/silver/platinum/palladium view.", nav: "precious-metals", live: false },
-  { title: "Forex", description: "Currency pairs — not built yet, but Twelve Data's free tier does support it.", nav: "forex", live: false },
-  { title: "Indexes", description: "Major index funds — S&P 500, Nasdaq 100, Dow, Russell 2000.", nav: "indexes", live: true },
-  { title: "Bonds", description: "Bond ETFs — individual bonds have no free data source anywhere.", nav: "bonds", live: true },
-  { title: "Commodities", description: "Gold, oil, agriculture, and other commodity ETFs.", nav: "commodities", live: true },
 ];
 
-// Named groupings for the Explore Products page (2026-09-24 retaxonomy) —
-// each `nav` here must have a matching EXPLORE_DIRECTORY entry above. An
-// item can only appear in one category; ordering here is display order.
+// Named groupings for the Explore Products page — each `nav` here must
+// have an EXPLORE_DIRECTORY entry above. An item appears once; order here
+// is display order.
 const EXPLORE_CATEGORIES = [
-  { title: "Get Started", items: ["home", "create-account", "login", "compare"] },
-  { title: "Stock Analysis", items: ["stock-analysis", "stock-ideas", "stock-sentiment", "analyst-actions", "stock-screener"] },
-  { title: "Market Outlook", items: ["macro", "indexes", "etfs", "bonds", "commodities", "precious-metals", "forex", "crypto"] },
-  { title: "Market Intelligence & Data", items: ["market-intelligence", "market-data", "sectors", "market-news"] },
-  { title: "Portfolio Tools", items: ["watchlist", "portfolio-builder", "portfolio-health-check", "performance"] },
-  { title: "Learn & Premium", items: ["learn", "premium"] },
+  { title: "Get Started", items: ["home", "create-account", "login", "compare", "how-to", "whats-new"] },
+  { title: "Stock Analysis", items: ["stock-analysis", "winners", "losers", "most-active", "trending-tech", "blue-chip", "dividend-payers", "growth-stocks", "earnings-calendar", "stock-ideas", "stock-sentiment", "analyst-actions", "stock-screener", "insider-activity", "short-interest"] },
+  { title: "Market Outlook", items: ["macro", "us-economy", "global-economy", "governance", "economic-calendar", "indexes", "etfs", "bonds", "commodities", "precious-metals", "energy-markets", "forex", "crypto", "options-explorer"] },
+  { title: "Market Intelligence & Data", items: ["market-intelligence", "energy-theme", "ev-theme", "defense-theme", "market-data", "sectors", "market-news"] },
+  { title: "Portfolio Tools", items: ["watchlist", "recently-viewed", "portfolio-builder", "portfolio-health-check", "performance", "price-alerts", "dividend-tracker"] },
+  { title: "Learn & Premium", items: ["learn", "glossary", "premium"] },
 ];
 
 function setActiveNav(navKey) {
@@ -389,8 +461,8 @@ function showPlaceholderPage(key) {
 // are guaranteed pixel-identical to the sidebar's, with zero duplicated
 // markup (2026-09-24, replacing emoji). Falls back to a small inline SVG
 // for destinations with no sidebar item of their own (EXPLORE_ICON_FALLBACKS).
-function exploreTileIconHtml(navKey) {
-  const sidebarIcon = document.querySelector(`.app-nav-item[data-nav="${navKey}"] .app-nav-icon`);
+function exploreTileIconHtml(navKey, iconKey) {
+  const sidebarIcon = document.querySelector(`.app-nav-item[data-nav="${iconKey || navKey}"] .app-nav-icon`);
   if (sidebarIcon) return sidebarIcon.outerHTML;
   const inner = EXPLORE_ICON_FALLBACKS[navKey] || DEFAULT_EXPLORE_ICON;
   return `<span class="app-nav-icon"><svg viewBox="0 0 20 20">${inner}</svg></span>`;
@@ -420,7 +492,7 @@ function showExploreProducts() {
               if (!item) return "";
               return `
                 <button type="button" class="explore-tile${item.live ? "" : " soon"}" data-nav="${item.nav}">
-                  ${exploreTileIconHtml(item.nav)}
+                  ${exploreTileIconHtml(item.nav, item.icon)}
                   <strong>${item.title}</strong>
                   ${item.live ? "" : '<span class="explore-tile-badge">Coming soon</span>'}
                   <span class="explore-tile-desc">${item.description}</span>
@@ -445,13 +517,13 @@ function showExploreProducts() {
 // showHomeFocused() to pick which homepage section is visible — no tab or
 // card rendering logic lives here, only "where is it shown."
 const ROUTES = {
-  "home": { path: "/", render: () => goHome() },
+  "home": { path: "/", render: () => { goHome(); if (homeState.activeTab !== "trending-tech") switchTab("trending-tech"); } },
   "stock-analysis": { path: "/stock-analysis", render: () => { goToHomeTab("winners"); showHomeFocused("home-tabs"); } },
   "market-data": { path: "/market-data", render: () => { goHome(); showHomeFocused("world-markets"); } },
   "market-news": { path: "/market-news", render: () => { goHome(); showHomeFocused("market-news"); } },
   "learn": { path: "/learn", render: () => { goToHomeTab("learn"); showHomeFocused("home-tabs"); } },
   "sectors": { path: "/sectors", render: () => { goHome(); showHomeFocused("sector-heatmap"); } },
-  "market-intelligence": { path: "/market-intelligence", render: () => { goToHomeTab("supply-chain"); showHomeFocused("home-tabs"); } },
+  "market-intelligence": { path: "/market-intelligence", render: () => { goHome(); showHomeFocused("market-intelligence"); } },
   "etfs": { path: "/etfs", render: () => { goToHomeTab("etfs"); showHomeFocused("home-tabs"); } },
   "indexes": { path: "/indexes", render: () => { goToHomeTab("etfs"); showHomeFocused("home-tabs"); } },
   "bonds": { path: "/bonds", render: () => { goToHomeTab("bond-etfs"); showHomeFocused("home-tabs"); } },
@@ -473,7 +545,41 @@ const ROUTES = {
   "stock-screener": { path: "/stock-screener", render: () => showPlaceholderPage("stock-screener") },
   "precious-metals": { path: "/precious-metals", render: () => showPlaceholderPage("precious-metals") },
   "forex": { path: "/forex", render: () => showPlaceholderPage("forex") },
+
+  // Live sub-products: shortcuts into existing tabs / homepage sections.
+  "winners": { path: "/winners", render: () => { goToHomeTab("winners"); showHomeFocused("home-tabs"); } },
+  "losers": { path: "/losers", render: () => { goToHomeTab("losers"); showHomeFocused("home-tabs"); } },
+  "most-active": { path: "/most-active", render: () => { goToHomeTab("active"); showHomeFocused("home-tabs"); } },
+  "trending-tech": { path: "/trending-tech", render: () => { goToHomeTab("trending-tech"); showHomeFocused("home-tabs"); } },
+  "blue-chip": { path: "/blue-chip", render: () => { goToHomeTab("blue-chip"); showHomeFocused("home-tabs"); } },
+  "dividend-payers": { path: "/dividend-payers", render: () => { goToHomeTab("dividend-payers"); showHomeFocused("home-tabs"); } },
+  "growth-stocks": { path: "/growth-stocks", render: () => { goToHomeTab("growth"); showHomeFocused("home-tabs"); } },
+  "earnings-calendar": { path: "/earnings-calendar", render: () => { goHome(); showHomeFocused("earnings-calendar"); } },
+  "economic-calendar": { path: "/economic-calendar", render: () => { goHome(); showHomeFocused("econ-calendar"); } },
+  "recently-viewed": { path: "/recently-viewed", render: () => { goHome(); showHomeFocused("recently-viewed"); } },
+  "us-economy": { path: "/us-economy", render: () => { presetMacro({ macroCountry: "USA", macroCustomCountry: null, macroCompareMode: false }); goToHomeTab("macro"); showHomeFocused("home-tabs"); } },
+  "global-economy": { path: "/global-economy", render: () => { presetMacro({ macroCompareMode: true, macroCompareCountries: ["USA", "CHN", "DEU", "JPN"] }); goToHomeTab("macro"); showHomeFocused("home-tabs"); } },
+  "governance": { path: "/governance", render: () => { presetMacro({ macroCountry: "DEU", macroCustomCountry: null, macroCompareMode: false }); goToHomeTab("macro"); showHomeFocused("home-tabs"); } },
+  "glossary": { path: "/glossary", render: () => { goToHomeTab("learn"); showHomeFocused("home-tabs"); } },
+  "how-to": { path: "/how-to", render: () => { goHome(); document.getElementById("howToTrigger")?.click(); } },
+  "whats-new": { path: "/whats-new", render: () => { goHome(); document.getElementById("whatsNewTrigger")?.click(); } },
+  // More Coming Soon destinations
+  "insider-activity": { path: "/insider-activity", render: () => showPlaceholderPage("insider-activity") },
+  "short-interest": { path: "/short-interest", render: () => showPlaceholderPage("short-interest") },
+  "energy-markets": { path: "/energy-markets", render: () => showPlaceholderPage("energy-markets") },
+  "options-explorer": { path: "/options-explorer", render: () => showPlaceholderPage("options-explorer") },
+  "energy-theme": { path: "/energy-theme", render: () => showPlaceholderPage("energy-theme") },
+  "ev-theme": { path: "/ev-theme", render: () => showPlaceholderPage("ev-theme") },
+  "defense-theme": { path: "/defense-theme", render: () => showPlaceholderPage("defense-theme") },
+  "price-alerts": { path: "/price-alerts", render: () => showPlaceholderPage("price-alerts") },
+  "dividend-tracker": { path: "/dividend-tracker", render: () => showPlaceholderPage("dividend-tracker") },
 };
+
+// Sets Macro-tab state before switching to it, for the preset shortcuts
+// above (US Economy / Global Economy / Governance).
+function presetMacro(patch) {
+  Object.assign(homeState, patch);
+}
 const PATH_TO_NAV = Object.fromEntries(Object.entries(ROUTES).map(([key, route]) => [route.path, key]));
 
 // The single entry point every nav click goes through — shows the right
@@ -585,25 +691,36 @@ function renderMarketBreadth(results) {
 }
 
 // Zero API cost — hand-maintained real dates (see ECON_CALENDAR_EVENTS
-// above for sourcing). Shows the next 4 upcoming events from today.
+// above for sourcing). Shows every upcoming event in a scrollable list;
+// each row links out to the publisher's own schedule page.
 function renderEconCalendar() {
   if (!econCalendarContentEl) return;
   const todayStr = new Date().toISOString().slice(0, 10);
-  const upcoming = ECON_CALENDAR_EVENTS.filter(e => e.date >= todayStr).slice(0, 4);
+  const upcoming = ECON_CALENDAR_EVENTS.filter(e => e.date >= todayStr);
   if (upcoming.length === 0) {
     econCalendarContentEl.innerHTML = '<p class="muted">No upcoming events on the list right now.</p>';
     return;
   }
-  econCalendarContentEl.innerHTML = upcoming.map(e => {
+  const dayMs = 24 * 60 * 60 * 1000;
+  const today = new Date(`${todayStr}T12:00:00Z`);
+  econCalendarContentEl.innerHTML = `<div class="calendar-scroll">${upcoming.map(e => {
+    const src = ECON_SOURCES[e.src];
     const d = new Date(`${e.date}T12:00:00Z`);
-    const dateLabel = d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+    const dateLabel = d.toLocaleDateString(undefined, { month: "short", day: "numeric", timeZone: "UTC" });
+    const weekday = d.toLocaleDateString(undefined, { weekday: "short", timeZone: "UTC" });
+    const days = Math.round((d - today) / dayMs);
+    const when = days === 0 ? "today" : days === 1 ? "tomorrow" : `in ${days}d`;
     return `
-      <div class="econ-calendar-row">
-        <span class="econ-calendar-date">${dateLabel}</span>
-        <span class="econ-calendar-label">${e.label}</span>
-      </div>
-    `;
-  }).join("");
+      <a class="econ-calendar-row" href="${src.url}" target="_blank" rel="noopener noreferrer" title="Open the official schedule">
+        <span class="econ-calendar-date">${dateLabel}<span class="econ-calendar-dow">${weekday} · ${when}</span></span>
+        <span class="econ-calendar-body">
+          <span class="econ-calendar-label">${e.label}</span>
+          <span class="econ-calendar-tag econ-tag-${src.cat.toLowerCase()}">${src.cat}</span>
+        </span>
+        <span class="econ-calendar-out" aria-hidden="true">↗</span>
+      </a>`;
+  }).join("")}</div>
+  <p class="muted small calendar-foot">${upcoming.length} upcoming · dates from the official Fed, BLS and BEA schedules — tap a row to open its source.</p>`;
 }
 
 // One Finnhub call for the whole upcoming week (not per-symbol) — cheap.
@@ -632,29 +749,40 @@ function loadEarningsCalendar() {
 
 function renderEarningsCalendar(items) {
   const knownNames = buildKnownSymbolNames();
-  const known = items
-    .filter(item => knownNames[item.symbol])
-    .sort((a, b) => a.date.localeCompare(b.date))
-    .slice(0, 8);
+  // Well-known names from the app's own lists PLUS any large reporter
+  // (Finnhub's own revenue estimate >= $5B) so notable companies outside
+  // the curated lists still show up — widened 2026-09-26 (Jozsua: "more in
+  // earnings this week"). Unknown names show just their ticker.
+  const notable = item => knownNames[item.symbol] || (isNum(item.revenueEstimate) && item.revenueEstimate >= 5e9);
+  const list = items
+    .filter(notable)
+    .sort((a, b) => a.date.localeCompare(b.date) || (b.revenueEstimate ?? 0) - (a.revenueEstimate ?? 0))
+    .slice(0, 40);
 
-  if (known.length === 0) {
+  if (list.length === 0) {
     earningsCalendarContentEl.innerHTML = '<p class="muted">No well-known companies reporting in the next 7 days.</p>';
     return;
   }
 
-  earningsCalendarContentEl.innerHTML = known.map(item => {
+  const fmtRev = v => (isNum(v) ? formatCompactUsd(v) : null);
+  earningsCalendarContentEl.innerHTML = `<div class="calendar-scroll">${list.map(item => {
     const d = new Date(`${item.date}T12:00:00Z`);
-    const dateLabel = d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+    const dateLabel = d.toLocaleDateString(undefined, { month: "short", day: "numeric", timeZone: "UTC" });
+    const weekday = d.toLocaleDateString(undefined, { weekday: "short", timeZone: "UTC" });
     const hourLabel = item.hour === "bmo" ? "Before open" : item.hour === "amc" ? "After close" : "";
+    const est = [isNum(item.epsEstimate) ? `EPS est. $${item.epsEstimate.toFixed(2)}` : null, fmtRev(item.revenueEstimate) ? `Rev est. ${fmtRev(item.revenueEstimate)}` : null].filter(Boolean).join(" · ");
     return `
-      <button type="button" class="earnings-calendar-row" data-symbol="${item.symbol}">
-        <span class="earnings-calendar-name"><strong>${knownNames[item.symbol]}</strong><span class="muted">${item.symbol}</span></span>
-        <span class="earnings-calendar-meta">${dateLabel}${hourLabel ? ` · ${hourLabel}` : ""}</span>
-      </button>
-    `;
-  }).join("");
+      <div class="earnings-calendar-row">
+        <button type="button" class="earnings-calendar-main" data-symbol="${item.symbol}">
+          <span class="econ-calendar-date">${dateLabel}<span class="econ-calendar-dow">${weekday}${hourLabel ? ` · ${hourLabel}` : ""}</span></span>
+          <span class="earnings-calendar-name"><strong>${knownNames[item.symbol] || item.symbol}</strong><span class="muted">${item.symbol}${est ? ` · ${est}` : ""}</span></span>
+        </button>
+        <a class="econ-calendar-out" href="https://www.nasdaq.com/market-activity/stocks/${item.symbol.toLowerCase()}/earnings" target="_blank" rel="noopener noreferrer" title="Open ${item.symbol} earnings details on Nasdaq" aria-label="Open ${item.symbol} earnings details on Nasdaq">↗</a>
+      </div>`;
+  }).join("")}</div>
+  <p class="muted small calendar-foot">${list.length} companies reporting in the next 7 days — tap a row for the stock page, ↗ for Nasdaq's earnings detail.</p>`;
 
-  earningsCalendarContentEl.querySelectorAll(".earnings-calendar-row").forEach(row => {
+  earningsCalendarContentEl.querySelectorAll(".earnings-calendar-main").forEach(row => {
     row.addEventListener("click", () => loadTicker(row.dataset.symbol));
   });
 }
@@ -767,11 +895,10 @@ function buildTabs() {
   // so it moved to its own banner (learnBanner, wired in initHomeLayout()
   // below) instead of a tab pill. switchTab("learn") still works exactly
   // the same either way — only how you GET there changed.
-  // Tab id stays "supply-chain" (internal, matches supplyChain.js/CSS
-  // class names) even though the user-facing label is now "Market
-  // Intelligence" (renamed 2026-09-24) — renaming the id would ripple
-  // through switchTab()/routing/CSS for no user-visible benefit.
-  const allTabs = [...DYNAMIC_TABS, ...BROWSE_CATEGORIES, { id: "crypto", title: "Crypto" }, { id: "supply-chain", title: "Market Intelligence" }, { id: "macro", title: "Macro" }];
+  // Market Intelligence is deliberately NOT a tab either (2026-09-26,
+  // Jozsua: "separate it out") — it's its own standalone container
+  // (#marketIntelCard, supplyChain.js) below the categories.
+  const allTabs = [...DYNAMIC_TABS, ...BROWSE_CATEGORIES, { id: "crypto", title: "Crypto" }, { id: "macro", title: "Macro" }];
   allTabs.forEach(tab => {
     const btn = document.createElement("button");
     btn.type = "button";
@@ -783,46 +910,23 @@ function buildTabs() {
   });
 }
 
-function buildViewToggle() {
-  homeViewToggleEl.querySelectorAll("button").forEach(btn => {
-    btn.addEventListener("click", () => {
-      homeState.viewMode = btn.dataset.mode;
-      homeViewToggleEl.querySelectorAll("button").forEach(b => b.classList.toggle("active", b === btn));
-      renderActiveTab();
-    });
-  });
-}
-
 async function switchTab(tabId) {
   homeState.activeTab = tabId;
   Array.from(homeTabsEl.children).forEach(btn => btn.classList.toggle("active", btn.dataset.tabId === tabId));
   learnBannerEl?.classList.toggle("active", tabId === "learn");
 
   if (tabId === "macro") {
-    homeViewToggleEl.classList.add("hidden");
     renderMacroTab();
     return;
   }
 
-  if (tabId === "supply-chain") {
-    homeViewToggleEl.classList.add("hidden");
-    renderSupplyChainTab();
-    return;
-  }
-
   if (tabId === "learn") {
-    homeViewToggleEl.classList.add("hidden");
     renderLearnTab();
     return;
   }
 
   const isDynamic = DYNAMIC_TABS.some(t => t.id === tabId);
   const isCrypto = tabId === "crypto";
-
-  // Grid/Heatmap only makes sense for the stock ranking tabs — browse
-  // categories have no live % change to color by, and crypto has its own
-  // dedicated table (buildCryptoTable) instead of the grid/heatmap tiles.
-  homeViewToggleEl.classList.toggle("hidden", !isDynamic);
 
   if (!isDynamic && !isCrypto) {
     renderBrowseCategory(tabId);
@@ -841,11 +945,46 @@ async function switchTab(tabId) {
   if (homeState.activeTab === tabId) renderActiveTab();
 }
 
-function renderBrowseCategory(tabId) {
+// A cached live quote for a symbol from either cache (the ranking universe
+// or a previously-opened browse category), or null.
+function getCachedQuote(symbol) {
+  return homeState.quotes[symbol] || homeState.browseQuotes[symbol] || null;
+}
+
+// Browse categories used to be name+ticker chips with zero API cost. They
+// now render the same dense table + heatmap as the ranking tabs
+// (2026-09-26, Jozsua: "visualise everything else exactly like crypto"),
+// which needs a live quote per ticker — fetched on demand the first time a
+// category is opened (18 staggered calls), then cached for the session.
+// The in-flight promise is shared so two quick calls (page load + route
+// resolution) don't double-fire the same 18 requests.
+async function ensureBrowseQuotes(cat) {
+  if (homeState.browseLoading[cat.id]) return homeState.browseLoading[cat.id];
+  const missing = cat.items.filter(([symbol]) => !getCachedQuote(symbol));
+  if (missing.length === 0) return;
+  const job = Promise.all(missing.map(([symbol, name], i) => new Promise(resolve => {
+    setTimeout(async () => {
+      try {
+        const q = await fetchJSON(finnhubUrl("/quote", { symbol }));
+        if (isNum(q.c) && q.c !== 0) homeState.browseQuotes[symbol] = { symbol, name, quote: q };
+      } catch {
+        // leave this symbol out — its row just shows "--"
+      }
+      resolve();
+    }, i * 45);
+  }))).finally(() => { delete homeState.browseLoading[cat.id]; });
+  homeState.browseLoading[cat.id] = job;
+  return job;
+}
+
+async function renderBrowseCategory(tabId) {
   const cat = BROWSE_CATEGORIES.find(c => c.id === tabId);
-  homeContentEl.innerHTML = "";
-  if (!cat) return;
-  homeContentEl.appendChild(buildSimpleGrid(cat.items, cat.accent));
+  if (!cat) { homeContentEl.innerHTML = ""; return; }
+  homeContentEl.innerHTML = '<p class="muted">Loading live prices...</p>';
+  await ensureBrowseQuotes(cat);
+  if (homeState.activeTab !== tabId) return; // user moved on while this loaded
+  const items = cat.items.map(([symbol, name]) => getCachedQuote(symbol) || { symbol, name, quote: null });
+  renderQuotesView(items);
 }
 
 async function ensureRankingLoaded() {
@@ -853,7 +992,8 @@ async function ensureRankingLoaded() {
   await Promise.all(RANKING_STOCK_SYMBOLS.map(([symbol, name], i) => new Promise(resolve => {
     setTimeout(async () => {
       try {
-        const q = await fetchJSON(finnhubUrl("/quote", { symbol }));
+        const cached = homeState.browseQuotes[symbol];
+        const q = cached ? cached.quote : await fetchJSON(finnhubUrl("/quote", { symbol }));
         if (isNum(q.c) && q.c !== 0) homeState.quotes[symbol] = { symbol, name, quote: q };
       } catch {
         // leave this symbol unset — it just won't appear in rankings
@@ -900,7 +1040,9 @@ function renderActiveTab() {
   if (tabId === "crypto") {
     items = CRYPTO_ITEMS.map(([symbol]) => homeState.quotes[symbol]).filter(Boolean);
   } else if (tabId === "winners" || tabId === "losers" || tabId === "active") {
-    const all = Object.values(homeState.quotes);
+    // Stock/ETF ranking pool only — crypto quotes live in the same cache
+    // but carry a `crypto` payload and have their own dedicated tab.
+    const all = Object.values(homeState.quotes).filter(q => !q.crypto);
     if (tabId === "winners") {
       items = all.filter(q => (q.quote.dp ?? 0) > 0).sort((a, b) => (b.quote.dp ?? 0) - (a.quote.dp ?? 0)).slice(0, 12);
     } else if (tabId === "losers") {
@@ -920,19 +1062,14 @@ function renderActiveTab() {
     return;
   }
 
-  // Crypto gets its own table instead of the plain price/% tiles used for
-  // stocks — market cap, volume, supply, and distance from all-time-high
-  // are the numbers people actually look for with crypto and don't have
-  // a real stock-page equivalent, so reusing the stock tile made the tab
-  // feel thin. buildGrid/buildHeatmap stay unused for crypto now.
-  homeContentEl.appendChild(tabId === "crypto" ? buildCryptoTable(items) : (homeState.viewMode === "heatmap" ? buildHeatmap(items) : buildMoversTable(items)));
-
-  if (tabId === "active") {
-    const note = document.createElement("p");
-    note.className = "muted small home-note";
-    note.textContent = "Ranked by size of today's price move — real trading volume isn't available on the free data tier.";
-    homeContentEl.appendChild(note);
+  if (tabId === "crypto") {
+    homeContentEl.appendChild(buildCryptoTable(items));
+    return;
   }
+
+  renderQuotesView(items, tabId === "active"
+    ? "Ranked by size of today's price move — real trading volume isn't available on the free data tier."
+    : "");
 }
 
 function formatCompactUsd(v) {
@@ -998,80 +1135,182 @@ function buildCryptoTable(items) {
   return outer;
 }
 
-// Name + ticker only — no quote, no fetch. Used for the browse categories.
-function buildSimpleGrid(items, accent) {
-  const row = document.createElement("div");
-  row.className = "home-chip-row home-chip-row-tab";
-  items.forEach(([symbol, name]) => {
-    const chip = document.createElement("button");
-    chip.type = "button";
-    chip.className = "home-chip home-chip-simple";
-    if (accent) chip.style.setProperty("--chip-accent", accent);
-    chip.innerHTML = `
-      <span class="home-chip-name">${name}</span>
-      <span class="home-chip-symbol">${displaySymbol(symbol)}</span>
-    `;
-    chip.addEventListener("click", () => loadTicker(symbol));
-    row.appendChild(chip);
-  });
-  return row;
+// ---- Stock / ETF quote views: dense table + heatmap (2026-09-26) ----
+// Modeled on the crypto table Jozsua liked (same look, smaller rows, more
+// columns per line). Every column comes from the Finnhub /quote response
+// already fetched for ranking — no extra API cost. Deliberately no
+// "Rating" column (see the 2026-09-23 note: no fabricated analyst scores).
+const QUOTE_COLUMNS = [
+  { key: "symbol", label: "Symbol", get: i => i.symbol, text: true },
+  { key: "price", label: "Price", get: i => i.quote?.c },
+  { key: "chg", label: "Chg $", get: i => quoteChangeAbs(i.quote) },
+  { key: "pct", label: "Chg %", get: i => i.quote?.dp },
+  { key: "open", label: "Open", get: i => i.quote?.o },
+  { key: "high", label: "Day High", get: i => i.quote?.h },
+  { key: "low", label: "Day Low", get: i => i.quote?.l },
+  { key: "prev", label: "Prev Close", get: i => i.quote?.pc },
+  { key: "range", label: "Day Range", get: i => quoteRangePos(i.quote) },
+];
+
+function quoteChangeAbs(q) {
+  if (!q) return null;
+  if (isNum(q.d)) return q.d;
+  return isNum(q.c) && isNum(q.pc) ? q.c - q.pc : null;
 }
 
-// Compact table (2026-09-23, replacing the card-tile grid) — modeled on
-// the clean, dense list style from the Seeking Alpha reference
-// screenshots. Deliberately has no "Rating" column: that's their own
-// proprietary quant score with real analytical infrastructure behind
-// it, and inventing a fake rating here just to visually match would
-// break this app's no-fabricated-data standard.
-function buildMoversTable(items) {
-  const wrap = document.createElement("div");
-  wrap.className = "movers-table-scroll";
-  const table = document.createElement("table");
-  table.className = "movers-table";
-  table.innerHTML = `<thead><tr><th>Symbol</th><th>Price</th><th>Change</th></tr></thead>`;
+// Where today's price sits between the day's low (0) and high (1).
+function quoteRangePos(q) {
+  if (!q || !isNum(q.h) || !isNum(q.l) || !isNum(q.c)) return null;
+  if (q.h === q.l) return 0.5;
+  return Math.max(0, Math.min(1, (q.c - q.l) / (q.h - q.l)));
+}
 
+const fmtNum = v => (isNum(v) ? formatCurrency(v) : "--");
+
+function quoteRowHtml(item) {
+  const q = item.quote;
+  const chg = quoteChangeAbs(q);
+  const pct = q?.dp;
+  const dir = !isNum(pct) ? "" : pct >= 0 ? "positive" : "negative";
+  const sign = v => (v >= 0 ? "+" : "");
+  const pos = quoteRangePos(q);
+  return `
+    <td><strong>${displaySymbol(item.symbol)}</strong> <span class="muted small quote-name">${item.name}</span></td>
+    <td>${fmtNum(q?.c)}</td>
+    <td class="${dir}">${isNum(chg) ? `${sign(chg)}${chg.toFixed(2)}` : "--"}</td>
+    <td class="${dir}">${isNum(pct) ? `${pct >= 0 ? "▲" : "▼"} ${sign(pct)}${pct.toFixed(2)}%` : "--"}</td>
+    <td>${fmtNum(q?.o)}</td>
+    <td>${fmtNum(q?.h)}</td>
+    <td>${fmtNum(q?.l)}</td>
+    <td>${fmtNum(q?.pc)}</td>
+    <td class="quote-range-cell">${pos === null ? "--" : `<span class="day-range" title="Low ${fmtNum(q.l)} — High ${fmtNum(q.h)}"><span class="day-range-marker" style="left:${(pos * 100).toFixed(0)}%"></span></span>`}</td>
+  `;
+}
+
+function buildQuotesTable(items) {
+  const wrap = document.createElement("div");
+  wrap.className = "crypto-table-scroll";
+  const table = document.createElement("table");
+  table.className = "crypto-table quotes-table";
+  table.innerHTML = `<thead><tr>${QUOTE_COLUMNS.map(c => `<th data-key="${c.key}" class="sortable-th">${c.label}<span class="sort-arrow"></span></th>`).join("")}</tr></thead>`;
   const tbody = document.createElement("tbody");
-  items.forEach(({ symbol, name, quote }) => {
-    const change = quote.dp ?? 0;
-    const up = change >= 0;
-    const row = document.createElement("tr");
-    row.className = "movers-table-row";
-    row.addEventListener("click", () => loadTicker(symbol));
-    row.innerHTML = `
-      <td><strong>${displaySymbol(symbol)}</strong><span class="muted small">${name}</span></td>
-      <td class="movers-table-price">${formatCurrency(quote.c)}</td>
-      <td class="movers-table-change ${up ? "positive" : "negative"}">${up ? "▲" : "▼"} ${up ? "+" : ""}${change.toFixed(2)}%</td>
-    `;
-    tbody.appendChild(row);
-  });
   table.appendChild(tbody);
+
+  // Click a header to sort by it (click again to flip direction). The
+  // incoming order is the default — e.g. biggest winners first.
+  let sortKey = null, sortDir = -1;
+  function paint() {
+    const col = QUOTE_COLUMNS.find(c => c.key === sortKey);
+    const rows = [...items];
+    if (col) {
+      rows.sort((a, b) => {
+        const av = col.get(a), bv = col.get(b);
+        if (av == null && bv == null) return 0;
+        if (av == null) return 1;
+        if (bv == null) return -1;
+        return col.text ? sortDir * String(av).localeCompare(String(bv)) : sortDir * (av - bv);
+      });
+    }
+    tbody.innerHTML = "";
+    rows.forEach(item => {
+      const row = document.createElement("tr");
+      row.className = "crypto-table-row";
+      row.innerHTML = quoteRowHtml(item);
+      row.addEventListener("click", () => loadTicker(item.symbol));
+      tbody.appendChild(row);
+    });
+    table.querySelectorAll(".sortable-th").forEach(th => {
+      th.classList.toggle("sorted", th.dataset.key === sortKey);
+      th.querySelector(".sort-arrow").textContent = th.dataset.key === sortKey ? (sortDir === 1 ? " ▲" : " ▼") : "";
+    });
+  }
+  table.querySelectorAll(".sortable-th").forEach(th => {
+    th.addEventListener("click", () => {
+      if (sortKey === th.dataset.key) sortDir = -sortDir;
+      else { sortKey = th.dataset.key; sortDir = th.dataset.key === "symbol" ? 1 : -1; }
+      paint();
+    });
+  });
+  paint();
   wrap.appendChild(table);
   return wrap;
 }
 
-function buildHeatmap(items) {
-  const grid = document.createElement("div");
-  grid.className = "heatmap-grid";
-  items.forEach(({ symbol, name, quote }) => {
-    const change = quote.dp ?? 0;
+// The full stock/ETF view: table first, then a comprehensive heatmap below.
+function renderQuotesView(items, note) {
+  homeContentEl.innerHTML = "";
+  const withQuotes = items.filter(i => i.quote);
+  if (withQuotes.length === 0) {
+    homeContentEl.innerHTML = '<p class="muted">No live prices available right now — this can happen if the free data tier is temporarily rate-limited. Try again in a moment.</p>';
+    return;
+  }
+  homeContentEl.appendChild(buildQuotesTable(items));
+  if (note) {
+    const n = document.createElement("p");
+    n.className = "muted small home-note";
+    n.textContent = note;
+    homeContentEl.appendChild(n);
+  }
+  homeContentEl.appendChild(buildStockHeatmap(withQuotes));
+}
+
+// Uniform tile size (not sized by market cap like a "real" treemap would
+// be — that needs a profile2 call per symbol, doubling requests for a
+// homepage feature). Instead each tile carries a lot: the move (color +
+// number), price, $ change, and where the price sits in today's range,
+// with a market summary and a color legend above.
+function buildStockHeatmap(items) {
+  const wrap = document.createElement("div");
+  wrap.className = "stock-heatmap";
+
+  const sorted = [...items].sort((a, b) => (b.quote.dp ?? 0) - (a.quote.dp ?? 0));
+  const pcts = sorted.map(i => i.quote.dp ?? 0);
+  const adv = pcts.filter(p => p > 0).length;
+  const dec = pcts.filter(p => p < 0).length;
+  const avg = pcts.reduce((x, y) => x + y, 0) / pcts.length;
+  const best = sorted[0];
+  const worst = sorted[sorted.length - 1];
+  const swing = i => (isNum(i.quote.h) && isNum(i.quote.l) && isNum(i.quote.pc) && i.quote.pc > 0 ? (i.quote.h - i.quote.l) / i.quote.pc * 100 : -1);
+  const wildest = [...items].sort((a, b) => swing(b) - swing(a))[0];
+  const sgn = v => (v >= 0 ? "+" : "");
+
+  wrap.innerHTML = `
+    <div class="stock-heatmap-head">
+      <h4>Heatmap <span class="card-subtitle">${sorted.length} tickers · tile color = today's % move</span></h4>
+      <div class="stock-heatmap-legend"><span>−8%</span><span class="stock-heatmap-legend-bar"></span><span>+8%</span></div>
+    </div>
+    <div class="stock-heatmap-summary">
+      <span><strong class="positive">${adv}</strong> up · <strong class="negative">${dec}</strong> down${sorted.length - adv - dec > 0 ? ` · ${sorted.length - adv - dec} flat` : ""}</span>
+      <span>Average move <strong class="${avg >= 0 ? "positive" : "negative"}">${sgn(avg)}${avg.toFixed(2)}%</strong></span>
+      <span>Best <strong class="positive">${displaySymbol(best.symbol)} ${sgn(best.quote.dp ?? 0)}${(best.quote.dp ?? 0).toFixed(2)}%</strong></span>
+      <span>Worst <strong class="negative">${displaySymbol(worst.symbol)} ${sgn(worst.quote.dp ?? 0)}${(worst.quote.dp ?? 0).toFixed(2)}%</strong></span>
+      ${swing(wildest) >= 0 ? `<span>Widest day range <strong>${displaySymbol(wildest.symbol)} ${swing(wildest).toFixed(1)}%</strong></span>` : ""}
+    </div>
+    <div class="stock-heatmap-grid"></div>
+  `;
+
+  const grid = wrap.querySelector(".stock-heatmap-grid");
+  sorted.forEach(({ symbol, name, quote }) => {
+    const pct = quote.dp ?? 0;
+    const chg = quoteChangeAbs(quote);
+    const pos = quoteRangePos(quote);
     const tile = document.createElement("button");
     tile.type = "button";
-    tile.className = "heatmap-tile";
-    tile.style.background = heatColor(change);
-    tile.title = `${name} — ${formatCurrency(quote.c)}`;
+    tile.className = "stock-heat-tile";
+    tile.style.background = heatColor(pct);
+    tile.title = `${name} — ${formatCurrency(quote.c)} (${sgn(pct)}${pct.toFixed(2)}%)${isNum(quote.l) && isNum(quote.h) ? ` · day range ${formatCurrency(quote.l)} – ${formatCurrency(quote.h)}` : ""}`;
     tile.innerHTML = `
-      <span class="heatmap-symbol">${displaySymbol(symbol)}</span>
-      <span class="heatmap-change">${change >= 0 ? "+" : ""}${change.toFixed(1)}%</span>
+      <span class="stock-heat-top"><strong>${displaySymbol(symbol)}</strong><span class="stock-heat-pct">${sgn(pct)}${pct.toFixed(2)}%</span></span>
+      <span class="stock-heat-name">${name}</span>
+      <span class="stock-heat-bottom"><span>${formatCurrency(quote.c)}</span><span>${isNum(chg) ? `${sgn(chg)}${chg.toFixed(2)}` : ""}</span></span>
+      ${pos === null ? "" : `<span class="day-range day-range-on-color"><span class="day-range-marker" style="left:${(pos * 100).toFixed(0)}%"></span></span>`}
     `;
     tile.addEventListener("click", () => loadTicker(symbol));
     grid.appendChild(tile);
   });
-  return grid;
+  return wrap;
 }
 
-// Uniform tile size (not sized by market cap like a "real" treemap would
-// be — that needs profile2 data for every symbol shown, doubling
-// requests for a homepage feature). Color intensity carries the signal.
 function heatColor(changePct) {
   const clamped = Math.max(-8, Math.min(8, changePct || 0));
   const intensity = 0.18 + (Math.abs(clamped) / 8) * 0.6;

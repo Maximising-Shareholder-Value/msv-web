@@ -41,6 +41,29 @@ if (apiUsageListEl) {
   `).join("");
 }
 
+// Collapsible so short screens can hide the rows and keep more room for
+// the nav — remembered across visits; defaults to collapsed on short
+// windows (under 800px tall) where the full panel would crowd the menu.
+const apiUsageWidgetEl = document.getElementById("apiUsageWidget");
+const apiUsageToggleEl = document.getElementById("apiUsageToggle");
+if (apiUsageWidgetEl && apiUsageToggleEl) {
+  let collapsed = window.innerHeight < 800;
+  try {
+    const saved = localStorage.getItem("msv-usage-collapsed");
+    if (saved !== null) collapsed = saved === "1";
+  } catch { /* storage unavailable — fall back to the height default */ }
+  const applyCollapsed = () => {
+    apiUsageWidgetEl.classList.toggle("collapsed", collapsed);
+    apiUsageToggleEl.setAttribute("aria-expanded", String(!collapsed));
+  };
+  applyCollapsed();
+  apiUsageToggleEl.addEventListener("click", () => {
+    collapsed = !collapsed;
+    applyCollapsed();
+    try { localStorage.setItem("msv-usage-collapsed", collapsed ? "1" : "0"); } catch { /* ignore */ }
+  });
+}
+
 function renderApiUsage() {
   if (!apiUsageListEl) return;
   const now = Date.now();

@@ -11,9 +11,10 @@
 
 <div class="app-shell">
   <aside id="appSidebar" class="app-sidebar">
+   <div class="app-sidebar-scroll">
     <div class="app-sidebar-logo">
       <span class="app-sidebar-badge">$MSV</span>
-      <span class="app-sidebar-fullname">Maximising Shareholder Value</span>
+      <span class="app-sidebar-fullname"><span>Maximising</span><span>Shareholder</span><span class="app-sidebar-fullname-accent">Value</span></span>
     </div>
 
     <nav class="app-nav-group">
@@ -46,11 +47,15 @@
       <button type="button" class="app-nav-item" data-nav="compare"><span class="app-nav-icon"><svg viewBox="0 0 20 20"><line x1="10" y1="3" x2="10" y2="16"/><line x1="4" y1="6.2" x2="16" y2="6.2"/><path d="M4,6.2 L1.6,11 A2.4,2.4 0 0 0 6.4,11 Z"/><path d="M16,6.2 L13.6,11 A2.4,2.4 0 0 0 18.4,11 Z"/><line x1="7" y1="16.6" x2="13" y2="16.6"/></svg></span><span class="app-nav-label">Compare</span></button>
     </nav>
 
-    <hr class="app-nav-divider app-usage-divider">
+   </div>
+
+   <div class="app-sidebar-footer">
     <section class="app-usage" id="apiUsageWidget" title="Approximate — counts requests your browser has sent, not actual hits on each provider (some are served from cache and never reach the API at all). Limits are each provider's published free-tier numbers.">
-      <div class="app-usage-heading">API usage (est.)</div>
+      <button type="button" class="app-usage-heading" id="apiUsageToggle" aria-expanded="true">API usage (est.) <span class="app-usage-caret">▾</span></button>
       <div id="apiUsageList"></div>
     </section>
+    <p class="app-disclaimer">Educational use only — not financial advice. Free-tier data may be delayed, sampled or incomplete.</p>
+   </div>
   </aside>
 
   <div class="app-body">
@@ -125,7 +130,7 @@
   <div id="mapHoverPopup" class="map-hover-popup hidden"></div>
 
   <div class="home-grid">
-    <div class="card home-grid-item" id="recentlyViewedCard" data-home-section="home-grid-misc">
+    <div class="card home-grid-item" id="recentlyViewedCard" data-home-section="recently-viewed">
       <h3>Recently Viewed</h3>
       <div id="recentlyViewedRow" class="recently-viewed-row hidden"></div>
       <p id="recentlyViewedEmptyNote" class="sidebar-empty-note">Tickers you look up will show up here.</p>
@@ -136,12 +141,12 @@
       <div id="didYouKnowContent"></div>
     </div>
 
-    <div class="card home-grid-item" id="econCalendarCard" data-home-section="home-grid-misc">
+    <div class="card home-grid-item" id="econCalendarCard" data-home-section="econ-calendar">
       <h3>Economic Calendar</h3>
       <div id="econCalendarContent"><p class="muted">Loading...</p></div>
     </div>
 
-    <div class="card home-grid-item" id="earningsCalendarCard" data-home-section="home-grid-misc">
+    <div class="card home-grid-item" id="earningsCalendarCard" data-home-section="earnings-calendar">
       <h3>Earnings This Week</h3>
       <div id="earningsCalendarContent"><p class="muted">Loading...</p></div>
     </div>
@@ -160,20 +165,15 @@
 
   <div class="home-controls" id="homeControlsCard" data-home-section="home-tabs">
     <div id="homeTabs" class="home-tabs"></div>
-    <div id="homeViewToggle" class="home-view-toggle">
-      <button type="button" class="active" data-mode="grid">Grid</button>
-      <button type="button" data-mode="heatmap">Heatmap</button>
-    </div>
   </div>
 
   <div class="card home-tab-card" data-home-section="home-tabs">
     <div id="homeContent" class="home-content"><p class="muted">Loading...</p></div>
   </div>
 
-  <div class="card" id="marketIntelTeaserCard" data-home-section="home-grid-misc">
-    <h3>Market Intelligence <span class="card-subtitle">real, sourced company relationships</span></h3>
-    <div id="marketIntelTeaserContent"><p class="muted">Loading...</p></div>
-    <button type="button" class="did-you-know-link" id="marketIntelTeaserBtn">See the full picture →</button>
+  <div class="card mi-card" id="marketIntelCard" data-home-section="market-intelligence">
+    <h3>Market Intelligence <span class="card-subtitle">who depends on whom — the AI infrastructure supply chain</span></h3>
+    <div id="marketIntelContent"><p class="muted">Loading...</p></div>
   </div>
 
   <div class="card" id="marketNewsCard" data-home-section="market-news">

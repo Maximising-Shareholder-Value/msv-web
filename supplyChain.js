@@ -1,34 +1,73 @@
-// supplyChain.js — Pillar 2+3: a real, sourced (but NOT live-data) look at
-// how companies in the AI infrastructure stack are actually connected.
-// Every node and relationship here is transcribed verbatim from the
-// project governance repo's SUPPLY_CHAIN_RESEARCH.md, a research pass
-// that prioritized SEC filings, then official company statements, then
-// corroborated journalism — see that doc for the full sourcing writeup.
-// This is deliberately NOT presented as live market data: no price feed
-// drives any of it, and every relationship shows its own source and
-// confidence rating rather than being stated as flat fact, per this
-// app's "no fabricated data" standard. Depends on homeContentEl
-// (home.js) and loadTicker() (script.js).
+// supplyChain.js — Pillar 2+3: a layered, left-to-right dependency map of
+// the AI infrastructure supply chain (rebuilt 2026-09-26 from the earlier
+// node grid + card list, at Jozsua's request: "spider web ... lines and
+// arrows ... which companies are dependent on which").
+//
+// HOW TO READ IT: columns run from the end user of AI (left) to the raw
+// materials underneath everything (right). An arrow points from a company
+// to something it DEPENDS ON.
+//
+// TWO KINDS OF LINK, kept visibly distinct (this app's "no fabricated
+// data" standard):
+// - SOLID = sourced. Transcribed verbatim from the governance repo's
+//   SUPPLY_CHAIN_RESEARCH.md (SEC filings, official statements,
+//   corroborated journalism), each with its own source + confidence — the
+//   SUPPLY_CHAIN_RELATIONSHIPS array below, unchanged.
+// - DASHED = inferred. The power/cooling and raw-material layers (and a
+//   few well-known chip-design ties) were NOT part of that research pass;
+//   they're the app's own structural reasoning from general industry
+//   knowledge ("data centers need turbines and copper"), labelled
+//   "Inferred" everywhere they appear — never stated as a sourced fact,
+//   and no specific contract or figure is claimed for them.
+// Not live market data: no price feed drives any of it. Depends on
+// loadTicker()/fetchJSON()/finnhubUrl() (script.js).
 
-const SUPPLY_CHAIN_NODES = [
-  { name: "NVIDIA", ticker: "NVDA", role: "GPU / chip designer" },
-  { name: "Taiwan Semiconductor (TSMC)", ticker: "TSM", role: "Chip foundry / manufacturer" },
-  { name: "AMD", ticker: "AMD", role: "GPU / chip designer" },
-  { name: "Intel", ticker: "INTC", role: "Chip designer + foundry" },
-  { name: "Microsoft", ticker: "MSFT", role: "Hyperscaler / cloud, model investor" },
-  { name: "Alphabet (Google)", ticker: "GOOGL", role: "Hyperscaler / cloud, custom silicon" },
-  { name: "Amazon", ticker: "AMZN", role: "Hyperscaler / cloud, custom silicon" },
-  { name: "Meta Platforms", ticker: "META", role: "Hyperscaler-scale AI infra buyer" },
-  { name: "Broadcom", ticker: "AVGO", role: "Custom ASIC co-design, networking" },
-  { name: "Micron", ticker: "MU", role: "Memory (HBM) supplier" },
-  { name: "Arista Networks", ticker: "ANET", role: "Data-center networking" },
-  { name: "Super Micro Computer", ticker: "SMCI", role: "GPU server systems integrator" },
-  { name: "ASML", ticker: "ASML", role: "Lithography equipment" },
-  { name: "CoreWeave", ticker: "CRWV", role: "GPU cloud infrastructure" },
-  { name: "SK Hynix", ticker: null, role: "Memory (HBM) supplier — no US ticker (Korea Exchange only)" },
-  { name: "OpenAI", ticker: null, role: "AI model company — private, no ticker" },
-  { name: "Anthropic", ticker: null, role: "AI model company — private, no ticker" },
+
+const MI_LAYERS = [
+  { title: "AI labs & apps" },
+  { title: "Cloud & hyperscalers" },
+  { title: "AI infrastructure" },
+  { title: "Chips & power gear" },
+  { title: "Foundry & memory" },
+  { title: "Tools & raw materials" },
 ];
+
+// `layer` = column (0 = closest to the AI end user). Array order within a
+// layer is top-to-bottom on screen, hand-ordered to keep lines uncrossed.
+const MI_NODES = [
+  { id: "openai", label: "OpenAI", name: "OpenAI", ticker: null, layer: 0, role: "AI model company — private, no ticker" },
+  { id: "anthropic", label: "Anthropic", name: "Anthropic", ticker: null, layer: 0, role: "AI model company — private, no ticker" },
+
+  { id: "msft", label: "Microsoft", name: "Microsoft", ticker: "MSFT", layer: 1, role: "Hyperscaler / cloud, model investor" },
+  { id: "googl", label: "Alphabet", name: "Alphabet (Google)", ticker: "GOOGL", layer: 1, role: "Hyperscaler / cloud, custom silicon" },
+  { id: "amzn", label: "Amazon", name: "Amazon (AWS)", ticker: "AMZN", layer: 1, role: "Hyperscaler / cloud, custom silicon" },
+  { id: "meta", label: "Meta", name: "Meta Platforms", ticker: "META", layer: 1, role: "Hyperscaler-scale AI infra buyer" },
+
+  { id: "crwv", label: "CoreWeave", name: "CoreWeave", ticker: "CRWV", layer: 2, role: "GPU cloud infrastructure" },
+  { id: "smci", label: "Supermicro", name: "Super Micro Computer", ticker: "SMCI", layer: 2, role: "GPU server systems integrator" },
+  { id: "anet", label: "Arista", name: "Arista Networks", ticker: "ANET", layer: 2, role: "Data-center networking" },
+  { id: "dlr", label: "Digital Realty", name: "Digital Realty", ticker: "DLR", layer: 2, role: "Data-center operator (leases space + power)" },
+  { id: "eqix", label: "Equinix", name: "Equinix", ticker: "EQIX", layer: 2, role: "Data-center operator (colocation)" },
+
+  { id: "nvda", label: "NVIDIA", name: "NVIDIA", ticker: "NVDA", layer: 3, role: "GPU / chip designer" },
+  { id: "amd", label: "AMD", name: "AMD", ticker: "AMD", layer: 3, role: "GPU / chip designer" },
+  { id: "avgo", label: "Broadcom", name: "Broadcom", ticker: "AVGO", layer: 3, role: "Custom ASIC co-design, networking silicon" },
+  { id: "intc", label: "Intel", name: "Intel", ticker: "INTC", layer: 3, role: "Chip designer + foundry" },
+  { id: "vrt", label: "Vertiv", name: "Vertiv", ticker: "VRT", layer: 3, role: "Data-center power & cooling equipment" },
+  { id: "etn", label: "Eaton", name: "Eaton", ticker: "ETN", layer: 3, role: "Electrical power equipment (switchgear, UPS)" },
+  { id: "gev", label: "GE Vernova", name: "GE Vernova", ticker: "GEV", layer: 3, role: "Gas turbines, grid & nuclear equipment" },
+
+  { id: "tsm", label: "TSMC", name: "Taiwan Semiconductor (TSMC)", ticker: "TSM", layer: 4, role: "Chip foundry / manufacturer" },
+  { id: "skh", label: "SK Hynix", name: "SK Hynix", ticker: null, layer: 4, role: "Memory (HBM) supplier — no US ticker (Korea Exchange only)" },
+  { id: "mu", label: "Micron", name: "Micron", ticker: "MU", layer: 4, role: "Memory (HBM) supplier" },
+
+  { id: "asml", label: "ASML", name: "ASML", ticker: "ASML", layer: 5, role: "Lithography equipment (EUV machines)" },
+  { id: "fcx", label: "Freeport", name: "Freeport-McMoRan", ticker: "FCX", layer: 5, role: "Copper miner" },
+  { id: "mp", label: "MP Materials", name: "MP Materials", ticker: "MP", layer: 5, role: "Rare-earth miner / magnets" },
+  { id: "ccj", label: "Cameco", name: "Cameco", ticker: "CCJ", layer: 5, role: "Uranium miner (nuclear fuel)" },
+  { id: "nem", label: "Newmont", name: "Newmont", ticker: "NEM", layer: 5, role: "Gold miner (a precious metal)" },
+];
+
 
 const SUPPLY_CHAIN_RELATIONSHIPS = [
   { a: "TSMC", b: "NVIDIA", relationship: "manufacturing-partner-of", description: "TSMC fabricates nearly all of NVIDIA's advanced GPUs on 5nm/4nm nodes; NVIDIA is projected to become TSMC's single largest customer in 2026, overtaking Apple.", source: "CNBC, “Nvidia set to supplant Apple as TSMC's largest customer” (Jan 26, 2026); reported consistently for years across outlets", confidence: "High" },
@@ -53,43 +92,61 @@ const SUPPLY_CHAIN_RELATIONSHIPS = [
   { a: "NVIDIA", b: "Microsoft / Meta / Google / Amazon", relationship: "customer-of", description: "NVIDIA's own SEC filings show customer concentration (4 direct customers = 61% of a recent quarter's revenue, top single customer ~22%), anonymized as “Customer A/B/C/D.” NVIDIA does not officially name them; multiple outlets have identified the likely hyperscalers as Microsoft, Meta, Google and Amazon.", source: "NVIDIA SEC filings (concentration language); CNBC, “Nvidia's top two mystery customers made up 39% of Q2 revenue” (Aug 28, 2025)", confidence: "Medium", confidenceNote: "The concentration disclosure itself is real and SEC-sourced. The specific company IDENTITIES behind “Customer A/B/C/D” are analyst/journalist inference, NOT confirmed by NVIDIA — reported/inferred, not a confirmed fact." },
 ];
 
-// ---- Homepage teaser (2026-09-24) ----
-// A compact showcase of a few real companies from SUPPLY_CHAIN_NODES,
-// with real logos — separate from the full renderSupplyChainTab() page
-// (reached via the sidebar), which shows all 17 nodes/20 relationships.
-// Logos come from Finnhub's /stock/profile2 `logo` field — the exact
-// same field already used for the ticker deep-dive page's own logo
-// (script.js) — so this is zero new API integration, just a few more
-// staggered calls on homepage load.
-const SUPPLY_CHAIN_TEASER_TICKERS = ["NVDA", "TSM", "AMD", "MSFT", "GOOGL"];
+// from = the company that DEPENDS; to = what it depends on.
+// `rel` = index into SUPPLY_CHAIN_RELATIONSHIPS (sourced links); `text` is
+// the short plain-English reason for inferred links.
+const MI_EDGES = [
+  // ---- Sourced (each one maps to a researched relationship above) ----
+  { from: "nvda", to: "tsm", rel: 0 },
+  { from: "tsm", to: "asml", rel: 1 },
+  { from: "intc", to: "asml", rel: 1 },
+  { from: "nvda", to: "skh", rel: 2 },
+  { from: "nvda", to: "mu", rel: 3 },
+  { from: "smci", to: "nvda", rel: 4 },
+  { from: "msft", to: "anet", rel: 5 },
+  { from: "meta", to: "anet", rel: 5 },
+  { from: "googl", to: "avgo", rel: 6 },
+  { from: "openai", to: "avgo", rel: 7 },
+  { from: "openai", to: "amd", rel: 8 },
+  { from: "openai", to: "nvda", rel: 10 },
+  { from: "openai", to: "msft", rel: 11 },
+  { from: "anthropic", to: "msft", rel: 12 },
+  { from: "anthropic", to: "nvda", rel: 12 },
+  { from: "crwv", to: "nvda", rel: 13 },
+  { from: "msft", to: "crwv", rel: 13 },
+  { from: "meta", to: "crwv", rel: 13 },
+  { from: "openai", to: "crwv", rel: 13 },
+  { from: "amzn", to: "nvda", rel: 14 },
+  { from: "meta", to: "nvda", rel: 15 },
+  { from: "meta", to: "amd", rel: 16 },
+  { from: "msft", to: "intc", rel: 17 },
+  { from: "amzn", to: "intc", rel: 18 },
+  { from: "msft", to: "nvda", rel: 19 },
+  { from: "googl", to: "nvda", rel: 19 },
 
-function renderMarketIntelTeaser() {
-  const el = document.getElementById("marketIntelTeaserContent");
-  const btn = document.getElementById("marketIntelTeaserBtn");
-  if (!el) return;
+  // ---- Inferred (structural reasoning — general industry knowledge) ----
+  ...["msft", "googl", "amzn", "meta"].flatMap(c => [
+    { from: c, to: "dlr", text: "Cloud providers rent large blocks of data-center space and power from operators like Digital Realty, alongside building their own." },
+    { from: c, to: "eqix", text: "Cloud providers rent data-center space and interconnection from operators like Equinix, alongside building their own." },
+  ]),
+  { from: "amd", to: "tsm", text: "AMD designs chips but relies on a foundry — TSMC — to manufacture them (the \"fabless\" model; widely reported)." },
+  { from: "avgo", to: "tsm", text: "Broadcom designs chips and relies on a foundry — TSMC — to manufacture them (the \"fabless\" model; widely reported)." },
+  { from: "anet", to: "avgo", text: "Arista's switches are built around merchant switch chips, a large share of which come from Broadcom (widely reported)." },
+  { from: "dlr", to: "vrt", text: "Data centers need power and cooling systems — the category Vertiv sells into. General industry structure, not a specific contract." },
+  { from: "dlr", to: "etn", text: "Data centers need switchgear, backup power and transformers — the category Eaton sells into. General industry structure, not a specific contract." },
+  { from: "dlr", to: "gev", text: "Data centers need large amounts of electricity; gas turbines and grid equipment (GE Vernova's category) are a major supply route. General industry structure." },
+  { from: "eqix", to: "vrt", text: "Data centers need power and cooling systems — the category Vertiv sells into. General industry structure, not a specific contract." },
+  { from: "eqix", to: "etn", text: "Data centers need switchgear, backup power and transformers — the category Eaton sells into. General industry structure, not a specific contract." },
+  { from: "eqix", to: "gev", text: "Data centers need large amounts of electricity; gas turbines and grid equipment (GE Vernova's category) are a major supply route. General industry structure." },
+  { from: "vrt", to: "fcx", text: "Copper is the core metal in power cables, busbars, cooling coils and motors." },
+  { from: "etn", to: "fcx", text: "Copper is the core metal in transformers, switchgear and power cabling." },
+  { from: "gev", to: "fcx", text: "Copper windings and cabling are central to generators, transformers and grid equipment." },
+  { from: "gev", to: "mp", text: "Generators and motors commonly use rare-earth permanent magnets." },
+  { from: "gev", to: "ccj", text: "Nuclear (including small modular reactors) is a growing power option for data centers, and reactors need uranium fuel." },
+  { from: "tsm", to: "fcx", text: "Chips use copper for the microscopic wiring (interconnects) on the die." },
+  { from: "tsm", to: "nem", text: "Gold is used in some semiconductor packaging and electrical contacts — a precious-metal input." },
+];
 
-  el.innerHTML = `<div class="mi-teaser-grid">${SUPPLY_CHAIN_TEASER_TICKERS.map(symbol =>
-    `<button type="button" class="mi-teaser-logo-tile" data-symbol="${symbol}"><img class="mi-teaser-logo" alt="${symbol} logo"><span>${symbol}</span></button>`
-  ).join("")}</div>`;
-
-  el.querySelectorAll(".mi-teaser-logo-tile").forEach(tile => {
-    tile.addEventListener("click", () => loadTicker(tile.dataset.symbol));
-  });
-
-  btn?.addEventListener("click", () => navigateTo("market-intelligence"));
-
-  SUPPLY_CHAIN_TEASER_TICKERS.forEach((symbol, i) => {
-    setTimeout(async () => {
-      try {
-        const profile = await fetchJSON(finnhubUrl("/stock/profile2", { symbol }));
-        const img = el.querySelector(`.mi-teaser-logo-tile[data-symbol="${symbol}"] img`);
-        if (img && profile.logo) img.src = profile.logo;
-      } catch {
-        // leave the tile logo-less rather than showing a broken image
-      }
-    }, i * 100);
-  });
-}
 
 function prettyRelationship(rel) {
   return rel.split(" / ").map(part => {
@@ -98,62 +155,264 @@ function prettyRelationship(rel) {
   }).join(" / ");
 }
 
-function findNodeTicker(name) {
-  const node = SUPPLY_CHAIN_NODES.find(n => name.includes(n.name) || n.name.includes(name));
-  return node ? node.ticker : null;
+// ---- Layout (SVG viewBox units; the whole diagram scales uniformly) ----
+const MI_W = 1200, MI_H = 640, MI_R = 24; // canvas size, bubble radius
+const MI_COL_X = MI_LAYERS.map((_, i) => 100 + i * 200);
+const MI_ROW_GAP = 76, MI_CENTER_Y = 340;
+
+const MI_BY_ID = Object.fromEntries(MI_NODES.map(n => [n.id, n]));
+MI_LAYERS.forEach((_, layer) => {
+  const col = MI_NODES.filter(n => n.layer === layer);
+  col.forEach((n, i) => {
+    n.x = MI_COL_X[layer];
+    n.y = MI_CENTER_Y + (i - (col.length - 1) / 2) * MI_ROW_GAP;
+  });
+});
+
+const miState = { selected: null, logosRequested: false };
+
+function miEdgeInfo(e) {
+  if (e.rel !== undefined) {
+    const r = SUPPLY_CHAIN_RELATIONSHIPS[e.rel];
+    return { basis: "sourced", text: r.description, source: r.source, confidence: r.confidence, note: r.confidenceNote, label: prettyRelationship(r.relationship) };
+  }
+  return { basis: "inferred", text: e.text, confidence: "Inferred", label: "Depends on" };
 }
 
-function renderSupplyChainTab() {
-  homeContentEl.innerHTML = "";
-  const wrap = document.createElement("div");
-  wrap.className = "supply-chain-wrap";
+function miEdgePath(e) {
+  const a = MI_BY_ID[e.from], b = MI_BY_ID[e.to];
+  const x1 = a.x + MI_R, y1 = a.y;
+  const x2 = b.x - MI_R - 5, y2 = b.y;
+  const dx = Math.max(60, (x2 - x1) * 0.5);
+  return `M${x1},${y1} C${x1 + dx},${y1} ${x2 - dx},${y2} ${x2},${y2}`;
+}
 
-  wrap.innerHTML = `
-    <div class="supply-chain-disclosure">
-      <p><strong>Pilot: AI infrastructure.</strong> This is research, not a live feed — every relationship below is sourced (SEC filings, official company statements, or corroborated journalism) and rated by confidence, rather than stated as flat fact. Two relationships involve OpenAI and Anthropic, which are private companies with no public ticker — shown here for context, with no price data attached.</p>
-    </div>
+function miInitials(n) {
+  return n.ticker ? n.ticker.slice(0, 4) : n.label.split(/\s+/).map(w => w[0]).join("").slice(0, 2).toUpperCase();
+}
 
-    <h4 class="supply-chain-section-title">Companies in this pilot</h4>
-    <div class="supply-chain-nodes"></div>
+function buildMiSvg() {
+  const svgNS = "http://www.w3.org/2000/svg";
+  const parts = [];
+  parts.push(`<svg class="mi-svg" viewBox="0 0 ${MI_W} ${MI_H}" role="img" aria-label="Dependency map of the AI infrastructure supply chain">`);
+  parts.push(`<defs>
+    <marker id="miArrowS" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="mi-arrow mi-arrow-sourced"/></marker>
+    <marker id="miArrowI" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="mi-arrow mi-arrow-inferred"/></marker>
+    <clipPath id="miClip"><circle r="${MI_R - 5}"/></clipPath>
+  </defs>`);
 
-    <h4 class="supply-chain-section-title">Relationships <span class="card-subtitle">${SUPPLY_CHAIN_RELATIONSHIPS.length} sourced connections</span></h4>
-    <div class="supply-chain-relationships"></div>
-  `;
-
-  const nodesEl = wrap.querySelector(".supply-chain-nodes");
-  SUPPLY_CHAIN_NODES.forEach(node => {
-    const chip = document.createElement(node.ticker ? "button" : "div");
-    if (node.ticker) chip.type = "button";
-    chip.className = "supply-chain-node" + (node.ticker ? "" : " no-ticker");
-    chip.innerHTML = `<strong>${node.name}</strong><span class="muted">${node.ticker ? node.ticker : "No ticker"}</span><span class="supply-chain-node-role">${node.role}</span>`;
-    if (node.ticker) chip.addEventListener("click", () => loadTicker(node.ticker));
-    nodesEl.appendChild(chip);
+  // column headers + faint column guides
+  MI_LAYERS.forEach((l, i) => {
+    parts.push(`<text class="mi-col-title" x="${MI_COL_X[i]}" y="26" text-anchor="middle">${l.title}</text>`);
+    parts.push(`<line class="mi-col-guide" x1="${MI_COL_X[i]}" y1="44" x2="${MI_COL_X[i]}" y2="${MI_H - 20}"/>`);
   });
 
-  const relEl = wrap.querySelector(".supply-chain-relationships");
+  parts.push('<g class="mi-edges">');
+  MI_EDGES.forEach((e, i) => {
+    const inferred = e.rel === undefined;
+    parts.push(`<path class="mi-edge ${inferred ? "mi-edge-inferred" : "mi-edge-sourced"}" data-i="${i}" data-from="${e.from}" data-to="${e.to}" d="${miEdgePath(e)}" marker-end="url(#${inferred ? "miArrowI" : "miArrowS"})"/>`);
+  });
+  parts.push("</g>");
+
+  parts.push('<g class="mi-nodes">');
+  MI_NODES.forEach(n => {
+    parts.push(`<g class="mi-node" data-id="${n.id}" transform="translate(${n.x},${n.y})" tabindex="0" role="button" aria-label="${n.name}">
+      <circle class="mi-node-bg" r="${MI_R}"/>
+      <text class="mi-node-initials" y="4" text-anchor="middle">${miInitials(n)}</text>
+      <image class="mi-node-logo" x="${-(MI_R - 5)}" y="${-(MI_R - 5)}" width="${(MI_R - 5) * 2}" height="${(MI_R - 5) * 2}" clip-path="url(#miClip)" preserveAspectRatio="xMidYMid meet" visibility="hidden"/>
+      <circle class="mi-node-ring" r="${MI_R}"/>
+      <text class="mi-node-label" y="${MI_R + 15}" text-anchor="middle">${n.label}</text>
+    </g>`);
+  });
+  parts.push("</g></svg>");
+  return parts.join("");
+}
+
+// ---- Logos: Finnhub /stock/profile2 `logo`, cached in localStorage ----
+// 24 tickers would be a real chunk of Finnhub's 60/min budget on every
+// visit, so logos are (a) cached for 30 days — logo URLs almost never
+// change — and (b) only requested once the diagram scrolls into view.
+const MI_LOGO_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+
+function miCachedLogo(ticker) {
+  try {
+    const saved = JSON.parse(localStorage.getItem(`msv-logo-${ticker}`) || "null");
+    if (saved && Date.now() - saved.t < MI_LOGO_TTL_MS) return saved.url || "";
+  } catch { /* storage unavailable */ }
+  return null;
+}
+function miSaveLogo(ticker, url) {
+  try { localStorage.setItem(`msv-logo-${ticker}`, JSON.stringify({ url, t: Date.now() })); } catch { /* ignore */ }
+}
+
+function miApplyLogo(nodeId, url) {
+  const g = document.querySelector(`.mi-node[data-id="${nodeId}"]`);
+  if (!g || !url) return;
+  const img = g.querySelector(".mi-node-logo");
+  img.addEventListener("load", () => {
+    img.setAttribute("visibility", "visible");
+    g.querySelector(".mi-node-initials").setAttribute("visibility", "hidden");
+  }, { once: true });
+  img.setAttribute("href", url);
+}
+
+function miLoadLogos() {
+  if (miState.logosRequested) return;
+  miState.logosRequested = true;
+  let delay = 0;
+  MI_NODES.filter(n => n.ticker).forEach(n => {
+    const cached = miCachedLogo(n.ticker);
+    if (cached !== null) { miApplyLogo(n.id, cached); return; }
+    setTimeout(async () => {
+      try {
+        const profile = await fetchJSON(finnhubUrl("/stock/profile2", { symbol: n.ticker }));
+        miSaveLogo(n.ticker, profile.logo || "");
+        miApplyLogo(n.id, profile.logo);
+      } catch { /* leave initials */ }
+    }, delay);
+    delay += 120;
+  });
+}
+
+// ---- Selection + info panel ----
+function miSelect(id) {
+  miState.selected = id;
+  const root = document.getElementById("marketIntelContent");
+  if (!root) return;
+  const connected = new Set();
+  if (id) {
+    connected.add(id);
+    MI_EDGES.forEach(e => { if (e.from === id) connected.add(e.to); if (e.to === id) connected.add(e.from); });
+  }
+  root.querySelector(".mi-svg").classList.toggle("mi-has-selection", !!id);
+  root.querySelectorAll(".mi-node").forEach(g => {
+    g.classList.toggle("mi-selected", g.dataset.id === id);
+    g.classList.toggle("mi-connected", !!id && g.dataset.id !== id && connected.has(g.dataset.id));
+  });
+  root.querySelectorAll(".mi-edge").forEach(p => {
+    const on = !!id && (p.dataset.from === id || p.dataset.to === id);
+    p.classList.toggle("mi-edge-on", on);
+    p.classList.toggle("mi-edge-out", on && p.dataset.from === id);
+  });
+  renderMiPanel();
+}
+
+function miEdgeRowHtml(e, otherId, direction) {
+  const other = MI_BY_ID[otherId];
+  const info = miEdgeInfo(e);
+  return `
+    <div class="mi-edge-row">
+      <div class="mi-edge-row-head">
+        <button type="button" class="mi-chip" data-select="${other.id}">${direction === "out" ? "→" : "←"} ${other.name}${other.ticker ? ` <span class="muted">${other.ticker}</span>` : ""}</button>
+        <span class="mi-basis mi-basis-${info.basis}">${info.basis === "sourced" ? `Sourced · ${info.confidence}` : "Inferred"}</span>
+      </div>
+      <p class="mi-edge-text">${info.text}</p>
+      ${info.note ? `<p class="mi-edge-note">${info.note}</p>` : ""}
+      ${info.source ? `<p class="mi-edge-source">Source: ${info.source}</p>` : ""}
+    </div>`;
+}
+
+function renderMiPanel() {
+  const el = document.getElementById("marketIntelPanel");
+  if (!el) return;
+  const id = miState.selected;
+  if (!id) {
+    el.innerHTML = '<p class="muted small mi-hint">Click any bubble to see what it depends on and who relies on it. Click it again to open its stock page.</p>';
+    return;
+  }
+  const n = MI_BY_ID[id];
+  const outs = MI_EDGES.filter(e => e.from === id);
+  const ins = MI_EDGES.filter(e => e.to === id);
+  el.innerHTML = `
+    <div class="mi-panel-head">
+      <div>
+        <h4>${n.name}${n.ticker ? ` <span class="ticker-badge">${n.ticker}</span>` : ""}</h4>
+        <p class="muted small">${MI_LAYERS[n.layer].title} · ${n.role}</p>
+      </div>
+      ${n.ticker
+        ? `<button type="button" class="mi-open-btn" data-open="${n.ticker}">Open ${n.ticker} stock page →</button>`
+        : '<span class="muted small">Private / no US ticker — no stock page</span>'}
+    </div>
+    <div class="mi-panel-cols">
+      <div>
+        <h5>Depends on <span class="muted">(${outs.length})</span></h5>
+        ${outs.length ? outs.map(e => miEdgeRowHtml(e, e.to, "out")).join("") : '<p class="muted small">Nothing further down the chain in this map — it sits at the base.</p>'}
+      </div>
+      <div>
+        <h5>Relied on by <span class="muted">(${ins.length})</span></h5>
+        ${ins.length ? ins.map(e => miEdgeRowHtml(e, e.from, "in")).join("") : '<p class="muted small">Nobody upstream in this map depends on it directly.</p>'}
+      </div>
+    </div>`;
+  el.querySelectorAll("[data-select]").forEach(b => b.addEventListener("click", () => miSelect(b.dataset.select)));
+  el.querySelector("[data-open]")?.addEventListener("click", ev => loadTicker(ev.currentTarget.dataset.open));
+}
+
+function renderMarketIntel() {
+  const root = document.getElementById("marketIntelContent");
+  if (!root) return;
+  root.innerHTML = `
+    <p class="mi-lead">Columns run from AI's end users (left) down to the raw materials underneath everything (right). <strong>An arrow points from a company to something it depends on.</strong></p>
+    <div class="mi-legend">
+      <span><svg width="34" height="10"><line x1="0" y1="5" x2="34" y2="5" class="mi-legend-line-sourced"/></svg> Sourced — SEC filings, company statements, corroborated press</span>
+      <span><svg width="34" height="10"><line x1="0" y1="5" x2="34" y2="5" class="mi-legend-line-inferred"/></svg> Inferred — the app's own structural reasoning, not individually sourced</span>
+    </div>
+    <div class="mi-diagram-scroll">${buildMiSvg()}</div>
+    <div id="marketIntelPanel" class="mi-panel"></div>
+    <details class="mi-research">
+      <summary>All ${SUPPLY_CHAIN_RELATIONSHIPS.length} researched relationships (full source trail)</summary>
+      <div class="mi-research-list"></div>
+    </details>`;
+
+  // Bubble click: first click selects, clicking the selected bubble again
+  // opens its stock page. Clicking empty space clears the selection.
+  root.querySelector(".mi-svg").addEventListener("click", ev => {
+    const g = ev.target.closest(".mi-node");
+    if (!g) { miSelect(null); return; }
+    const id = g.dataset.id;
+    if (miState.selected === id) {
+      const n = MI_BY_ID[id];
+      if (n.ticker) loadTicker(n.ticker);
+    } else {
+      miSelect(id);
+    }
+  });
+  root.querySelector(".mi-svg").addEventListener("keydown", ev => {
+    if (ev.key !== "Enter" && ev.key !== " ") return;
+    const g = ev.target.closest(".mi-node");
+    if (!g) return;
+    ev.preventDefault();
+    g.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+  });
+
+  // The verbatim researched relationship cards, kept as the source trail.
+  const list = root.querySelector(".mi-research-list");
   SUPPLY_CHAIN_RELATIONSHIPS.forEach(rel => {
-    const aTicker = findNodeTicker(rel.a);
-    const bTicker = findNodeTicker(rel.b);
     const card = document.createElement("div");
     card.className = "supply-chain-rel-card";
     card.innerHTML = `
       <div class="supply-chain-rel-header">
-        <span class="supply-chain-rel-company${aTicker ? " linkable" : ""}" data-ticker="${aTicker || ""}">${rel.a}</span>
+        <span class="supply-chain-rel-company">${rel.a}</span>
         <span class="supply-chain-rel-arrow">${prettyRelationship(rel.relationship)} →</span>
-        <span class="supply-chain-rel-company${bTicker ? " linkable" : ""}" data-ticker="${bTicker || ""}">${rel.b}</span>
+        <span class="supply-chain-rel-company">${rel.b}</span>
       </div>
       <p class="supply-chain-rel-desc">${rel.description}</p>
       ${rel.confidenceNote ? `<p class="supply-chain-rel-note">${rel.confidenceNote}</p>` : ""}
       <div class="supply-chain-rel-footer">
         <span class="supply-chain-rel-source">Source: ${rel.source}</span>
         <span class="supply-chain-confidence supply-chain-confidence-${rel.confidence.toLowerCase()}">${rel.confidence} confidence</span>
-      </div>
-    `;
-    card.querySelectorAll(".linkable").forEach(el => {
-      el.addEventListener("click", () => loadTicker(el.dataset.ticker));
-    });
-    relEl.appendChild(card);
+      </div>`;
+    list.appendChild(card);
   });
 
-  homeContentEl.appendChild(wrap);
+  renderMiPanel();
+
+  // Logos: only start fetching once the diagram is actually on screen.
+  if ("IntersectionObserver" in window) {
+    const io = new IntersectionObserver(entries => {
+      if (entries.some(e => e.isIntersecting)) { io.disconnect(); miLoadLogos(); }
+    }, { rootMargin: "200px" });
+    io.observe(root);
+  } else {
+    miLoadLogos();
+  }
 }

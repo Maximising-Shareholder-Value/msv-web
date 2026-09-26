@@ -414,3 +414,34 @@ zero new bytes (`wrangler deploy` prints "No updated asset files to
 upload") can still take a few seconds for Cloudflare's edge cache
 (`cf-cache-status`) to stop serving the previous version's response for
 a given path — don't conclude a fix failed from one immediate check.
+
+## Layout gotchas (2026-09-26)
+
+- **`body { zoom: 1.1 }` breaks `100vh`.** Anything sized off the viewport
+  inside the zoomed body renders 10% too tall — the sidebar's bottom (API
+  usage panel) was cut off because of exactly this. The zoom now lives in
+  `--page-zoom` and viewport-sized things divide it back out
+  (`calc(100vh / var(--page-zoom))`, see `.app-sidebar`, `.app-shell`,
+  `.dashboard-right`). Use the same pattern for any new viewport-height
+  element. The sidebar is a fixed-height column: `.app-sidebar-scroll`
+  (nav, scrolls) + `.app-sidebar-footer` (API usage + disclaimer, pinned).
+- **Stock/ETF tabs** (Winners/Losers/Most Active + every browse category)
+  render one shared view: `renderQuotesView()` in home.js — a sortable
+  dense table (`buildQuotesTable`) plus `buildStockHeatmap`. Browse
+  categories now fetch live quotes on demand (`ensureBrowseQuotes`, cached
+  per session, in-flight promise shared) — they used to be zero-cost
+  name-only chips. Tiles are uniform size (not sized by market cap: that
+  would need a profile2 call per ticker).
+- **Market Intelligence is not a tab.** It's its own container
+  (`#marketIntelCard`, `data-home-section="market-intelligence"`) rendered
+  by `renderMarketIntel()` in supplyChain.js: an SVG dependency graph
+  (`MI_LAYERS`/`MI_NODES`/`MI_EDGES`). Solid edges map to the researched
+  `SUPPLY_CHAIN_RELATIONSHIPS` (sourced); dashed edges are the app's own
+  structural reasoning and are labelled "Inferred" — keep that distinction
+  if adding nodes, never present an inferred link as sourced. Logos come
+  from Finnhub `/stock/profile2`, cached 30 days in localStorage and only
+  fetched once the diagram scrolls into view (24 tickers would otherwise
+  eat the 60/min Finnhub budget).
+- **Calendar dates** (`ECON_CALENDAR_EVENTS`) were read directly off the
+  Fed / BLS / BEA schedule pages on 2026-09-26; each row links to its
+  source page. Extend them periodically (they only publish months ahead).

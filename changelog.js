@@ -14,6 +14,17 @@
 // showing a header per commit.
 const CHANGELOG = [
   {
+    date: "2026-09-26T12:00:00+08:00",
+    items: [
+      "Market Intelligence is now its own section with a left-to-right web diagram: arrows show which companies depend on which — from AI labs, through cloud and chips, down to power equipment and raw materials. Click a bubble for details, click it again to open its stock page.",
+      "Winners, Losers, Most Active and every stock category now show the same dense table as Crypto, plus a detailed heatmap underneath. Click any column heading to sort.",
+      "The home page now opens on Trending Tech, and clicking Home always takes you back to it.",
+      "The sidebar now scrolls properly (the bottom was being cut off), with the API usage meter and a short disclaimer pinned at the bottom. The $MSV logo is bigger, with the full name beside it.",
+      "The Economic Calendar now lists every upcoming Fed, CPI, PPI, jobs, GDP and PCE date through year-end, each linking to its official schedule. Earnings This Week shows many more companies, with estimates and links.",
+      "Explore Products is tighter and now lists 50+ products and sub-products.",
+    ],
+  },
+  {
     date: "2026-09-25T10:00:00+08:00",
     items: [
       "Sidebar text and icons are bigger, and the full name — Maximising Shareholder Value — now sits under the $MSV logo.",
