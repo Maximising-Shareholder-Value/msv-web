@@ -1,42 +1,73 @@
-// A personal "how close am I to Finnhub's 60/min limit" gauge — for the
-// user's own awareness while clicking around, not a precise live quota.
+// A personal "how close am I to each API's free-tier limit" panel (bottom
+// of the sidebar) — for the user's own awareness while clicking around,
+// not a precise live quota.
 //
-// It can only count requests THIS browser tab has sent (via the log in
-// script.js's finnhubUrl()) — it has no way to see calls from other tabs,
-// other visitors, or the background edge cache. Finnhub's real 60/min
-// limit is enforced server-side across everything hitting that API key,
-// so a fully accurate number isn't something the client can ever show.
-// This is deliberately framed as an estimate (see the (est.) label and
-// tooltip in index.html) rather than a precise countdown, to avoid
-// implying more certainty than the data actually supports.
+// It can only count requests THIS browser tab has sent (via apiCallLogs in
+// script.js, fed by each API's URL helper) — it has no way to see calls
+// from other tabs, other visitors, or the background edge cache. Every
+// real limit is enforced server-side across everything hitting that API
+// key (all visitors share the Worker's keys), so a fully accurate number
+// isn't something the client can ever show. This is deliberately framed
+// as an estimate (see the (est.) label and tooltip in index.html) rather
+// than a precise countdown, to avoid implying more certainty than the
+// data actually supports.
+//
+// Limits are each provider's published free-tier numbers: Finnhub 60/min,
+// Twelve Data 8/min + 800/day (the free plan enforces both), CoinGecko 30/
+// min (its Demo-key plan — the public no-key tier is stricter), FRED 120/
+// min, Alpaca 1,000/min (Basic market-data plan). World Bank publishes no
+// hard limit, so it shows a count with no bar.
 
 const API_USAGE_WINDOW_MS = 60 * 1000;
 
-const apiUsageFillEl = document.getElementById("apiUsageFill");
-const apiUsageTextEl = document.getElementById("apiUsageText");
+const API_USAGE_ROWS = [
+  { key: "finnhub", label: "Finnhub", limit: 60, per: "min" },
+  { key: "twelvedata", label: "Twelve Data", limit: 8, per: "min" },
+  { key: "twelvedata", label: "Twelve Data", limit: 800, per: "day" },
+  { key: "coingecko", label: "CoinGecko", limit: 30, per: "min" },
+  { key: "fred", label: "FRED", limit: 120, per: "min" },
+  { key: "alpaca", label: "Alpaca", limit: 1000, per: "min" },
+  { key: "worldbank", label: "World Bank", limit: null, per: "min" },
+];
+
+const apiUsageListEl = document.getElementById("apiUsageList");
+
+if (apiUsageListEl) {
+  apiUsageListEl.innerHTML = API_USAGE_ROWS.map(() => `
+    <div class="api-usage-row">
+      <div class="api-usage-row-top"><span class="api-usage-name"></span><span class="api-usage-text"></span></div>
+      <div class="api-usage-bar"><div class="api-usage-fill"></div></div>
+    </div>
+  `).join("");
+}
 
 function renderApiUsage() {
+  if (!apiUsageListEl) return;
   const now = Date.now();
   // Prune anything older than the trailing 60s window — keeps the log
-  // array small and the count accurate without needing a separate timer
-  // to remove old entries.
-  while (finnhubCallLog.length && now - finnhubCallLog[0] > API_USAGE_WINDOW_MS) {
-    finnhubCallLog.shift();
-  }
+  // arrays small and the counts accurate without a separate timer.
+  Object.values(apiCallLogs).forEach(log => {
+    while (log.length && now - log[0] > API_USAGE_WINDOW_MS) log.shift();
+  });
 
-  const count = finnhubCallLog.length;
-  const pct = Math.min(100, (count / 60) * 100);
-  apiUsageFillEl.style.width = `${pct}%`;
-  apiUsageFillEl.classList.toggle("api-usage-fill-warn", count >= 45 && count < 60);
-  apiUsageFillEl.classList.toggle("api-usage-fill-danger", count >= 60);
+  const rows = apiUsageListEl.children;
+  API_USAGE_ROWS.forEach((cfg, i) => {
+    const count = cfg.per === "day" ? getDailyCount(cfg.key) : apiCallLogs[cfg.key].length;
+    const row = rows[i];
+    row.querySelector(".api-usage-name").textContent = cfg.per === "day" ? `${cfg.label} (daily)` : cfg.label;
+    row.querySelector(".api-usage-text").textContent = cfg.limit
+      ? `${count.toLocaleString()} / ${cfg.limit.toLocaleString()} per ${cfg.per}`
+      : `${count} per min · no hard limit`;
 
-  if (count === 0) {
-    apiUsageTextEl.textContent = "0 / 60 this min";
-  } else {
-    const oldest = finnhubCallLog[0];
-    const resetInSec = Math.max(0, Math.ceil((API_USAGE_WINDOW_MS - (now - oldest)) / 1000));
-    apiUsageTextEl.textContent = `${count} / 60 this min · resets in ${resetInSec}s`;
-  }
+    const fill = row.querySelector(".api-usage-fill");
+    const barWrap = row.querySelector(".api-usage-bar");
+    barWrap.classList.toggle("hidden", !cfg.limit);
+    if (!cfg.limit) return;
+    const pct = Math.min(100, (count / cfg.limit) * 100);
+    fill.style.width = `${pct}%`;
+    fill.classList.toggle("api-usage-fill-warn", pct >= 75 && pct < 100);
+    fill.classList.toggle("api-usage-fill-danger", pct >= 100);
+  });
 }
 
 setInterval(renderApiUsage, 1000);

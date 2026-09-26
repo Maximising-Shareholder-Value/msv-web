@@ -89,9 +89,36 @@ const API_BASE_URL = "https://msv-api.jozsua-heng.workers.dev";
 // edge cache and never reach Finnhub at all, so it's an upper-bound
 // estimate, not a precise live quota. See apiUsage.js for why a fully
 // accurate shared counter isn't possible from the client.
-const finnhubCallLog = [];
+// Generalized 2026-09-25 to every API the app uses (sidebar usage panel,
+// apiUsage.js) — same "requests this tab initiated" caveat applies to all.
+const apiCallLogs = { finnhub: [], twelvedata: [], coingecko: [], fred: [], alpaca: [], worldbank: [] };
+const finnhubCallLog = apiCallLogs.finnhub;
+
+// Twelve Data's free plan also has a per-DAY cap (800), so its count is
+// kept in localStorage per UTC day (their reset boundary) to survive page
+// reloads. Still browser-local: other tabs/visitors aren't visible here.
+function bumpDailyCount(name) {
+  try {
+    const key = `msv-api-daily-${name}`;
+    const today = new Date().toISOString().slice(0, 10);
+    const saved = JSON.parse(localStorage.getItem(key) || "null");
+    const count = saved && saved.date === today ? saved.count + 1 : 1;
+    localStorage.setItem(key, JSON.stringify({ date: today, count }));
+  } catch { /* storage unavailable — the per-minute count still works */ }
+}
+function getDailyCount(name) {
+  try {
+    const saved = JSON.parse(localStorage.getItem(`msv-api-daily-${name}`) || "null");
+    return saved && saved.date === new Date().toISOString().slice(0, 10) ? saved.count : 0;
+  } catch { return 0; }
+}
+function logApiCall(name) {
+  apiCallLogs[name].push(Date.now());
+  if (name === "twelvedata") bumpDailyCount(name);
+}
+
 function finnhubUrl(path, params) {
-  finnhubCallLog.push(Date.now());
+  logApiCall("finnhub");
   const search = new URLSearchParams(params || {});
   if (IS_LOCAL_DEV) {
     search.set("token", FINNHUB_API_KEY);
@@ -107,6 +134,7 @@ function finnhubUrl(path, params) {
 // since header-based auth isn't something worth duplicating into a local
 // file for one API. Options data only (see msv-api's proxyAlpaca()).
 function alpacaUrl(path, params) {
+  logApiCall("alpaca");
   const search = new URLSearchParams(params || {});
   search.set("path", path);
   return `${API_BASE_URL}/api/alpaca?${search.toString()}`;

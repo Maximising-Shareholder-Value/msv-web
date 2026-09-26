@@ -32,6 +32,7 @@ const CRYPTO_ITEMS = Object.keys(CRYPTO_COINGECKO_IDS).map(symbol => [symbol, { 
 const FRED_PROXY_BASE = API_BASE_URL || "https://maximising-shareholder-value.jozsua-heng.workers.dev";
 
 function coingeckoUrl(path, params) {
+  logApiCall("coingecko");
   const search = new URLSearchParams(params || {});
   if (IS_LOCAL_DEV) {
     if (typeof COINGECKO_API_KEY !== "undefined" && COINGECKO_API_KEY && COINGECKO_API_KEY !== "YOUR_COINGECKO_KEY_HERE") {
@@ -44,6 +45,7 @@ function coingeckoUrl(path, params) {
 }
 
 function fredUrl(seriesId, extraParams) {
+  logApiCall("fred");
   const search = new URLSearchParams({
     path: "/series/observations",
     series_id: seriesId,
@@ -1157,6 +1159,7 @@ const WORLD_BANK_GOVERNANCE_INDICATORS = [
 ];
 
 function worldBankUrl(indicatorId, countryIso3) {
+  logApiCall("worldbank");
   const search = new URLSearchParams({
     path: `/country/${countryIso3}/indicator/${indicatorId}`,
     format: "json",
@@ -1185,6 +1188,7 @@ async function fetchWorldBankIndicator(ind, countryIso3) {
 let worldBankCountryListPromise = null;
 function fetchWorldBankCountryList() {
   if (!worldBankCountryListPromise) {
+    logApiCall("worldbank");
     const search = new URLSearchParams({ path: "/country", format: "json", per_page: "320" });
     worldBankCountryListPromise = fetchJSON(`${API_BASE_URL}/api/worldbank?${search.toString()}`)
       .then(data => {

@@ -14,6 +14,14 @@
 // showing a header per commit.
 const CHANGELOG = [
   {
+    date: "2026-09-25T10:00:00+08:00",
+    items: [
+      "Sidebar text and icons are bigger, and the full name — Maximising Shareholder Value — now sits under the $MSV logo.",
+      "The API usage meter moved to the bottom of the sidebar and now tracks every data source (Finnhub, Twelve Data, CoinGecko, FRED, Alpaca, World Bank) against its free-tier limit.",
+      "The \"Search a ticker...\" line moved up next to the clock to use the empty space in the header.",
+    ],
+  },
+  {
     date: "2026-09-24T18:00:00+08:00",
     items: [
       "Sidebar links now take you to a real page with its own address — you can bookmark it, share it, or use your browser's back/forward buttons like normal.",

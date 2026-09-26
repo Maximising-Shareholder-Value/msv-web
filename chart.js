@@ -122,6 +122,7 @@ function parseNaiveTime(dateTimeStr) {
 // (using config.js's key), proxied through Cloudflare Pages Functions when
 // deployed (IS_LOCAL_DEV is declared in script.js, loaded before this file).
 function twelveDataUrl(path, params) {
+  logApiCall("twelvedata");
   const search = new URLSearchParams(params || {});
   if (IS_LOCAL_DEV) {
     search.set("apikey", TWELVE_DATA_API_KEY);
