@@ -1,0 +1,77 @@
+/* Only what the POC adds on top of the live site's style.css */
+.poc-page { max-width: 1240px; margin: 0 auto; padding: 24px 20px 60px; }
+.poc-banner { display: flex; justify-content: space-between; align-items: center; gap: 12px 20px; flex-wrap: wrap; padding: 12px 16px; margin-bottom: 16px; border: 1px dashed var(--accent); border-radius: 12px; background: color-mix(in srgb, var(--accent) 8%, var(--bg-surface)); }
+.poc-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.poc-toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; cursor: pointer; }
+.poc-star-cell { width: 28px; padding-right: 0 !important; }
+.poc-star { background: none; border: none; cursor: pointer; font-size: 16px; line-height: 1; color: var(--text-muted); padding: 2px; }
+.poc-star:hover { color: var(--accent); }
+.poc-star.on { color: #e0a800; }
+.poc-chart { width: 100%; height: auto; display: block; }
+.poc-axis { font-size: 10.5px; fill: var(--text-muted); }
+.poc-tip-date { font-size: 10.5px; fill: var(--text-muted); }
+.poc-tip-val { font-size: 13px; font-weight: 700; fill: var(--text-primary); }
+/* the star column shifts "Coin" to the 3rd column, so left-align that one */
+.cr-table th:nth-child(3), .cr-table td:nth-child(3) { text-align: left; }
+
+/* --- Tabs --- */
+.poc-tabs { display: flex; gap: 4px; flex-wrap: wrap; border-bottom: 1px solid var(--border); margin: 14px 0 18px; }
+.poc-tab { padding: 9px 14px; border: none; background: none; color: var(--text-secondary); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.poc-tab:hover { color: var(--text-primary); }
+.poc-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* --- Market breadth --- */
+.poc-breadth-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
+
+/* --- News --- */
+.news-list { display: flex; flex-direction: column; }
+.news-row { display: grid; grid-template-columns: 64px 1fr; gap: 12px; padding: 10px 4px; border-bottom: 1px solid var(--border); text-decoration: none; color: var(--text-primary); align-items: center; }
+.news-row:hover { background: var(--bg-surface-2); }
+.news-thumb { width: 64px; height: 48px; object-fit: cover; border-radius: 6px; background: var(--bg-surface-2); }
+.news-thumb-blank { display: block; }
+.news-body { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.news-body strong { font-size: 13.5px; line-height: 1.35; }
+.news-meta { font-size: 11px; color: var(--text-muted); }
+
+/* --- Regulation & adoption tracker --- */
+.tracker-list { display: flex; flex-direction: column; gap: 10px; }
+.tracker-row { display: grid; grid-template-columns: 96px 1fr; gap: 14px; padding: 10px 12px; border-radius: 10px; background: var(--bg-surface-2); text-decoration: none; color: var(--text-primary); }
+.tracker-row:hover { outline: 1px solid var(--accent); }
+.tracker-date { font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em; }
+.tracker-body { display: flex; flex-direction: column; gap: 3px; font-size: 13px; line-height: 1.55; }
+.tracker-body strong { font-size: 13.5px; color: var(--text-primary); }
+.tracker-body span { color: var(--text-secondary); }
+
+/* --- Dominance donut --- */
+.dom-wrap { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+.dom-donut { width: 150px; height: 150px; flex: none; }
+.dom-center-label { font-size: 9px; fill: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.dom-center-value { font-size: 13px; font-weight: 800; fill: var(--text-primary); }
+.dom-legend { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 140px; }
+.dom-legend-row { display: flex; align-items: center; gap: 8px; font-size: 12.5px; }
+.dom-legend-row i { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+.dom-legend-row span { flex: 1; }
+.dom-legend-row b { font-variant-numeric: tabular-nums; }
+
+/* --- Movers --- */
+.mover-row { padding: 8px 0; border-bottom: 1px solid var(--border); }
+.mover-row:last-child { border-bottom: none; }
+.mover-head { display: flex; align-items: center; gap: 8px; width: 100%; background: none; border: none; padding: 0; cursor: pointer; color: var(--text-primary); font: inherit; text-align: left; }
+.mover-head img { border-radius: 50%; }
+.mover-head strong { font-size: 13px; }
+.mover-pct { margin-left: auto; font-weight: 800; font-variant-numeric: tabular-nums; }
+.mover-why { margin-top: 4px; padding-left: 30px; font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+.mover-why-news { display: block; text-decoration: none; color: var(--accent); }
+.mover-why-news:hover { text-decoration: underline; }
+
+/* --- Trending news links --- */
+.cr-trend-row-wrap { border-bottom: 1px solid var(--border); }
+.cr-trend-row-wrap .cr-trend-row { border-bottom: none; }
+.cr-trend-news { display: block; padding: 0 4px 8px 51px; font-size: 11.5px; color: var(--accent); text-decoration: none; }
+.cr-trend-news:hover { text-decoration: underline; }
+
+/* --- Rainbow / Stock-to-Flow charts --- */
+.rainbow-svg { width: 100%; height: auto; display: block; border-radius: 10px; }
+.rainbow-axis { fill: var(--text-secondary); font-size: 10.5px; }
+.rainbow-legend { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.rainbow-chip { padding: 3px 10px; border-radius: 999px; font-size: 10.5px; font-weight: 700; color: #fff; }

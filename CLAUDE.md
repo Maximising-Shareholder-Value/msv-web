@@ -445,3 +445,58 @@ a given path — don't conclude a fix failed from one immediate check.
 - **Calendar dates** (`ECON_CALENDAR_EVENTS`) were read directly off the
   Fed / BLS / BEA schedule pages on 2026-09-26; each row links to its
   source page. Extend them periodically (they only publish months ahead).
+
+## Batch of 2026-09-27: new pages and their files
+
+Still no build step: each file is a plain `<script>` sharing globals, so
+**script order in index.html matters** — a file may only use another
+file's functions at *call* time, but any top-level `const` that reads a
+global from a later file will throw (this bit `crypto.js`, which loads
+before `home.js`'s `CRYPTO_COINGECKO_IDS`; it now looks it up lazily).
+Order: config, definitions, changelog, sectorRules, analysis, clock,
+script, dataUtils, apiUsage, countries, worldMarkets, marketData,
+riskDashboard, supplyChain, sectors, etfs, crypto, home, learn, chart,
+invest, autocomplete, compare.
+
+- `countries.js` — the 42-country table (`iso2` = worldmap.svg class,
+  `etf` = live-verified US-listed country ETF), group tags (BRICS,
+  developed, emerging, frontier, G7) and the map projection. The basemap
+  is **not** a standard equirectangular fit: `X = 7.6407*lon + 1270.42`,
+  `Y = -7.7154*lat + 757.56`, derived from country bbox centres and
+  checked by testing each dot with `isPointInFill`. Use `mapLonToX`/
+  `mapLatToY`; never hand-place dots.
+- `dataUtils.js` — shared throttled+cached fetch layer
+  (`fetchQuoteCached`, `fetchMetricCached`, `loadQuotesThrottled`;
+  quote TTL 2 min, metric TTL 15 min), formatters, `sparklineSvg`,
+  `lineChartSvg`. Finnhub's free tier is 60/min shared, so **any page that
+  loads many tickers must go through this**, not raw `fetchJSON`.
+- `worldMarkets.js` / `marketData.js` / `riskDashboard.js` — the Market
+  Data page (map, hover card, country profile, risk dashboard). World Bank
+  is called one indicator at a time using the multi-country `;` syntax
+  (`mrnev=1`); bursts get throttled, so `wbLimit` (4 at once) + `wbRetry`
+  (3 tries). Taiwan isn't covered by the World Bank. Risk bands are
+  rules of thumb, always shown as such — never forecasts.
+- `sectors.js` — 11 sectors + 52 industries/themes, each tracked by an ETF
+  (a *proxy*; sector ETF holdings aren't free). "Representative companies"
+  are a **curated list, explicitly not live holdings**; all were
+  live-quote-checked 2026-09-27 and dead ones pruned (delisted/acquired:
+  EA, CMA, MRO, CTRA, ABB, …; SQ→XYZ, FI→FISV).
+- `etfs.js` — 42 categories / ~290 ETFs in 8 families; every ticker
+  live-checked. Expense ratio, holdings and AUM are paywalled (see
+  BLOCKERS.md), so not shown.
+- `crypto.js` — CoinGecko (via msv-api): `/global`, `/coins/markets`
+  (top 100 with sparkline + 1h/24h/7d/30d/1y changes in one call),
+  `/search/trending`, `/coins/categories`, `/coins/{id}` + `market_chart`.
+  alternative.me (Fear & Greed) and DefiLlama (chain TVL, stablecoins) are
+  called **directly from the browser** (both CORS-open, no key) — so they
+  don't appear in the API-usage panel. CoinGecko's free tier returns
+  **empty** community/developer data (verified 2026-09-27), so the coin
+  panel doesn't show them.
+- Routing: `sectors`, `etfs`, `crypto`, `market-data` are page-only cards
+  (`data-page-only="true"`, section key in `data-home-section`) shown by
+  `showHomeFocused()`. `indexes`/`bonds`/`commodities` are shortcuts into
+  ETF categories. The stock pill row is shown only for stock tabs
+  (`STOCK_PILL_TABS`).
+- **Gotcha when bulk-editing data files with scripts:** `sectors.js`
+  mixes `reps: ["A","B"]` (industries) and `reps: [["A","Name"],…]`
+  (sectors). A naive regex mangled it once; use bracket matching.

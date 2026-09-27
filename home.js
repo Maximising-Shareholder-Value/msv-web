@@ -304,6 +304,8 @@ const PLACEHOLDER_INFO = {
   "create-account": { icon: "🆕", title: "Create Free Account", description: "User accounts aren't built yet — this needs real authentication and a backend to store anything per-user. On the roadmap, not started." },
   "login": { icon: "🔑", title: "Log In", description: "Depends on accounts existing first — see Create Free Account." },
   "performance": { icon: "📈", title: "Performance", description: "A planned asset-class performance comparison — stocks vs. bonds vs. commodities vs. crypto returns over time. Distinct from the Sectors heatmap. Not built yet." },
+  "bitcoin-cycles": { icon: "🌈", title: "Bitcoin Cycles", description: "A Bitcoin Rainbow Chart, Stock-to-Flow model and halving schedule — prototyped in the site's React proof-of-concept, not yet ported into this page." },
+  "crypto-news": { icon: "📰", title: "Crypto News", description: "A dedicated crypto news feed plus a regulation & global-adoption tracker (CLARITY Act, MiCA, country-by-country rules) — prototyped in the site's React proof-of-concept, not yet ported into this page." },
   "portfolio-builder": { icon: "🧱", title: "Portfolio Builder", description: "Depends on accounts existing first — a portfolio needs to belong to someone." },
   "portfolio-health-check": { icon: "🩺", title: "Portfolio Health Check", description: "Depends on Portfolio Builder existing first." },
   // Added 2026-09-24 for the Explore Products retaxonomy (see EXPLORE_CATEGORIES) —
@@ -376,21 +378,23 @@ const EXPLORE_DIRECTORY = [
   { title: "Governance & Politics", description: "Stability, rule of law, corruption.", nav: "governance", live: true, icon: "macro" },
   { title: "Economic Calendar", description: "Fed, CPI, jobs, GDP dates.", nav: "economic-calendar", live: true, icon: "market-news" },
   { title: "Indexes", description: "S&P 500, Nasdaq, Dow, Russell.", nav: "indexes", live: true },
-  { title: "ETFs", description: "Index, sector and thematic ETFs.", nav: "etfs", live: true },
-  { title: "Bonds", description: "Bond ETFs (no free bond data).", nav: "bonds", live: true },
+  { title: "ETFs", description: "42 categories, ~290 ETFs, live prices.", nav: "etfs", live: true },
+  { title: "Bonds", description: "Treasury, corporate and global bond ETFs.", nav: "bonds", live: true },
   { title: "Commodities", description: "Gold, oil, grains, metals.", nav: "commodities", live: true },
   { title: "Precious Metals", description: "Gold, silver, platinum.", nav: "precious-metals", live: false },
   { title: "Energy Markets", description: "Oil, gas and power.", nav: "energy-markets", live: false },
   { title: "Forex", description: "Currency pairs (data available).", nav: "forex", live: false },
-  { title: "Crypto", description: "Major coins with market data.", nav: "crypto", live: true },
+  { title: "Crypto", description: "Top 100 coins, DeFi, stablecoins, Fear & Greed.", nav: "crypto", live: true },
+  { title: "Bitcoin Cycles", description: "Rainbow chart, Stock-to-Flow, halvings.", nav: "bitcoin-cycles", live: false },
+  { title: "Crypto News", description: "News feed + regulation/adoption tracker.", nav: "crypto-news", live: false },
   { title: "Options Explorer", description: "Cross-market options screen.", nav: "options-explorer", live: false },
 
   { title: "Market Intelligence", description: "Who depends on whom in AI.", nav: "market-intelligence", live: true },
   { title: "Energy & Power Map", description: "Grid supply-chain map.", nav: "energy-theme", live: false, icon: "market-intelligence" },
   { title: "EV & Battery Map", description: "EV supply-chain map.", nav: "ev-theme", live: false, icon: "market-intelligence" },
   { title: "Defense & Aerospace Map", description: "Defense supply-chain map.", nav: "defense-theme", live: false, icon: "market-intelligence" },
-  { title: "Market Data", description: "World map, exchange hours.", nav: "market-data", live: true },
-  { title: "Sectors", description: "Sector performance heatmap.", nav: "sectors", live: true },
+  { title: "Market Data", description: "42-country map, risk dashboard, country profiles.", nav: "market-data", live: true },
+  { title: "Sectors", description: "11 sectors + 52 industries, full breakdowns.", nav: "sectors", live: true },
   { title: "Market News", description: "Latest market headlines.", nav: "market-news", live: true },
 
   { title: "Watchlist", description: "Tickers you're tracking.", nav: "watchlist", live: true },
@@ -431,11 +435,29 @@ function setActiveNav(navKey) {
 // the map hover popup) are never touched by this.
 function showHomeFocused(sectionKey) {
   document.querySelectorAll("#homeView [data-home-section]").forEach(el => {
+    const keys = el.dataset.homeSection.split(" ");
+    // data-page-only cards (country profile, risk dashboard, Sectors, ETFs,
+    // Crypto pages) never appear on the full homepage — only when their own
+    // page is focused.
     const show = sectionKey === null
-      ? el.dataset.homeSection !== "watchlist"
-      : el.dataset.homeSection === sectionKey;
+      ? !keys.includes("watchlist") && el.dataset.pageOnly !== "true"
+      : keys.includes(sectionKey);
     el.classList.toggle("hidden", !show);
   });
+  homeView.dataset.focus = sectionKey || "home";
+  updatePillsVisibility();
+}
+
+// The category pill row (Winners / Losers / Most Active / Trending Tech …)
+// belongs to the Stock Analysis view only — Macro, Learn and the other
+// dedicated pages have their own structure (2026-09-27).
+const STOCK_PILL_TABS = ["winners", "losers", "active", "trending-tech", "blue-chip", "dividend-payers", "growth"];
+function updatePillsVisibility() {
+  const controls = document.getElementById("homeControlsCard");
+  if (!controls) return;
+  const focus = homeView.dataset.focus;
+  const stockView = STOCK_PILL_TABS.includes(homeState.activeTab) && (focus === "home" || focus === "home-tabs");
+  controls.classList.toggle("hidden", !stockView);
 }
 
 function showPlaceholderPage(key) {
@@ -519,17 +541,19 @@ function showExploreProducts() {
 const ROUTES = {
   "home": { path: "/", render: () => { goHome(); if (homeState.activeTab !== "trending-tech") switchTab("trending-tech"); } },
   "stock-analysis": { path: "/stock-analysis", render: () => { goToHomeTab("winners"); showHomeFocused("home-tabs"); } },
-  "market-data": { path: "/market-data", render: () => { goHome(); showHomeFocused("world-markets"); } },
+  "market-data": { path: "/market-data", render: () => { goHome(); showHomeFocused("market-data"); renderMarketDataPage(); } },
   "market-news": { path: "/market-news", render: () => { goHome(); showHomeFocused("market-news"); } },
   "learn": { path: "/learn", render: () => { goToHomeTab("learn"); showHomeFocused("home-tabs"); } },
-  "sectors": { path: "/sectors", render: () => { goHome(); showHomeFocused("sector-heatmap"); } },
+  "sectors": { path: "/sectors", render: () => { goHome(); showHomeFocused("sectors"); renderSectorsPage(); } },
   "market-intelligence": { path: "/market-intelligence", render: () => { goHome(); showHomeFocused("market-intelligence"); } },
-  "etfs": { path: "/etfs", render: () => { goToHomeTab("etfs"); showHomeFocused("home-tabs"); } },
-  "indexes": { path: "/indexes", render: () => { goToHomeTab("etfs"); showHomeFocused("home-tabs"); } },
-  "bonds": { path: "/bonds", render: () => { goToHomeTab("bond-etfs"); showHomeFocused("home-tabs"); } },
-  "commodities": { path: "/commodities", render: () => { goToHomeTab("commodities"); showHomeFocused("home-tabs"); } },
-  "crypto": { path: "/crypto", render: () => { goToHomeTab("crypto"); showHomeFocused("home-tabs"); } },
+  "etfs": { path: "/etfs", render: () => { goHome(); showHomeFocused("etfs"); renderEtfsPage(); } },
+  "indexes": { path: "/indexes", render: () => { goHome(); showHomeFocused("etfs"); etfState.selected = "us-broad"; renderEtfsPage(); } },
+  "bonds": { path: "/bonds", render: () => { goHome(); showHomeFocused("etfs"); etfState.selected = "bond-treasury"; renderEtfsPage(); } },
+  "commodities": { path: "/commodities", render: () => { goHome(); showHomeFocused("etfs"); etfState.selected = "com-broad"; renderEtfsPage(); } },
+  "crypto": { path: "/crypto", render: () => { goHome(); showHomeFocused("crypto"); renderCryptoPage(); } },
   "performance": { path: "/performance", render: () => showPlaceholderPage("performance") },
+  "bitcoin-cycles": { path: "/bitcoin-cycles", render: () => showPlaceholderPage("bitcoin-cycles") },
+  "crypto-news": { path: "/crypto-news", render: () => showPlaceholderPage("crypto-news") },
   "macro": { path: "/macro", render: () => { goToHomeTab("macro"); showHomeFocused("home-tabs"); } },
   "portfolio-builder": { path: "/portfolio-builder", render: () => showPlaceholderPage("portfolio-builder") },
   "watchlist": { path: "/watchlist", render: () => { goHome(); showHomeFocused("watchlist"); } },
@@ -646,7 +670,12 @@ function loadMarketTickers() {
   results.forEach(r => { if (r) homeState.marketTickers[r.symbol] = r.quote; });
 
   Array.from(indexStripEl.children).forEach(chip => {
-    chip.addEventListener("click", () => loadTicker(chip.dataset.symbol));
+    // A chip is a country: click opens its full profile on the Market Data
+    // page (was: the country ETF's stock page).
+    chip.addEventListener("click", () => {
+      const c = COUNTRIES.find(x => x.etf === chip.dataset.symbol);
+      if (c) openCountry(c.iso2); else loadTicker(chip.dataset.symbol);
+    });
   });
 
   if (typeof renderWorldMarkets === "function") renderWorldMarkets();
@@ -798,12 +827,11 @@ function loadSectorHeatmap() {
   const results = [];
   Promise.all(SECTOR_ETFS.map(([symbol, name], i) => new Promise(resolve => {
     setTimeout(async () => {
-      try {
-        const q = await fetchJSON(finnhubUrl("/quote", { symbol }));
-        if (isNum(q.c) && q.c !== 0) results.push({ symbol, name, dp: q.dp ?? 0 });
-      } catch {
-        // leave this sector out of the heatmap rather than showing a wrong number
-      }
+      // fetchQuoteCached (dataUtils.js) shares its cache with the Sectors
+      // page, so opening that page later costs no extra API calls.
+      const q = await fetchQuoteCached(symbol);
+      // a failed quote is left out rather than showing a wrong number
+      if (q) results.push({ symbol, name, dp: q.dp ?? 0 });
       resolve();
     }, i * 40);
   }))).then(() => renderSectorHeatmap(results));
@@ -898,7 +926,7 @@ function buildTabs() {
   // Market Intelligence is deliberately NOT a tab either (2026-09-26,
   // Jozsua: "separate it out") — it's its own standalone container
   // (#marketIntelCard, supplyChain.js) below the categories.
-  const allTabs = [...DYNAMIC_TABS, ...BROWSE_CATEGORIES, { id: "crypto", title: "Crypto" }, { id: "macro", title: "Macro" }];
+  const allTabs = [...DYNAMIC_TABS, ...BROWSE_CATEGORIES.filter(c => STOCK_PILL_TABS.includes(c.id))];
   allTabs.forEach(tab => {
     const btn = document.createElement("button");
     btn.type = "button";
@@ -914,6 +942,7 @@ async function switchTab(tabId) {
   homeState.activeTab = tabId;
   Array.from(homeTabsEl.children).forEach(btn => btn.classList.toggle("active", btn.dataset.tabId === tabId));
   learnBannerEl?.classList.toggle("active", tabId === "learn");
+  updatePillsVisibility();
 
   if (tabId === "macro") {
     renderMacroTab();
@@ -1237,21 +1266,29 @@ function buildQuotesTable(items) {
 }
 
 // The full stock/ETF view: table first, then a comprehensive heatmap below.
-function renderQuotesView(items, note) {
-  homeContentEl.innerHTML = "";
+// `target` defaults to the home tab area; the ETFs page passes its own
+// container. Rows whose price hasn't arrived yet show "--" (they fill in
+// as live quotes land), and the heatmap appears once at least one has.
+function renderQuotesView(items, note, target) {
+  const host = target || homeContentEl;
+  host.innerHTML = "";
+  if (!items.length) { host.innerHTML = '<p class="muted">Nothing to show here.</p>'; return; }
   const withQuotes = items.filter(i => i.quote);
-  if (withQuotes.length === 0) {
-    homeContentEl.innerHTML = '<p class="muted">No live prices available right now — this can happen if the free data tier is temporarily rate-limited. Try again in a moment.</p>';
-    return;
-  }
-  homeContentEl.appendChild(buildQuotesTable(items));
+  host.appendChild(buildQuotesTable(items));
   if (note) {
     const n = document.createElement("p");
     n.className = "muted small home-note";
     n.textContent = note;
-    homeContentEl.appendChild(n);
+    host.appendChild(n);
   }
-  homeContentEl.appendChild(buildStockHeatmap(withQuotes));
+  if (withQuotes.length === 0) {
+    const n = document.createElement("p");
+    n.className = "muted small home-note";
+    n.textContent = "Loading live prices… if this doesn't fill in, the free data tier may be rate-limited — try again in a moment.";
+    host.appendChild(n);
+    return;
+  }
+  host.appendChild(buildStockHeatmap(withQuotes));
 }
 
 // Uniform tile size (not sized by market cap like a "real" treemap would

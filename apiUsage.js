@@ -41,13 +41,12 @@ if (apiUsageListEl) {
   `).join("");
 }
 
-// Collapsible so short screens can hide the rows and keep more room for
-// the nav — remembered across visits; defaults to collapsed on short
-// windows (under 800px tall) where the full panel would crowd the menu.
+// Collapsible — remembered across visits. Sits below Compare as part of the
+// sidebar's continuous scroll (no longer pinned), so it defaults to open.
 const apiUsageWidgetEl = document.getElementById("apiUsageWidget");
 const apiUsageToggleEl = document.getElementById("apiUsageToggle");
 if (apiUsageWidgetEl && apiUsageToggleEl) {
-  let collapsed = window.innerHeight < 800;
+  let collapsed = false;
   try {
     const saved = localStorage.getItem("msv-usage-collapsed");
     if (saved !== null) collapsed = saved === "1";

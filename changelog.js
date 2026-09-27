@@ -14,6 +14,19 @@
 // showing a header per commit.
 const CHANGELOG = [
   {
+    date: "2026-09-27T18:00:00+08:00",
+    items: [
+      "Market Data is now a full research page: 42 countries (all the BRICS members, Indonesia and many more emerging markets), a richer hover card, and a colour-by switch on the map. Click any country — on the map or in the list — for a detailed profile below it.",
+      "New global risk dashboard under the map: market fear (VIX), interest rates, inflation, credit stress and country-risk gauges, with plain-English risk bands.",
+      "Mumbai and Johannesburg dots now sit on the right cities.",
+      "Sectors: 11 sectors plus 52 industries and themes, all the same tile size, with a sortable data table and a full breakdown when you click one.",
+      "ETFs: 42 categories and about 290 ETFs — US baskets, sectors, themes, global, bonds, commodities, mining, crypto and more — with a search box.",
+      "Crypto: total market stats, Fear & Greed gauge, trending coins, a sortable top-100 table with charts, a full profile per coin, DeFi and stablecoin data, crypto ETFs and stocks, and a Crypto 101 glossary.",
+      "Market Intelligence now has a chain/ripple view, industry categories, and a much clearer table for the 20 researched relationships.",
+      "The winners/losers category buttons only appear on Stock Analysis now, and the sidebar scrolls as one continuous list.",
+    ],
+  },
+  {
     date: "2026-09-26T12:00:00+08:00",
     items: [
       "Market Intelligence is now its own section with a left-to-right web diagram: arrows show which companies depend on which — from AI labs, through cloud and chips, down to power equipment and raw materials. Click a bubble for details, click it again to open its stock page.",

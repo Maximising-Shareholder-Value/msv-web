@@ -7,3 +7,4 @@ playwright-report
 config.js
 wrangler.jsonc
 .assetsignore
+react-poc

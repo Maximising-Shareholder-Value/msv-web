@@ -148,6 +148,54 @@ const MI_EDGES = [
 ];
 
 
+// ---- One-line summaries + key figures for the researched relationships ----
+// Written from each relationship's own `description` above (nothing added):
+// the wall of text is still there, one click away, but the table view leads
+// with a scannable summary and the headline number. Index = position in
+// SUPPLY_CHAIN_RELATIONSHIPS.
+const MI_REL_META = [
+  { short: "TSMC makes nearly all of NVIDIA's advanced GPUs; NVIDIA is set to become TSMC's largest customer in 2026.", fig: "#1 customer" },
+  { short: "ASML is the only supplier of EUV lithography machines; TSMC, Intel and Samsung co-invested in its R&D.", fig: "Sole EUV supplier" },
+  { short: "SK Hynix is NVIDIA's main supplier of HBM (high-bandwidth memory), with ~62% share and ~70% projected for HBM4.", fig: "~62% HBM share" },
+  { short: "Secondary HBM supplier — shipped HBM4 samples in 2025 but trails SK Hynix in contracted volume.", fig: "HBM4 samples" },
+  { short: "Launch partner building NVIDIA-certified rack-scale GPU servers; revenue depends heavily on NVIDIA GPU allocation.", fig: "GB200 / GB300" },
+  { short: "Arista's data-center switches are used by both; each has been more than 10% of Arista's revenue (a disclosed concentration risk).", fig: ">10% of revenue each" },
+  { short: "Broadcom has co-designed Google's custom TPU chips for seven generations; the partnership runs through 2031.", fig: "7 generations" },
+  { short: "OpenAI is co-designing its own accelerator chips with Broadcom; production starts in H2 2026.", fig: "Up to 10 GW" },
+  { short: "AMD will supply Instinct MI450 GPUs to OpenAI from 2026 to 2030 and expects $100B+ of revenue from the deal.", fig: "6 GW · $100B+" },
+  { short: "Part of the chip deal: AMD issued OpenAI warrants for up to 160 million AMD shares (~10% potential stake).", fig: "160M warrants" },
+  { short: "NVIDIA agreed to invest up to $100B in OpenAI as OpenAI deploys at least 10 GW of NVIDIA systems.", fig: "$100B · 10 GW" },
+  { short: "Microsoft has committed $13B to OpenAI; OpenAI's API runs exclusively on Azure; $24.1B of Microsoft revenue is tied to it.", fig: "$13B invested" },
+  { short: "Microsoft (up to $5B) and NVIDIA (up to $10B) are investing in Anthropic, which committed to buy $30B of Azure compute.", fig: "$30B Azure" },
+  { short: "NVIDIA holds a stake in CoreWeave and agreed to buy $6.3B of its unused cloud capacity through 2032.", fig: "$6.3B order" },
+  { short: "AWS is deploying 2 million more NVIDIA GPUs in 2027–28 while co-designing Trainium4 to work alongside NVIDIA hardware.", fig: "2M GPUs" },
+  { short: "Meta's 2 GW+ AI buildout (~$115–135B of 2026 capex) relies heavily on NVIDIA GPUs.", fig: "$115–135B capex" },
+  { short: "Meta also deploys AMD MI450 chips alongside NVIDIA to diversify supply.", fig: "MI450" },
+  { short: "Intel Foundry won Microsoft as a customer for its 18A process, reportedly for the custom 'Maia 2' AI chip.", fig: "18A node" },
+  { short: "Reportedly a smaller foundry arrangement with Amazon for custom AI chips on 18A — thinly sourced.", fig: "18A node" },
+  { short: "NVIDIA discloses that four unnamed customers were 61% of a recent quarter's revenue; press infers they are the big hyperscalers.", fig: "61% of revenue" },
+];
+
+// ---- Other industries (placeholders — NOT built, no data invented) ----
+// Chips above the map. Only AI & Semiconductors is a real, sourced map. The
+// rest describe what a future map would show; the company names are
+// illustrative examples of each layer (well-known participants), not
+// researched or sourced relationships, and are labelled that way.
+const MI_INDUSTRIES = [
+  { id: "ai", label: "AI & Semiconductors", live: true },
+  { id: "energy", label: "Energy & Power", layers: ["Oil, gas & uranium producers", "Pipelines, LNG & refiners", "Utilities & power generators", "Grid equipment", "Businesses & households"], examples: ["ExxonMobil", "Chevron", "Cheniere", "Kinder Morgan", "NextEra", "Duke Energy", "GE Vernova", "Eaton"], chokepoints: "Oil shipping lanes such as the Strait of Hormuz, LNG export terminals, and multi-year lead times for large transformers.", why: "Every other industry sits downstream of energy — and AI's power appetite is now reshaping it." },
+  { id: "ev", label: "Automotive & EV Batteries", layers: ["Lithium, nickel, cobalt & graphite miners", "Refiners & cell makers", "Battery packs & auto makers", "Charging & dealers"], examples: ["Albemarle", "SQM", "CATL", "LG Energy Solution", "Panasonic", "Tesla", "BYD", "Toyota"], chokepoints: "Battery-cell and graphite processing is concentrated in China; cobalt mining is concentrated in the DR Congo.", why: "The biggest physical supply-chain shift in autos in a century." },
+  { id: "defense", label: "Defense & Aerospace", layers: ["Titanium, rare earths & specialty metals", "Engines, avionics, munitions & sensors", "Prime contractors", "Governments"], examples: ["Lockheed Martin", "RTX", "Northrop Grumman", "Boeing", "General Dynamics"], chokepoints: "Solid rocket motors, rare-earth magnets and a handful of sole-source engine and sensor suppliers.", why: "Concentrated suppliers and government-funded demand make dependencies unusually visible." },
+  { id: "pharma", label: "Pharma & Healthcare", layers: ["Chemical & API ingredient makers", "Contract manufacturers (CDMOs)", "Drug developers", "Wholesalers & pharmacy managers", "Hospitals & patients"], examples: ["Lonza", "Thermo Fisher", "Pfizer", "Eli Lilly", "McKesson", "Cencora"], chokepoints: "Active-ingredient production concentrated in India and China; limited sterile-injectable capacity.", why: "Drug shortages come from exactly these hidden dependencies." },
+  { id: "consumer", label: "Consumer & Retail", layers: ["Raw materials & factories", "Brands", "Freight & logistics", "Retailers", "Consumers"], examples: ["Nike", "Apple", "Procter & Gamble", "Walmart", "Amazon", "Target"], chokepoints: "Container ports and a small number of shipping lines.", why: "Shows how tariffs, shipping costs and inventory swings reach shelves." },
+  { id: "food", label: "Food & Agriculture", layers: ["Fertilizer, seed & chemicals", "Farmers & commodity traders", "Food processors", "Grocers & restaurants"], examples: ["Nutrien", "Corteva", "ADM", "Bunge", "Nestlé", "Kraft Heinz"], chokepoints: "Potash and nitrogen fertilizer supply; grain export corridors like the Black Sea.", why: "Links weather, energy prices and geopolitics to food inflation." },
+  { id: "finance", label: "Financial Plumbing", layers: ["Merchants & consumers", "Card networks & payment apps", "Processors & banks", "Clearing houses & settlement", "Central banks"], examples: ["Visa", "Mastercard", "PayPal", "Fiserv", "JPMorgan", "DTCC"], chokepoints: "A small number of clearing and settlement utilities that nearly everything routes through.", why: "The infrastructure nobody sees until it breaks." },
+  { id: "telecom", label: "Telecom & Space", layers: ["Chips, satellites & launch", "Network equipment", "Carriers & satellite operators", "Apps & devices"], examples: ["Rocket Lab", "Ericsson", "Nokia", "Cisco", "Verizon", "AT&T"], chokepoints: "Radio spectrum, subsea cables and launch capacity.", why: "Connectivity is the layer under every digital business." },
+  { id: "minerals", label: "Critical Minerals", layers: ["Mines", "Processors & refiners", "Component makers", "Chips, EVs, defense & energy"], examples: ["Freeport-McMoRan", "MP Materials", "Albemarle", "Cameco"], chokepoints: "Refining and processing capacity — often far more concentrated than mining itself.", why: "The deepest layer beneath most other maps here." },
+  { id: "shipping", label: "Shipping & Logistics", layers: ["Ports & canals", "Container lines & tankers", "Freight forwarders", "Manufacturers & retailers"], examples: ["Maersk", "DHL", "Kuehne+Nagel", "FedEx", "UPS"], chokepoints: "The Suez and Panama canals and the Strait of Malacca.", why: "Where geopolitics turns into delivery times and prices." },
+  { id: "realestate", label: "Real Estate & Construction", layers: ["Cement, steel & lumber", "Builders & developers", "Lenders", "Buyers & tenants"], examples: ["Vulcan Materials", "D.R. Horton", "Lennar", "Prologis"], chokepoints: "Interest rates, land availability and building-material costs.", why: "Ties mortgage rates and material costs to housing supply." },
+];
+
 function prettyRelationship(rel) {
   return rel.split(" / ").map(part => {
     const words = part.split("-");
@@ -156,31 +204,43 @@ function prettyRelationship(rel) {
 }
 
 // ---- Layout (SVG viewBox units; the whole diagram scales uniformly) ----
-const MI_W = 1200, MI_H = 640, MI_R = 24; // canvas size, bubble radius
-const MI_COL_X = MI_LAYERS.map((_, i) => 100 + i * 200);
+// Two views of the SAME data. Supply flow (default) runs upstream ->
+// downstream, left to right: raw materials & tools first, AI labs last, and
+// an arrow points from a supplier to the customer that relies on it.
+// Dependency view flips it: AI labs on the left, arrows point from a
+// company to what it depends on. (Suggested by Jozsua 2026-09-27: the
+// natural reading order of a supply chain is upstream to downstream.)
+const MI_W = 1200, MI_H = 640, MI_R = 24;
 const MI_ROW_GAP = 76, MI_CENTER_Y = 340;
-
 const MI_BY_ID = Object.fromEntries(MI_NODES.map(n => [n.id, n]));
-MI_LAYERS.forEach((_, layer) => {
-  const col = MI_NODES.filter(n => n.layer === layer);
-  col.forEach((n, i) => {
-    n.x = MI_COL_X[layer];
-    n.y = MI_CENTER_Y + (i - (col.length - 1) / 2) * MI_ROW_GAP;
-  });
-});
+const miState = { view: "supply", selected: null, ripple: false, industry: "ai", logosRequested: false, logoUrls: {} };
 
-const miState = { selected: null, logosRequested: false };
+const miColOfLayer = layer => (miState.view === "supply" ? MI_LAYERS.length - 1 - layer : layer);
+const miColX = col => 100 + col * 200;
+
+function miLayout() {
+  MI_LAYERS.forEach((_, layer) => {
+    const nodes = MI_NODES.filter(n => n.layer === layer);
+    nodes.forEach((n, i) => {
+      n.x = miColX(miColOfLayer(layer));
+      n.y = MI_CENTER_Y + (i - (nodes.length - 1) / 2) * MI_ROW_GAP;
+    });
+  });
+}
 
 function miEdgeInfo(e) {
   if (e.rel !== undefined) {
     const r = SUPPLY_CHAIN_RELATIONSHIPS[e.rel];
-    return { basis: "sourced", text: r.description, source: r.source, confidence: r.confidence, note: r.confidenceNote, label: prettyRelationship(r.relationship) };
+    return { basis: "sourced", text: MI_REL_META[e.rel].short, full: r.description, source: r.source, confidence: r.confidence, note: r.confidenceNote, label: prettyRelationship(r.relationship), fig: MI_REL_META[e.rel].fig };
   }
   return { basis: "inferred", text: e.text, confidence: "Inferred", label: "Depends on" };
 }
 
+// Arrow endpoints: supply view points supplier -> customer (reverse of the
+// stored dependent -> dependency direction).
 function miEdgePath(e) {
-  const a = MI_BY_ID[e.from], b = MI_BY_ID[e.to];
+  const [srcId, dstId] = miState.view === "supply" ? [e.to, e.from] : [e.from, e.to];
+  const a = MI_BY_ID[srcId], b = MI_BY_ID[dstId];
   const x1 = a.x + MI_R, y1 = a.y;
   const x2 = b.x - MI_R - 5, y2 = b.y;
   const dx = Math.max(60, (x2 - x1) * 0.5);
@@ -192,7 +252,7 @@ function miInitials(n) {
 }
 
 function buildMiSvg() {
-  const svgNS = "http://www.w3.org/2000/svg";
+  miLayout();
   const parts = [];
   parts.push(`<svg class="mi-svg" viewBox="0 0 ${MI_W} ${MI_H}" role="img" aria-label="Dependency map of the AI infrastructure supply chain">`);
   parts.push(`<defs>
@@ -201,11 +261,13 @@ function buildMiSvg() {
     <clipPath id="miClip"><circle r="${MI_R - 5}"/></clipPath>
   </defs>`);
 
-  // column headers + faint column guides
-  MI_LAYERS.forEach((l, i) => {
-    parts.push(`<text class="mi-col-title" x="${MI_COL_X[i]}" y="26" text-anchor="middle">${l.title}</text>`);
-    parts.push(`<line class="mi-col-guide" x1="${MI_COL_X[i]}" y1="44" x2="${MI_COL_X[i]}" y2="${MI_H - 20}"/>`);
+  MI_LAYERS.forEach((_, layer) => {
+    const x = miColX(miColOfLayer(layer));
+    parts.push(`<text class="mi-col-title" x="${x}" y="26" text-anchor="middle">${MI_LAYERS[layer].title}</text>`);
+    parts.push(`<line class="mi-col-guide" x1="${x}" y1="44" x2="${x}" y2="${MI_H - 20}"/>`);
   });
+  const up = miState.view === "supply";
+  parts.push(`<text class="mi-flow-hint" x="${MI_W / 2}" y="${MI_H - 4}" text-anchor="middle">${up ? "UPSTREAM  ·  raw materials & equipment   →   →   →   AI products & users  ·  DOWNSTREAM" : "AI PRODUCTS & USERS   →   →   →   what they depend on, all the way down to raw materials"}</text>`);
 
   parts.push('<g class="mi-edges">');
   MI_EDGES.forEach((e, i) => {
@@ -246,8 +308,10 @@ function miSaveLogo(ticker, url) {
 }
 
 function miApplyLogo(nodeId, url) {
+  if (!url) return;
+  miState.logoUrls[nodeId] = url;
   const g = document.querySelector(`.mi-node[data-id="${nodeId}"]`);
-  if (!g || !url) return;
+  if (!g) return;
   const img = g.querySelector(".mi-node-logo");
   img.addEventListener("load", () => {
     img.setAttribute("visibility", "visible");
@@ -274,25 +338,51 @@ function miLoadLogos() {
   });
 }
 
+// ---- Graph helpers ----
+// Transitive closure: dir "deps" follows dependent -> dependency (everything
+// this company ultimately relies on); "dependents" follows the reverse.
+function miClosure(id, dir) {
+  const seen = new Set();
+  const stack = [id];
+  while (stack.length) {
+    const cur = stack.pop();
+    MI_EDGES.forEach(e => {
+      const [a, b] = dir === "deps" ? [e.from, e.to] : [e.to, e.from];
+      if (a === cur && !seen.has(b)) { seen.add(b); stack.push(b); }
+    });
+  }
+  return seen;
+}
+
 // ---- Selection + info panel ----
 function miSelect(id) {
   miState.selected = id;
   const root = document.getElementById("marketIntelContent");
-  if (!root) return;
-  const connected = new Set();
+  const svg = root && root.querySelector(".mi-svg");
+  if (!svg) return;
+
+  const direct = new Set();
+  let up = new Set(), down = new Set();
   if (id) {
-    connected.add(id);
-    MI_EDGES.forEach(e => { if (e.from === id) connected.add(e.to); if (e.to === id) connected.add(e.from); });
+    MI_EDGES.forEach(e => { if (e.from === id) direct.add(e.to); if (e.to === id) direct.add(e.from); });
+    if (miState.ripple) { up = miClosure(id, "deps"); down = miClosure(id, "dependents"); }
   }
-  root.querySelector(".mi-svg").classList.toggle("mi-has-selection", !!id);
-  root.querySelectorAll(".mi-node").forEach(g => {
-    g.classList.toggle("mi-selected", g.dataset.id === id);
-    g.classList.toggle("mi-connected", !!id && g.dataset.id !== id && connected.has(g.dataset.id));
+  const lit = new Set(miState.ripple ? [id, ...up, ...down] : [id, ...direct]);
+  svg.classList.toggle("mi-has-selection", !!id);
+  svg.querySelectorAll(".mi-node").forEach(g => {
+    const nid = g.dataset.id;
+    g.classList.toggle("mi-selected", nid === id);
+    g.classList.toggle("mi-connected", !!id && nid !== id && !miState.ripple && direct.has(nid));
+    g.classList.toggle("mi-ripple-up", !!id && miState.ripple && up.has(nid));
+    g.classList.toggle("mi-ripple-down", !!id && miState.ripple && down.has(nid));
   });
-  root.querySelectorAll(".mi-edge").forEach(p => {
-    const on = !!id && (p.dataset.from === id || p.dataset.to === id);
+  svg.querySelectorAll(".mi-edge").forEach(p => {
+    const from = p.dataset.from, to = p.dataset.to;
+    const on = !!id && (miState.ripple
+      ? ((from === id || up.has(from)) && up.has(to)) || ((to === id || down.has(to)) && down.has(from))
+      : (from === id || to === id));
     p.classList.toggle("mi-edge-on", on);
-    p.classList.toggle("mi-edge-out", on && p.dataset.from === id);
+    p.classList.toggle("mi-edge-down", on && miState.ripple && (to === id || down.has(to)) && down.has(from));
   });
   renderMiPanel();
 }
@@ -306,8 +396,8 @@ function miEdgeRowHtml(e, otherId, direction) {
         <button type="button" class="mi-chip" data-select="${other.id}">${direction === "out" ? "→" : "←"} ${other.name}${other.ticker ? ` <span class="muted">${other.ticker}</span>` : ""}</button>
         <span class="mi-basis mi-basis-${info.basis}">${info.basis === "sourced" ? `Sourced · ${info.confidence}` : "Inferred"}</span>
       </div>
+      ${info.fig ? `<span class="mi-fig">${info.fig}</span>` : ""}
       <p class="mi-edge-text">${info.text}</p>
-      ${info.note ? `<p class="mi-edge-note">${info.note}</p>` : ""}
       ${info.source ? `<p class="mi-edge-source">Source: ${info.source}</p>` : ""}
     </div>`;
 }
@@ -317,12 +407,14 @@ function renderMiPanel() {
   if (!el) return;
   const id = miState.selected;
   if (!id) {
-    el.innerHTML = '<p class="muted small mi-hint">Click any bubble to see what it depends on and who relies on it. Click it again to open its stock page.</p>';
+    el.innerHTML = '<p class="muted small mi-hint">Click any bubble to see who supplies it and who relies on it. Click it again to open its stock page. Turn on “ripple” to trace every indirect link too.</p>';
     return;
   }
   const n = MI_BY_ID[id];
   const outs = MI_EDGES.filter(e => e.from === id);
   const ins = MI_EDGES.filter(e => e.to === id);
+  const rippleLine = miState.ripple
+    ? `<p class="mi-ripple-line"><span class="mi-dot mi-dot-up"></span>Ultimately depends on <strong>${miClosure(id, "deps").size}</strong> companies &nbsp;·&nbsp; <span class="mi-dot mi-dot-down"></span><strong>${miClosure(id, "dependents").size}</strong> companies ultimately depend on it</p>` : "";
   el.innerHTML = `
     <div class="mi-panel-head">
       <div>
@@ -333,13 +425,14 @@ function renderMiPanel() {
         ? `<button type="button" class="mi-open-btn" data-open="${n.ticker}">Open ${n.ticker} stock page →</button>`
         : '<span class="muted small">Private / no US ticker — no stock page</span>'}
     </div>
+    ${rippleLine}
     <div class="mi-panel-cols">
       <div>
-        <h5>Depends on <span class="muted">(${outs.length})</span></h5>
+        <h5>Depends on — its suppliers <span class="muted">(${outs.length})</span></h5>
         ${outs.length ? outs.map(e => miEdgeRowHtml(e, e.to, "out")).join("") : '<p class="muted small">Nothing further down the chain in this map — it sits at the base.</p>'}
       </div>
       <div>
-        <h5>Relied on by <span class="muted">(${ins.length})</span></h5>
+        <h5>Relied on by — its customers <span class="muted">(${ins.length})</span></h5>
         ${ins.length ? ins.map(e => miEdgeRowHtml(e, e.from, "in")).join("") : '<p class="muted small">Nobody upstream in this map depends on it directly.</p>'}
       </div>
     </div>`;
@@ -347,36 +440,166 @@ function renderMiPanel() {
   el.querySelector("[data-open]")?.addEventListener("click", ev => loadTicker(ev.currentTarget.dataset.open));
 }
 
+// ---- "Where the map concentrates" (computed from the graph itself) ----
+function renderMiInsights() {
+  const el = document.getElementById("marketIntelInsights");
+  if (!el) return;
+  const stats = MI_NODES.map(n => ({
+    n,
+    direct: MI_EDGES.filter(e => e.to === n.id).length,
+    ripple: miClosure(n.id, "dependents").size,
+    deps: MI_EDGES.filter(e => e.from === n.id).length,
+  }));
+  const top = (key, count = 5) => [...stats].sort((a, b) => b[key] - a[key] || b.direct - a.direct).slice(0, count);
+  const bar = (rows, key) => { const max = Math.max(...rows.map(r => r[key]), 1); return rows.map(r => `<button type="button" class="mi-rank-row" data-select="${r.n.id}"><span class="mi-rank-name">${r.n.label}</span><span class="mi-rank-bar"><i style="width:${(r[key] / max) * 100}%"></i></span><b>${r[key]}</b></button>`).join(""); };
+  el.innerHTML = `
+    <div class="mi-insight"><h5>Most relied-on <span class="muted">direct customers in this map</span></h5>${bar(top("direct"), "direct")}</div>
+    <div class="mi-insight"><h5>Widest ripple <span class="muted">companies affected if it stalls (direct + indirect)</span></h5>${bar(top("ripple"), "ripple")}</div>
+    <div class="mi-insight"><h5>Most dependent <span class="muted">direct suppliers in this map</span></h5>${bar(top("deps"), "deps")}</div>
+    <p class="muted small mi-insight-foot">Counts links inside this 26-company map only — a lens on concentration, not a forecast. Many links (dashed) are inferred from general industry structure.</p>`;
+  el.querySelectorAll("[data-select]").forEach(b => b.addEventListener("click", () => { miSelect(b.dataset.select); document.getElementById("marketIntelPanel")?.scrollIntoView({ behavior: "smooth", block: "nearest" }); }));
+}
+
+// ---- Research trail: a scannable table (was a wall of text cards) ----
+function renderMiResearch() {
+  const el = document.getElementById("marketIntelResearch");
+  if (!el) return;
+  const conf = { High: 0, Medium: 0 };
+  SUPPLY_CHAIN_RELATIONSHIPS.forEach(r => { conf[r.confidence] = (conf[r.confidence] || 0) + 1; });
+  const types = {};
+  SUPPLY_CHAIN_RELATIONSHIPS.forEach(r => { const t = prettyRelationship(r.relationship).split(" / ")[0]; types[t] = (types[t] || 0) + 1; });
+  const summary = document.getElementById("marketIntelResearchSummary");
+  if (summary) summary.textContent = `All ${SUPPLY_CHAIN_RELATIONSHIPS.length} researched relationships — ${conf.High} high confidence · ${conf.Medium || 0} medium`;
+
+  let filter = "all";
+  const paint = () => {
+    const rows = SUPPLY_CHAIN_RELATIONSHIPS.map((r, i) => ({ r, i, m: MI_REL_META[i] })).filter(x => filter === "all" || x.r.confidence.toLowerCase() === filter);
+    el.querySelector(".mi-rt-body").innerHTML = rows.map(({ r, i, m }) => `
+      <div class="mi-rt-row" data-i="${i}">
+        <button type="button" class="mi-rt-main" aria-expanded="false">
+          <span class="mi-rt-pair"><strong>${r.a}</strong><i>→</i><strong>${r.b}</strong><em>${prettyRelationship(r.relationship)}</em></span>
+          <span class="mi-rt-fig">${m.fig}</span>
+          <span class="mi-rt-short">${m.short}</span>
+          <span class="supply-chain-confidence supply-chain-confidence-${r.confidence.toLowerCase()}">${r.confidence}</span>
+          <span class="mi-rt-caret">▾</span>
+        </button>
+        <div class="mi-rt-detail" hidden>
+          <p>${r.description}</p>
+          ${r.confidenceNote ? `<p class="mi-rt-note">${r.confidenceNote}</p>` : ""}
+          <p class="mi-rt-source">Source: ${r.source}</p>
+        </div>
+      </div>`).join("");
+    el.querySelectorAll(".mi-rt-main").forEach(btn => btn.addEventListener("click", () => {
+      const detail = btn.nextElementSibling;
+      const open = detail.hidden;
+      detail.hidden = !open;
+      btn.setAttribute("aria-expanded", String(open));
+      btn.closest(".mi-rt-row").classList.toggle("open", open);
+    }));
+  };
+
+  el.innerHTML = `
+    <div class="mi-rt-head">
+      <div class="mi-rt-stats">
+        <div class="mi-rt-stat"><strong>${SUPPLY_CHAIN_RELATIONSHIPS.length}</strong><span>relationships</span></div>
+        <div class="mi-rt-stat"><strong>${conf.High}</strong><span>high confidence</span></div>
+        <div class="mi-rt-stat"><strong>${conf.Medium || 0}</strong><span>medium</span></div>
+        <div class="mi-rt-stat"><strong>${Object.keys(types).length}</strong><span>relationship types</span></div>
+      </div>
+      <div class="mi-rt-filters">${[["all", "All"], ["high", "High"], ["medium", "Medium"]].map(([id, l]) => `<button type="button" data-f="${id}" class="${id === "all" ? "active" : ""}">${l}</button>`).join("")}</div>
+    </div>
+    <div class="mi-rt-body"></div>
+    <p class="muted small">Tap a row for the full write-up and source. Sources: SEC filings, official company statements, and corroborated journalism — see the org repo's SUPPLY_CHAIN_RESEARCH.md.</p>`;
+  el.querySelectorAll(".mi-rt-filters button").forEach(b => b.addEventListener("click", () => {
+    filter = b.dataset.f;
+    el.querySelectorAll(".mi-rt-filters button").forEach(x => x.classList.toggle("active", x === b));
+    paint();
+  }));
+  paint();
+}
+
+// ---- Industry chips + placeholder panel ----
+function renderMiIndustryPlaceholder(ind) {
+  return `
+    <div class="mi-soon">
+      <span class="placeholder-badge">Coming soon</span>
+      <h4>${ind.label}</h4>
+      <p class="mi-soon-why">${ind.why}</p>
+      <div class="mi-soon-layers">${ind.layers.map((l, i) => `<div class="mi-soon-layer"><b>${i + 1}</b><span>${l}</span></div>`).join('<i class="mi-soon-arrow">→</i>')}</div>
+      <p class="small"><strong>Chokepoints to model:</strong> ${ind.chokepoints}</p>
+      <p class="small muted"><strong>Examples of companies in these layers</strong> (illustrative names only — not a researched or sourced relationship map): ${ind.examples.join(", ")}.</p>
+      <p class="small muted">This map isn't built yet. Like the AI map, it would only include links backed by filings, company statements or corroborated reporting, with anything inferred shown dashed and labelled.</p>
+    </div>`;
+}
+
 function renderMarketIntel() {
   const root = document.getElementById("marketIntelContent");
   if (!root) return;
   root.innerHTML = `
-    <p class="mi-lead">Columns run from AI's end users (left) down to the raw materials underneath everything (right). <strong>An arrow points from a company to something it depends on.</strong></p>
+    <div class="mi-industries" id="miIndustries">${MI_INDUSTRIES.map(i => `<button type="button" data-ind="${i.id}" class="mi-ind${i.id === miState.industry ? " active" : ""}${i.live ? "" : " soon"}">${i.label}${i.live ? "" : ' <span class="mi-ind-soon">soon</span>'}</button>`).join("")}</div>
+    <div id="miIndustryBody"></div>`;
+  root.querySelectorAll(".mi-ind").forEach(b => b.addEventListener("click", () => {
+    miState.industry = b.dataset.ind;
+    root.querySelectorAll(".mi-ind").forEach(x => x.classList.toggle("active", x === b));
+    renderMiIndustryBody();
+  }));
+  renderMiIndustryBody();
+}
+
+function renderMiIndustryBody() {
+  const body = document.getElementById("miIndustryBody");
+  if (!body) return;
+  const ind = MI_INDUSTRIES.find(i => i.id === miState.industry) || MI_INDUSTRIES[0];
+  if (!ind.live) { body.innerHTML = renderMiIndustryPlaceholder(ind); return; }
+
+  body.innerHTML = `
+    <div class="mi-controls">
+      <div class="mi-seg" id="miViewSeg">
+        <button type="button" data-view="supply" class="${miState.view === "supply" ? "active" : ""}">Supply flow <span>upstream → downstream</span></button>
+        <button type="button" data-view="dependency" class="${miState.view === "dependency" ? "active" : ""}">Dependency <span>who depends on whom →</span></button>
+      </div>
+      <label class="options-toggle"><input type="checkbox" id="miRipple" ${miState.ripple ? "checked" : ""}> Ripple — trace indirect links too</label>
+    </div>
+    <p class="mi-lead" id="miLead"></p>
     <div class="mi-legend">
       <span><svg width="34" height="10"><line x1="0" y1="5" x2="34" y2="5" class="mi-legend-line-sourced"/></svg> Sourced — SEC filings, company statements, corroborated press</span>
       <span><svg width="34" height="10"><line x1="0" y1="5" x2="34" y2="5" class="mi-legend-line-inferred"/></svg> Inferred — the app's own structural reasoning, not individually sourced</span>
+      <span class="mi-ripple-legend"><i class="mi-dot mi-dot-up"></i> upstream (suppliers) <i class="mi-dot mi-dot-down"></i> downstream (customers)</span>
     </div>
-    <div class="mi-diagram-scroll">${buildMiSvg()}</div>
+    <div class="mi-diagram-scroll" id="miDiagram"></div>
     <div id="marketIntelPanel" class="mi-panel"></div>
+    <h5 class="mi-section-title">Where the map concentrates</h5>
+    <div id="marketIntelInsights" class="mi-insights"></div>
     <details class="mi-research">
-      <summary>All ${SUPPLY_CHAIN_RELATIONSHIPS.length} researched relationships (full source trail)</summary>
-      <div class="mi-research-list"></div>
+      <summary id="marketIntelResearchSummary">Researched relationships</summary>
+      <div id="marketIntelResearch"></div>
     </details>`;
 
-  // Bubble click: first click selects, clicking the selected bubble again
-  // opens its stock page. Clicking empty space clears the selection.
-  root.querySelector(".mi-svg").addEventListener("click", ev => {
+  const paintLead = () => {
+    document.getElementById("miLead").innerHTML = miState.view === "supply"
+      ? "Read left to right, <strong>upstream to downstream</strong>: raw materials and chip tools feed foundries and memory, which feed chip designers, servers and data centers, then the clouds and AI labs that sell the final product. <strong>An arrow points from a supplier to the customer that relies on it.</strong>"
+      : "Read left to right, from <strong>AI products down to raw materials</strong>. <strong>An arrow points from a company to something it depends on.</strong>";
+  };
+  const draw = () => {
+    const holder = document.getElementById("miDiagram");
+    holder.innerHTML = buildMiSvg();
+    Object.entries(miState.logoUrls).forEach(([nid, url]) => miApplyLogo(nid, url));
+    miSelect(miState.selected);
+  };
+  paintLead();
+  draw();
+
+  // One delegated click handler: first click selects, clicking the selected
+  // bubble again opens its stock page; empty space clears the selection.
+  const holder = document.getElementById("miDiagram");
+  holder.addEventListener("click", ev => {
     const g = ev.target.closest(".mi-node");
     if (!g) { miSelect(null); return; }
     const id = g.dataset.id;
-    if (miState.selected === id) {
-      const n = MI_BY_ID[id];
-      if (n.ticker) loadTicker(n.ticker);
-    } else {
-      miSelect(id);
-    }
+    if (miState.selected === id) { const n = MI_BY_ID[id]; if (n.ticker) loadTicker(n.ticker); }
+    else miSelect(id);
   });
-  root.querySelector(".mi-svg").addEventListener("keydown", ev => {
+  holder.addEventListener("keydown", ev => {
     if (ev.key !== "Enter" && ev.key !== " ") return;
     const g = ev.target.closest(".mi-node");
     if (!g) return;
@@ -384,34 +607,23 @@ function renderMarketIntel() {
     g.dispatchEvent(new MouseEvent("click", { bubbles: true }));
   });
 
-  // The verbatim researched relationship cards, kept as the source trail.
-  const list = root.querySelector(".mi-research-list");
-  SUPPLY_CHAIN_RELATIONSHIPS.forEach(rel => {
-    const card = document.createElement("div");
-    card.className = "supply-chain-rel-card";
-    card.innerHTML = `
-      <div class="supply-chain-rel-header">
-        <span class="supply-chain-rel-company">${rel.a}</span>
-        <span class="supply-chain-rel-arrow">${prettyRelationship(rel.relationship)} →</span>
-        <span class="supply-chain-rel-company">${rel.b}</span>
-      </div>
-      <p class="supply-chain-rel-desc">${rel.description}</p>
-      ${rel.confidenceNote ? `<p class="supply-chain-rel-note">${rel.confidenceNote}</p>` : ""}
-      <div class="supply-chain-rel-footer">
-        <span class="supply-chain-rel-source">Source: ${rel.source}</span>
-        <span class="supply-chain-confidence supply-chain-confidence-${rel.confidence.toLowerCase()}">${rel.confidence} confidence</span>
-      </div>`;
-    list.appendChild(card);
-  });
+  document.querySelectorAll("#miViewSeg button").forEach(b => b.addEventListener("click", () => {
+    miState.view = b.dataset.view;
+    document.querySelectorAll("#miViewSeg button").forEach(x => x.classList.toggle("active", x === b));
+    paintLead();
+    draw();
+  }));
+  document.getElementById("miRipple").addEventListener("change", e => { miState.ripple = e.target.checked; miSelect(miState.selected); });
 
-  renderMiPanel();
+  renderMiInsights();
+  renderMiResearch();
 
   // Logos: only start fetching once the diagram is actually on screen.
   if ("IntersectionObserver" in window) {
     const io = new IntersectionObserver(entries => {
       if (entries.some(e => e.isIntersecting)) { io.disconnect(); miLoadLogos(); }
     }, { rootMargin: "200px" });
-    io.observe(root);
+    io.observe(document.getElementById("marketIntelContent"));
   } else {
     miLoadLogos();
   }
