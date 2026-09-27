@@ -500,3 +500,70 @@ invest, autocomplete, compare.
 - **Gotcha when bulk-editing data files with scripts:** `sectors.js`
   mixes `reps: ["A","B"]` (industries) and `reps: [["A","Name"],…]`
   (sectors). A naive regex mangled it once; use bracket matching.
+- Sidebar: `Crypto` now sits in its own group (with two "Soon"
+  placeholders, `bitcoin-cycles` and `crypto-news`) between `macro` and
+  `portfolio-builder`, previewing content that only exists in
+  `react-poc/` so far.
+
+## React proof of concept (`react-poc/`, 2026-09-27)
+
+The Crypto page rebuilt in React + TypeScript (Vite), approved as a first
+step towards migrating the whole frontend. **Not deployed** — its own
+`package.json`/`node_modules`, and `react-poc` is listed in
+`.assetsignore` so `wrangler deploy` never uploads it. Run with
+`cd react-poc && npm run dev` (localhost:5173); it calls the same
+deployed `msv-api` proxy, so no local API keys are needed. See
+`react-poc/README.md` for the file layout and the vanilla-to-React
+mapping.
+
+Grew same-day from a straight rebuild into 8 tabs (Overview, Markets,
+Exchanges, DeFi, Stablecoins, Bitcoin Cycles, News, Learn) once Jozsua
+asked for it to be "flooded with more data." Notable pieces:
+- **Movers ("why did this move")** (`components/Movers.tsx`): a coin's
+  24h move is explained either by a real news article actually matched to
+  it, or a plainly labelled data signal (unusual volume, trending,
+  reversal) — never a guessed cause. `matchNews()` uses **word-boundary**
+  regex, not a plain substring search — a straight `.includes()` first
+  version matched the coin "Quant" to an unrelated article mentioning
+  "quantum" cryptography, found and fixed before shipping. If extending
+  this, keep the word-boundary approach for any new short/common-word
+  coin names.
+- **Bitcoin Cycles** (`components/BitcoinCycles.tsx`, `lib/bitcoin.ts`):
+  a Bitcoin Rainbow Chart and Stock-to-Flow model. Both are pure
+  deterministic math (the halving schedule and a published log-regression
+  formula), computable for any date with **zero API calls** — only the
+  actual price line needs fetched data, and CoinGecko's free plan caps
+  history at 365 days (confirmed live, 2026-09-27: `days=max` returns a
+  PRO-only error). So the bands/S2F curve are drawn across the full
+  2015–2040ish range for visual context, while the real price line only
+  covers the last year — labelled as such. Both models are shown as
+  well-known community tools with explicit "not a prediction" caveats,
+  consistent with this project's no-fabricated-forecasts rule (see "No
+  fabricated forecasts" above).
+- **News tab** (`components/CryptoNews.tsx`): a live Finnhub crypto feed
+  (`finnhubNews()` in `lib/api.ts`, via the same msv-api proxy) plus a
+  hand-written, dated "Regulation & Adoption tracker." Every tracker fact
+  (CLARITY Act, GENIUS Act, MiCA, UAE/Hong Kong) was checked with a live
+  web search before writing, not pulled from training data — crypto
+  policy moves too fast to trust a knowledge cutoff. Re-verify dates
+  before reusing this content later.
+- State lives in the URL (`?tab=`, `?coin=`) and `localStorage`
+  (favourites, theme, auto-refresh) — no backend.
+
+## Known issue: `config.js` 404 now throws a console error (found 2026-09-27)
+
+`index.html` always has `<script src="config.js">`; in production that
+file doesn't exist on purpose (see "Config / secrets" above). Before
+`not_found_handling: "single-page-application"` was added (2026-09-24)
+this was a plain, silent 404. Now a missing path returns the full HTML
+app shell with a 200 — and a `<script>` tag fed HTML instead of JS throws
+`Uncaught SyntaxError: Unexpected token '<'` instead of failing silently.
+**Confirmed still harmless**: nothing in production reads
+`FINNHUB_API_KEY`, and each `<script>` tag fails independently without
+stopping later ones — but it's a real, visible console error on every
+production page load now. Not fixed yet because the obvious fixes both
+touch `.assetsignore` (which excludes `config.js` specifically so a real
+key can never be deployed by accident) — don't touch that exclusion to
+"fix" this. Better candidate: load config via `fetch().catch()` in
+script.js instead of a `<script src>` tag, so a missing file fails
+silently. Needs a decision before changing it.
