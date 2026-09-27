@@ -528,7 +528,22 @@
   <div id="whatsNewList" class="whats-new-list"></div>
 </div>
 
-<script src="config.js"></script>
+<script>
+  // config.js holds real API keys for local development only and never
+  // exists on the deployed site on purpose (see CLAUDE.md's "Config /
+  // secrets" — the deployed site calls msv-api instead, which holds the
+  // real keys). Loading it unconditionally used to be a harmless silent
+  // 404. It no longer is: the single-page-app fallback added 2026-09-24
+  // (wrangler.jsonc's not_found_handling) answers ANY missing path with
+  // the full HTML page instead of a real 404 — and a <script> tag fed
+  // HTML instead of JS throws a real "Unexpected token '<'" parse error
+  // in the console (found 2026-09-27). Fix: only request the file where
+  // it can actually exist. Keep this hostname list in sync with
+  // IS_LOCAL_DEV in script.js.
+  if (["localhost", "127.0.0.1", ""].includes(location.hostname)) {
+    document.write('<script src="config.js"><\/script>');
+  }
+</script>
 <script src="definitions.js"></script>
 <script src="changelog.js"></script>
 <script src="sectorRules.js"></script>
