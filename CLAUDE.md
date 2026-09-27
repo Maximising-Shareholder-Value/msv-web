@@ -550,20 +550,25 @@ asked for it to be "flooded with more data." Notable pieces:
 - State lives in the URL (`?tab=`, `?coin=`) and `localStorage`
   (favourites, theme, auto-refresh) — no backend.
 
-## Known issue: `config.js` 404 now throws a console error (found 2026-09-27)
+## Fixed: `config.js` 404 was throwing a console error (found and fixed 2026-09-27)
 
-`index.html` always has `<script src="config.js">`; in production that
+`index.html` always had `<script src="config.js">`; in production that
 file doesn't exist on purpose (see "Config / secrets" above). Before
 `not_found_handling: "single-page-application"` was added (2026-09-24)
-this was a plain, silent 404. Now a missing path returns the full HTML
-app shell with a 200 — and a `<script>` tag fed HTML instead of JS throws
-`Uncaught SyntaxError: Unexpected token '<'` instead of failing silently.
-**Confirmed still harmless**: nothing in production reads
-`FINNHUB_API_KEY`, and each `<script>` tag fails independently without
-stopping later ones — but it's a real, visible console error on every
-production page load now. Not fixed yet because the obvious fixes both
-touch `.assetsignore` (which excludes `config.js` specifically so a real
-key can never be deployed by accident) — don't touch that exclusion to
-"fix" this. Better candidate: load config via `fetch().catch()` in
-script.js instead of a `<script src>` tag, so a missing file fails
-silently. Needs a decision before changing it.
+this was a plain, silent 404. After that, a missing path returned the
+full HTML app shell with a 200 instead — and a `<script>` tag fed HTML
+instead of JS throws `Uncaught SyntaxError: Unexpected token '<'` instead
+of failing silently. Confirmed harmless either way (nothing in production
+reads `FINNHUB_API_KEY`; every reference to the four config constants
+elsewhere is either `typeof`-guarded or sits behind an `IS_LOCAL_DEV &&`
+short-circuit that's `false` in production), but it was a real, visible
+console error on every production page load.
+
+**Fix:** the `<script src="config.js">` tag was replaced with a tiny
+inline script that only `document.write`s that tag when
+`location.hostname` is `localhost`/`127.0.0.1`/empty — the same check
+`IS_LOCAL_DEV` uses. Production now never requests `config.js` at all, so
+the SPA fallback never gets a chance to hand it HTML. Doesn't touch
+`.assetsignore` or the SPA fallback setting. If `IS_LOCAL_DEV`'s hostname
+list in script.js ever changes, update this inline script's copy too —
+it's duplicated (deliberately — it has to run before `script.js` loads).
