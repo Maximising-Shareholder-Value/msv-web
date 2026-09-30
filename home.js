@@ -304,7 +304,7 @@ const PLACEHOLDER_INFO = {
   "create-account": { icon: "🆕", title: "Create Free Account", description: "User accounts aren't built yet — this needs real authentication and a backend to store anything per-user. On the roadmap, not started." },
   "login": { icon: "🔑", title: "Log In", description: "Depends on accounts existing first — see Create Free Account." },
   "performance": { icon: "📈", title: "Performance", description: "A planned asset-class performance comparison — stocks vs. bonds vs. commodities vs. crypto returns over time. Distinct from the Sectors heatmap. Not built yet." },
-  "bitcoin-cycles": { icon: "🌈", title: "Bitcoin Cycles", description: "A Bitcoin Rainbow Chart, Stock-to-Flow model and halving schedule — prototyped in the site's React proof-of-concept, not yet ported into this page." },
+  "bitcoin-cycles": { icon: "🌈", title: "Crypto Cycles", description: "A Bitcoin Rainbow Chart, Stock-to-Flow model and halving schedule — prototyped in the site's React proof-of-concept, not yet ported into this page." },
   "crypto-news": { icon: "📰", title: "Crypto News", description: "A dedicated crypto news feed plus a regulation & global-adoption tracker (CLARITY Act, MiCA, country-by-country rules) — prototyped in the site's React proof-of-concept, not yet ported into this page." },
   "portfolio-builder": { icon: "🧱", title: "Portfolio Builder", description: "Depends on accounts existing first — a portfolio needs to belong to someone." },
   "portfolio-health-check": { icon: "🩺", title: "Portfolio Health Check", description: "Depends on Portfolio Builder existing first." },
@@ -385,7 +385,7 @@ const EXPLORE_DIRECTORY = [
   { title: "Energy Markets", description: "Oil, gas and power.", nav: "energy-markets", live: false },
   { title: "Forex", description: "Currency pairs (data available).", nav: "forex", live: false },
   { title: "Crypto", description: "Top 100 coins, DeFi, stablecoins, Fear & Greed.", nav: "crypto", live: true },
-  { title: "Bitcoin Cycles", description: "Rainbow chart, Stock-to-Flow, halvings.", nav: "bitcoin-cycles", live: false },
+  { title: "Crypto Cycles", description: "Rainbow chart, Stock-to-Flow, halvings.", nav: "bitcoin-cycles", live: false },
   { title: "Crypto News", description: "News feed + regulation/adoption tracker.", nav: "crypto-news", live: false },
   { title: "Options Explorer", description: "Cross-market options screen.", nav: "options-explorer", live: false },
 

@@ -517,7 +517,7 @@ deployed `msv-api` proxy, so no local API keys are needed. See
 mapping.
 
 Grew same-day from a straight rebuild into 8 tabs (Overview, Markets,
-Exchanges, DeFi, Stablecoins, Bitcoin Cycles, News, Learn) once Jozsua
+Exchanges, DeFi, Stablecoins, Crypto Cycles, News, Learn) once Jozsua
 asked for it to be "flooded with more data." Notable pieces:
 - **Movers ("why did this move")** (`components/Movers.tsx`): a coin's
   24h move is explained either by a real news article actually matched to
@@ -528,8 +528,10 @@ asked for it to be "flooded with more data." Notable pieces:
   "quantum" cryptography, found and fixed before shipping. If extending
   this, keep the word-boundary approach for any new short/common-word
   coin names.
-- **Bitcoin Cycles** (`components/BitcoinCycles.tsx`, `lib/bitcoin.ts`):
-  a Bitcoin Rainbow Chart and Stock-to-Flow model. Both are pure
+- **Crypto Cycles** (renamed 2026-09-30 from "Bitcoin Cycles" — same tab,
+  component/file names unchanged: `components/BitcoinCycles.tsx`,
+  `lib/bitcoin.ts`) — a Bitcoin Rainbow Chart and Stock-to-Flow model.
+  Both are pure
   deterministic math (the halving schedule and a published log-regression
   formula), computable for any date with **zero API calls** — only the
   actual price line needs fetched data, and CoinGecko's free plan caps

@@ -394,11 +394,15 @@ function miEdgeRowHtml(e, otherId, direction) {
     <div class="mi-edge-row">
       <div class="mi-edge-row-head">
         <button type="button" class="mi-chip" data-select="${other.id}">${direction === "out" ? "→" : "←"} ${other.name}${other.ticker ? ` <span class="muted">${other.ticker}</span>` : ""}</button>
-        <span class="mi-basis mi-basis-${info.basis}">${info.basis === "sourced" ? `Sourced · ${info.confidence}` : "Inferred"}</span>
+        <span class="mi-basis mi-basis-${info.basis}">${info.basis === "sourced" ? "Sourced" : "Inferred"}</span>
+        <button type="button" class="mi-edge-toggle" aria-expanded="false">Why? ▾</button>
       </div>
-      ${info.fig ? `<span class="mi-fig">${info.fig}</span>` : ""}
-      <p class="mi-edge-text">${info.text}</p>
-      ${info.source ? `<p class="mi-edge-source">Source: ${info.source}</p>` : ""}
+      <div class="mi-edge-detail" hidden>
+        ${info.fig ? `<span class="mi-fig">${info.fig}</span>` : ""}
+        <p class="mi-edge-text">${info.text}</p>
+        ${info.basis === "sourced" ? `<p class="mi-edge-note">Confidence: ${info.confidence}</p>` : ""}
+        ${info.source ? `<p class="mi-edge-source">Source: ${info.source}</p>` : ""}
+      </div>
     </div>`;
 }
 
@@ -438,6 +442,13 @@ function renderMiPanel() {
     </div>`;
   el.querySelectorAll("[data-select]").forEach(b => b.addEventListener("click", () => miSelect(b.dataset.select)));
   el.querySelector("[data-open]")?.addEventListener("click", ev => loadTicker(ev.currentTarget.dataset.open));
+  el.querySelectorAll(".mi-edge-toggle").forEach(btn => btn.addEventListener("click", () => {
+    const detail = btn.closest(".mi-edge-row").querySelector(".mi-edge-detail");
+    const open = detail.hidden;
+    detail.hidden = !open;
+    btn.setAttribute("aria-expanded", String(open));
+    btn.textContent = open ? "Why? ▴" : "Why? ▾";
+  }));
 }
 
 // ---- "Where the map concentrates" (computed from the graph itself) ----

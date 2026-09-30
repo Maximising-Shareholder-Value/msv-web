@@ -26,7 +26,7 @@ const TABS: Tab[] = [
   { id: "exchanges", label: "Exchanges" },
   { id: "defi", label: "DeFi" },
   { id: "stablecoins", label: "Stablecoins" },
-  { id: "cycles", label: "Bitcoin Cycles" },
+  { id: "cycles", label: "Crypto Cycles" },
   { id: "news", label: "News" },
   { id: "learn", label: "Learn" },
 ];
