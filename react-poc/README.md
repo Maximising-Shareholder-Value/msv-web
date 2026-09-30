@@ -1,8 +1,14 @@
-# React + TypeScript proof of concept — the Crypto page
+# React + TypeScript beta — the Crypto page
 
 The live $MSV Crypto page (`../crypto.js`) rebuilt as React components, to
-compare the two approaches side by side. Started 2026-09-27. **Not deployed;
-not linked from the live site.** It reuses `../style.css`, so it looks the same.
+compare the two approaches side by side. Started 2026-09-27. It reuses
+`../style.css`, so it looks the same.
+
+**Deployed since 2026-09-30 (React migration Phase 1)** at
+[msv-web.jozsua-heng.workers.dev/react-crypto/](https://msv-web.jozsua-heng.workers.dev/react-crypto/),
+linked from the live Crypto page as a beta — **not yet the real Crypto page**,
+just proof the build pipeline works end-to-end in production. See "Deploying
+it" below before assuming the site auto-updates when this folder changes.
 
 ## Run it
 
@@ -11,11 +17,27 @@ cd react-poc
 npm install        # first time only
 npm run dev        # http://localhost:5173
 npm run typecheck  # TypeScript check, no output files
-npm run build      # production bundle into dist/
+npm run build      # production bundle into ../react-crypto/
 ```
 
 It calls the same deployed `msv-api` proxy as the live site, so no API keys
 are needed locally.
+
+## Deploying it
+
+There's still no CI/CD auto-build — `npm run build` here must be run **by
+hand, before** `npx wrangler deploy` in `../`, any time this folder changes
+and you want that change live. `vite.config.ts`'s `outDir` points at
+`../react-crypto/` (a plain static folder msv-web deploys like any other,
+gitignored since it's a build artifact — never edit its contents directly,
+they get overwritten) rather than the default `dist/` inside this folder,
+which `.assetsignore` deliberately excludes wholesale (source, node_modules,
+config — none of that should ever be publicly fetchable). `base: "/react-
+crypto/"` in the same config makes the built `index.html`'s asset URLs match
+where it's actually served from. CI's `syntax-check`/`smoke-test` jobs don't
+touch this folder; there's a separate `react-build` CI job that runs
+`npm ci && npm run build` on every PR so a broken build fails before merge,
+without needing a live API key (build-only, doesn't fetch real data).
 
 ## Layout
 

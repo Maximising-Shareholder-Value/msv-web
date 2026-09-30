@@ -78,7 +78,7 @@ export function App() {
     <main className="poc-page">
       <div className="poc-banner">
         <div>
-          <strong>React + TypeScript proof of concept</strong>
+          <strong>React + TypeScript beta</strong>
           <span className="muted small"> — the Crypto page rebuilt as components. Same data, same styling as the live site.</span>
         </div>
         <div className="poc-controls">

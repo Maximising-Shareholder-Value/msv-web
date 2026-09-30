@@ -15,13 +15,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      # No build step in this repo (plain HTML/CSS/JS) — this just parses
+      # The main site (plain HTML/CSS/JS, no build step) — this just parses
       # every tracked .js file with Node and fails on a syntax error,
-      # without executing any of it.
+      # without executing any of it. react-poc/ is TypeScript/React and has
+      # its own build check below (react-build), not covered by this loop
+      # (git ls-files '*.js' doesn't match its .tsx files anyway).
       - name: Check every JS file parses
         run: |
           set -e
-          for f in $(git ls-files '*.js'); do
+          for f in $(git ls-files '*.js' | grep -v '^react-poc/'); do
             echo "checking $f"
             node --check "$f"
           done
@@ -61,3 +63,26 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 7
+
+  react-build:
+    name: React beta builds (typecheck + Vite build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: react-poc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: react-poc/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      # Build-only: doesn't need a real msv-api response, since Vite just
+      # bundles the code — it never runs it. Catches typecheck errors and
+      # broken imports before they'd otherwise only surface when someone
+      # runs `npm run build` by hand right before a deploy (see README.md's
+      # "Deploying it").
+      - name: Typecheck + production build
+        run: npm run build

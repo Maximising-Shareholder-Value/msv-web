@@ -505,16 +505,43 @@ tradingview, invest, autocomplete, compare.
   `portfolio-builder`, previewing content that only exists in
   `react-poc/` so far.
 
-## React proof of concept (`react-poc/`, 2026-09-27)
+## React proof of concept (`react-poc/`, 2026-09-27) — Phase 1 deployed 2026-09-30
 
 The Crypto page rebuilt in React + TypeScript (Vite), approved as a first
-step towards migrating the whole frontend. **Not deployed** — its own
-`package.json`/`node_modules`, and `react-poc` is listed in
-`.assetsignore` so `wrangler deploy` never uploads it. Run with
-`cd react-poc && npm run dev` (localhost:5173); it calls the same
-deployed `msv-api` proxy, so no local API keys are needed. See
-`react-poc/README.md` for the file layout and the vanilla-to-React
-mapping.
+step towards migrating the whole frontend. Its own `package.json`/
+`node_modules`, and `react-poc`'s *source* is listed in `.assetsignore` so
+`wrangler deploy` never uploads it. Run with `cd react-poc && npm run dev`
+(localhost:5173); it calls the same deployed `msv-api` proxy, so no local
+API keys are needed. See `react-poc/README.md` for the file layout and the
+vanilla-to-React mapping.
+
+**React migration Phase 1 — build pipeline proven in production
+(2026-09-30):** `npm run build` (inside `react-poc/`) now outputs to a new
+sibling folder `msv-web/react-crypto/` (not the default `react-poc/dist/`,
+which stays excluded wholesale by `.assetsignore`) — see `vite.config.ts`'s
+`outDir`/`base` settings. `react-crypto/` is a plain top-level static
+folder like any other, gitignored (it's a build artifact, regenerated
+before each deploy that includes it — **there's no CI/CD auto-build yet**,
+`npm run build` must be run by hand before `npx wrangler deploy` whenever
+this changes). Deployed and verified live: real data renders at
+[msv-web.jozsua-heng.workers.dev/react-crypto/](https://msv-web.jozsua-heng.workers.dev/react-crypto/)
+(confirmed via a real browser check, zero console errors), and — just as
+important — `react-poc/`'s actual source/config/node_modules were
+confirmed still NOT publicly fetchable afterward (checked the response
+*body*, not just status code, same discipline as the `.assetsignore`
+verification story above, since the SPA fallback returns 200 for
+literally everything). Linked from the live Crypto page as a clearly
+labelled beta, **not yet a replacement** for the real page. A new
+`react-build` CI job (`.github/workflows/ci.yml`) runs `npm ci && npm run
+build` inside `react-poc/` on every PR so a broken build fails before
+merge — build-only, doesn't need a real API key since Vite never executes
+the code, just bundles it.
+
+**Next phase (not started):** migrate a real page's actual functionality
+into this pipeline — Crypto itself is the natural first candidate, since
+its POC already exists; see the org's TODO.md for the fuller page-by-page
+migration order (Sectors/ETFs/Screener/Market Data next, ticker deep-dive
+page last).
 
 Grew same-day from a straight rebuild into 8 tabs (Overview, Markets,
 Exchanges, DeFi, Stablecoins, Crypto Cycles, News, Learn) once Jozsua
