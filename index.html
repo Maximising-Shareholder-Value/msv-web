@@ -220,10 +220,22 @@
   </div>
 
   <div class="card screener-page-card" id="screenerPageCard" data-home-section="stock-screener" data-page-only="true">
-    <h3>Stock Screener <span class="card-subtitle">MVP — filters this app's curated ~70-stock universe, not the whole market</span></h3>
-    <p class="muted small">Free-tier data source (Finnhub), same as the rest of this app — not a whole-market screener. See the (?) note below for why, and what a broader version would need.</p>
-    <div id="screenerFilterRoot"></div>
-    <div id="screenerTableRoot"><p class="muted">Loading...</p></div>
+    <h3>Stock Screener</h3>
+    <div class="chart-source-toggle" id="screenerSourceToggle">
+      <button type="button" id="screenerSourceMsvBtn" class="active">MSV Screener <span class="card-subtitle">MVP, ~70 curated stocks</span></button>
+      <button type="button" id="screenerSourceTvBtn">TradingView <span class="card-subtitle">free widget, full market</span></button>
+    </div>
+
+    <div id="screenerMsvArea">
+      <p class="muted small">Free-tier data source (Finnhub), same as the rest of this app — not a whole-market screener. Switch to the TradingView tab above for real whole-market screening.</p>
+      <div id="screenerFilterRoot"></div>
+      <div id="screenerTableRoot"><p class="muted">Loading...</p></div>
+    </div>
+
+    <div id="screenerTvArea" class="hidden">
+      <div id="screenerTvContainer" class="tv-screener-container"></div>
+      <p class="muted small">TradingView's own Screener, embedded via their free widget — real whole-market coverage, not limited to this app's curated list. Data and filters come straight from TradingView, not this app's Finnhub/Twelve Data proxy. Free to embed on a non-commercial site like this one; see CLAUDE.md for the licensing note if $MSV ever becomes commercial.</p>
+    </div>
   </div>
 
   <div class="card" id="marketNewsCard" data-home-section="market-news">

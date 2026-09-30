@@ -91,7 +91,7 @@ const API_BASE_URL = "https://msv-api.jozsua-heng.workers.dev";
 // accurate shared counter isn't possible from the client.
 // Generalized 2026-09-25 to every API the app uses (sidebar usage panel,
 // apiUsage.js) — same "requests this tab initiated" caveat applies to all.
-const apiCallLogs = { finnhub: [], twelvedata: [], coingecko: [], fred: [], alpaca: [], worldbank: [] };
+const apiCallLogs = { finnhub: [], twelvedata: [], coingecko: [], fred: [], alpaca: [], worldbank: [], fmp: [] };
 const finnhubCallLog = apiCallLogs.finnhub;
 
 // Twelve Data's free plan also has a per-DAY cap (800), so its count is
@@ -114,7 +114,9 @@ function getDailyCount(name) {
 }
 function logApiCall(name) {
   apiCallLogs[name].push(Date.now());
-  if (name === "twelvedata") bumpDailyCount(name);
+  // Twelve Data (800/day) and FMP (250/day) both have a daily cap on top
+  // of (or instead of) a per-minute one — see apiUsage.js's API_USAGE_ROWS.
+  if (name === "twelvedata" || name === "fmp") bumpDailyCount(name);
 }
 
 function finnhubUrl(path, params) {
@@ -126,6 +128,40 @@ function finnhubUrl(path, params) {
   }
   search.set("path", path);
   return `${API_BASE_URL}/api/finnhub?${search.toString()}`;
+}
+
+// Financial Modeling Prep, added 2026-09-30 for real ETF fund profiles
+// (see renderETFFundProfile in script.js). Confirmed real CORS support
+// via a live request, unlike FRED/World Bank — so this can be called
+// directly in local dev, same pattern as Finnhub/Twelve Data.
+function fmpUrl(path, params) {
+  logApiCall("fmp");
+  const search = new URLSearchParams(params || {});
+  if (IS_LOCAL_DEV) {
+    if (typeof FMP_API_KEY === "undefined" || !FMP_API_KEY || FMP_API_KEY === "YOUR_FMP_KEY_HERE") return null;
+    search.set("apikey", FMP_API_KEY);
+    return `https://financialmodelingprep.com/stable${path}?${search.toString()}`;
+  }
+  search.set("path", path);
+  return `${API_BASE_URL}/api/fmp?${search.toString()}`;
+}
+
+// FMP's /profile response for any ticker — real fund name/description/
+// website/ISIN/CUSIP/beta for ETFs, confirmed live 2026-09-30. Returns
+// null (not a thrown error) on any failure — missing key, rate limit,
+// network issue, or genuinely unknown ticker — since this is an
+// enhancement layered on top of an ETF page that already works fine
+// without it (curated list + Wikipedia fallback).
+async function fetchFmpEtfProfile(symbol) {
+  const url = fmpUrl("/profile", { symbol });
+  if (!url) return null;
+  try {
+    const res = await fetchJSON(url);
+    const p = Array.isArray(res) ? res[0] : null;
+    return p && p.symbol ? p : null;
+  } catch {
+    return null;
+  }
 }
 
 // Unlike Finnhub/Twelve Data/CoinGecko, Alpaca is never called directly
@@ -525,13 +561,24 @@ async function loadTicker(symbol) {
     const fundInfo = instrumentType === "etf" ? ETF_FUND_INFO[symbol] : null;
     if (fundInfo) profile.name = fundInfo.name;
 
+    // FMP (added 2026-09-30), tried for ANY ETF, not just the ~60 in the
+    // curated list — real fund name/description/website/ISIN/CUSIP/beta,
+    // confirmed live. Overrides the curated fallback when it succeeds;
+    // silently does nothing when it fails or no FMP_API_KEY is configured
+    // (same optional-key pattern as Twelve Data/CoinGecko). Does NOT
+    // unlock NAV/AUM/expense ratio/holdings — those stay unavailable, see
+    // msv-org-github BLOCKERS.md.
+    const fmpProfile = instrumentType === "etf" ? await fetchFmpEtfProfile(symbol) : null;
+    if (fmpProfile?.companyName) profile.name = fmpProfile.companyName;
+    if (fmpProfile?.website) profile.weburl = fmpProfile.website;
+
     recordRecentlyViewed(symbol, profile.name || symbol);
 
     applyInstrumentTypeUI(instrumentType);
     renderOverview(symbol, quote, profile);
     renderHomeMarketStatus(profile);
-    renderCompanyFacts(profile, fundInfo);
-    renderDescription(profile.name, fundInfo?.issuer);
+    renderCompanyFacts(profile, fundInfo, fmpProfile);
+    renderDescription(profile.name, fundInfo?.issuer, fmpProfile?.description);
 
     if (instrumentType === "etf") {
       renderETFPerformance(metric);
@@ -819,12 +866,18 @@ function renderHomeMarketStatus(profile) {
   homeMarketInterval = setInterval(paint, 30000);
 }
 
-function renderCompanyFacts(profile, fundInfo) {
+// `fmpProfile` (2026-09-30): Financial Modeling Prep's /profile response
+// for ETFs — see fetchFmpEtfProfile. Only ISIN is shown here (CUSIP is
+// mostly the same identifier in a different format for US-listed funds,
+// not worth a second row); real NAV/AUM/expense ratio aren't in this
+// response and stay unavailable regardless (see BLOCKERS.md).
+function renderCompanyFacts(profile, fundInfo, fmpProfile) {
   companyFacts.innerHTML = "";
   const facts = [
     ["Fund Issuer", fundInfo?.issuer || null],
     ["Founded / IPO", profile.ipo || null],
     ["Headquarters", profile.country || null],
+    ["ISIN", fmpProfile?.isin || null],
     ["Website", profile.weburl || null],
   ];
   const hasAny = facts.some(([, v]) => v);
@@ -905,7 +958,15 @@ function renderUpcomingEvents(earningsCalendarRes) {
 // back to describing the fund's issuer rather than showing nothing, and
 // says so plainly rather than presenting it as if it were about the fund
 // itself.
-async function renderDescription(companyDisplayName, fallbackName) {
+// `fmpDescription` (2026-09-30): a real, fund-specific write-up from
+// Financial Modeling Prep, when available — takes priority over the
+// Wikipedia lookup entirely (skips that fetch too) since it's actually
+// about the specific fund, not a generic issuer article.
+async function renderDescription(companyDisplayName, fallbackName, fmpDescription) {
+  if (fmpDescription) {
+    descriptionContent.textContent = fmpDescription;
+    return;
+  }
   if (!companyDisplayName) {
     descriptionContent.textContent = "No company description available for this symbol (common for ETFs and crypto, which aren't operating companies).";
     return;

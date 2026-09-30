@@ -35,6 +35,17 @@ const FRED_API_KEY = "YOUR_FRED_KEY_HERE";
 
 const COINGECKO_API_KEY = "YOUR_COINGECKO_KEY_HERE";
 
+// --- Financial Modeling Prep (optional — real ETF fund name/description
+// for tickers outside the small hand-curated list, on the ETF deep-dive
+// page). Without this key, ETF pages still work — they fall back to the
+// curated list + a Wikipedia lookup, same as before this was added.
+// 1. Go to https://site.financialmodelingprep.com/register and sign up
+//    (free, no card needed).
+// 2. Copy your API key from the dashboard and paste it below.
+// Free tier is 250 requests/day — the tightest limit of any key here.
+
+const FMP_API_KEY = "YOUR_FMP_KEY_HERE";
+
 // NOTE: In a plain HTML/JS app, these keys are visible to anyone who views
 // your page source. That's fine for a personal/local project. If you ever
 // deploy this publicly, move the API calls to a small backend so the keys

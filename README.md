@@ -11,20 +11,20 @@ the logo in the header for the joke.)
 Plain HTML/CSS/JS. No build tools, no npm install.
 
 This is the **frontend**. The backend (a Cloudflare Worker proxying
-Finnhub/Twelve Data/FRED/CoinGecko) lives in a separate repo:
+Finnhub/Twelve Data/FRED/CoinGecko/FMP) lives in a separate repo:
 [msv-api](https://github.com/Maximising-Shareholder-Value/msv-api).
 
 ## Setup in VS Code
 
 1. Open this folder in VS Code.
 2. Get a free API key at [finnhub.io/register](https://finnhub.io/register) (required).
-3. Optionally get a free key at [twelvedata.com/pricing](https://twelvedata.com/pricing) (price chart), [fredaccount.stlouisfed.org/apikeys](https://fredaccount.stlouisfed.org/apikeys) (Macro tab), and/or [coingecko.com/en/developers/dashboard](https://www.coingecko.com/en/developers/dashboard) (higher crypto rate limit — the Crypto tab works without this one). Each just disables its own feature gracefully if skipped.
+3. Optionally get a free key at [twelvedata.com/pricing](https://twelvedata.com/pricing) (price chart), [fredaccount.stlouisfed.org/apikeys](https://fredaccount.stlouisfed.org/apikeys) (Macro tab), [coingecko.com/en/developers/dashboard](https://www.coingecko.com/en/developers/dashboard) (higher crypto rate limit — the Crypto tab works without this one), and/or [site.financialmodelingprep.com/register](https://site.financialmodelingprep.com/register) (real ETF fund descriptions for tickers outside the small curated list). Each just disables its own feature gracefully if skipped.
 4. Copy `config.example.js` to `config.js` and paste your key(s) in. (`config.js` is gitignored — your real keys never get committed.)
 5. Install the **Live Server** extension (Extensions panel → search "Live Server"). Needed because opening `index.html` directly blocks the API calls (CORS); Live Server runs it on `localhost` instead.
 6. Right-click `index.html` → "Open with Live Server".
 
-Locally, this calls Finnhub/Twelve Data/CoinGecko directly using your own
-`config.js` keys. FRED has no CORS support at all, so even local dev
+Locally, this calls Finnhub/Twelve Data/CoinGecko/FMP directly using your
+own `config.js` keys. FRED has no CORS support at all, so even local dev
 routes FRED calls through the deployed backend (see `FRED_PROXY_BASE` in
 `home.js`) — that one feature needs the backend reachable even offline of
 a full deploy.

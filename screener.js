@@ -231,4 +231,5 @@ function renderScreenerPage() {
   wireScreenerFilters();
   if (!screenerState.loaded) ensureScreenerData();
   else renderScreenerTable();
+  initScreenerSourceToggle();
 }

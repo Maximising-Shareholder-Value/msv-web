@@ -15,8 +15,10 @@
 // Limits are each provider's published free-tier numbers: Finnhub 60/min,
 // Twelve Data 8/min + 800/day (the free plan enforces both), CoinGecko 30/
 // min (its Demo-key plan — the public no-key tier is stricter), FRED 120/
-// min, Alpaca 1,000/min (Basic market-data plan). World Bank publishes no
-// hard limit, so it shows a count with no bar.
+// min, Alpaca 1,000/min (Basic market-data plan), FMP 250/day (added
+// 2026-09-30 — the tightest budget of anything this app calls, hence a
+// day-only row with no per-minute one, same shape as Twelve Data's daily
+// row). World Bank publishes no hard limit, so it shows a count with no bar.
 
 const API_USAGE_WINDOW_MS = 60 * 1000;
 
@@ -28,6 +30,7 @@ const API_USAGE_ROWS = [
   { key: "fred", label: "FRED", limit: 120, per: "min" },
   { key: "alpaca", label: "Alpaca", limit: 1000, per: "min" },
   { key: "worldbank", label: "World Bank", limit: null, per: "min" },
+  { key: "fmp", label: "FMP", limit: 250, per: "day" },
 ];
 
 const apiUsageListEl = document.getElementById("apiUsageList");

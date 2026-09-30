@@ -115,9 +115,30 @@ other crypto symbols still get a working price via Finnhub's quote but no
 detailed stats, disclosed rather than shown as blank N/A.
 
 **Wikipedia REST API** (no key needed, CORS-enabled) — powers the "About
-the Company" description Finnhub doesn't provide. Gracefully shows "No
-company description available... (common for ETFs and crypto, which
-aren't operating companies)" when there's no company name to look up.
+the Company" description Finnhub doesn't provide, as the fallback when
+FMP (below) doesn't have or can't return a fund-specific one. Gracefully
+shows "No company description available... (common for ETFs and crypto,
+which aren't operating companies)" when there's no company name to look
+up at all.
+
+**Financial Modeling Prep free tier** (added 2026-09-30) — real ETF fund
+name/description/website/ISIN/CUSIP/beta for ANY ticker via `/profile`
+(`fetchFmpEtfProfile()` in script.js), confirmed live — genuinely better
+than the ~60-ticker curated `ETF_FUND_INFO` + Wikipedia-issuer-fallback
+this app used before, since it's an actual fund-specific write-up, not a
+generic issuer article. Optional (works the same as before without a
+key, same pattern as Twelve Data/CoinGecko). Confirmed real CORS support
+via a live request, so it's called directly in local dev like Finnhub/
+Twelve Data. **Does NOT unlock NAV/AUM/expense ratio/holdings/sector
+weighting** — those specific endpoints were confirmed paywalled on this
+same key (`/stable/etf/holdings`, `/stable/etf/info` both return
+"Restricted Endpoint"; `/stable/etf/sector-weighting` returns an empty
+array even for SPY/QQQ) — see msv-org-github BLOCKERS.md, that "coming
+soon"/parked status is unchanged. **Free tier is 250 requests/day, the
+tightest budget of any key this app uses** — `/profile` is cached 24h at
+the msv-api edge (see that repo's `cacheTTL()`) specifically because of
+this, and it has its own usage row in the sidebar's API usage panel
+(`apiUsage.js`).
 
 ## Home page asset-class substitutions
 
@@ -378,13 +399,45 @@ Cloudflare's dashboard build settings ever auto-detect this `package.json`
 and try to run a build command, set that build command to empty/none —
 nothing here needs building.
 
+## TradingView widgets (`tradingview.js`, added 2026-09-30)
+
+Two SEPARATE free TradingView widgets, embedded two different ways —
+don't assume one pattern covers both if extending either:
+
+- **Chart** (ticker page, `#chartSourceToggle`): the classic `tv.js` +
+  `new TradingView.widget({...})` constructor pattern. Toggled against
+  the in-house `chart.js` chart; also gives crypto tickers a working
+  chart for the first time (chart.js never supported crypto candles —
+  Finnhub's `BINANCE:BTCUSDT` format happens to match TradingView's own
+  `EXCHANGE:PAIR` syntax, passed straight through).
+- **Screener** (`#screenerSourceToggle`, `screener.js`'s page):
+  TradingView's newer self-initializing `embed-widget-screener.js` —
+  no constructor call; you inject a `<script>` tag whose *text content*
+  is a JSON config object, and it renders itself into the nearest
+  `.tradingview-widget-container__widget` div. Config keys (`market`,
+  `defaultColumn`, `colorTheme`, etc.) were confirmed directly from the
+  widget's own loader script, not guessed from a mocked-up example.
+  `market: "america"` scopes it to US stocks — real whole-market
+  coverage, unlike the MSV Screener MVP's ~70-ticker curated universe it
+  sits next to.
+
+**Same license terms apply to both** (confirmed from tradingview.com/
+policies/): the attribution bar can't be hidden or removed, and free use
+is restricted to **non-commercial** sites — "we do not permit commercial
+usage of any of our services or APIs [without] separate agreement." Fine
+today (no subscriptions/ads on $MSV); if that changes, both widgets need
+either a paid TradingView agreement or removal in favor of their
+in-house equivalents (chart.js's chart works standalone; the MSV
+Screener MVP already exists independently). See msv-org-github
+BLOCKERS.md's "Standing watch-items" — revisit before any monetization.
+
 ## Config / secrets
 
-`config.js` holds the real Finnhub/Twelve Data/FRED/CoinGecko keys for
-**local dev only** and is gitignored. `config.example.js` is the tracked
-template. The deployed site never uses `config.js` at all — it calls the
-`msv-api` backend instead, which holds the real keys as Cloudflare
-secrets (see that repo).
+`config.js` holds the real Finnhub/Twelve Data/FRED/CoinGecko/FMP keys
+for **local dev only** and is gitignored. `config.example.js` is the
+tracked template. The deployed site never uses `config.js` at all — it
+calls the `msv-api` backend instead, which holds the real keys as
+Cloudflare secrets (see that repo).
 
 ## Deploy safety: `.assetsignore` is not optional
 
