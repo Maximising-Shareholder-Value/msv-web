@@ -1188,6 +1188,23 @@ canvas#priceChart { width: 100%; height: 160px; display: block; }
 .company-headline-link:hover { color: var(--accent); }
 
 /* ---- Chart ---- */
+.chart-source-toggle { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+.chart-source-toggle button {
+  padding: 7px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-surface-2);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+}
+.chart-source-toggle button:hover { border-color: var(--accent); }
+.chart-source-toggle button.active { background: var(--accent); border-color: var(--accent); color: var(--accent-contrast); }
+.chart-source-toggle .card-subtitle { font-weight: 500; }
+.tv-chart-container { height: 500px; border-radius: 10px; overflow: hidden; margin-bottom: 8px; }
+
 .chart-range-row { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
 .chart-range-row button {
   padding: 5px 12px;

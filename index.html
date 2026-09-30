@@ -284,49 +284,61 @@
     </section>
 
     <section class="card">
-      <h3>Price Chart <span class="card-subtitle">(via Twelve Data)</span></h3>
-      <div class="chart-range-row" id="chartRangeRow">
-        <button data-range="1H">1H</button>
-        <button data-range="4H">4H</button>
-        <button data-range="1D">1D</button>
-        <button data-range="1W">1W</button>
-        <button data-range="3M">3M</button>
-        <button data-range="6M" class="active">6M</button>
-        <button data-range="1Y">1Y</button>
-        <button data-range="5Y">5Y</button>
+      <h3>Price Chart</h3>
+      <div class="chart-source-toggle" id="chartSourceToggle">
+        <button type="button" id="chartSourceCustomBtn" class="active">MSV Chart <span class="card-subtitle">(via Twelve Data)</span></button>
+        <button type="button" id="chartSourceTvBtn">TradingView <span class="card-subtitle">(free widget)</span></button>
       </div>
-      <div class="chart-overlay-row" id="chartOverlayRow">
-        <button data-overlay="sma20">SMA 20</button>
-        <button data-overlay="sma50">SMA 50</button>
-        <button data-overlay="ema20">EMA 20</button>
-        <button data-chart-type="candles" id="candleToggleBtn">Candlesticks</button>
-      </div>
-      <p class="muted small session-legend">
-        <span class="legend-swatch legend-pre"></span>Pre-market
-        <span class="legend-swatch legend-after"></span>After-hours
-        <span class="legend-note">(shaded bands on 1D/4H — Twelve Data's free plan doesn't return actual pre/post-market prices, so these mark the time windows, not price action)</span>
-      </p>
-      <div class="chart-wrap" id="chartWrap">
-        <canvas id="priceChart" data-css-height="340" height="340"></canvas>
-        <div id="chartTooltip" class="chart-tooltip hidden"></div>
-        <button id="resetZoomBtn" class="reset-zoom-btn hidden" title="Back to the full range">⤢ Reset zoom</button>
-      </div>
-      <p class="muted small zoom-hint">Scroll to zoom, drag to pan once zoomed in.</p>
-      <p id="chartNote" class="muted hidden"></p>
 
-      <div class="chart-subpanel">
-        <div class="chart-subpanel-label">Volume</div>
-        <canvas id="volumeChart" data-css-height="65" height="65"></canvas>
+      <div id="customChartArea">
+        <div class="chart-range-row" id="chartRangeRow">
+          <button data-range="1H">1H</button>
+          <button data-range="4H">4H</button>
+          <button data-range="1D">1D</button>
+          <button data-range="1W">1W</button>
+          <button data-range="3M">3M</button>
+          <button data-range="6M" class="active">6M</button>
+          <button data-range="1Y">1Y</button>
+          <button data-range="5Y">5Y</button>
+        </div>
+        <div class="chart-overlay-row" id="chartOverlayRow">
+          <button data-overlay="sma20">SMA 20</button>
+          <button data-overlay="sma50">SMA 50</button>
+          <button data-overlay="ema20">EMA 20</button>
+          <button data-chart-type="candles" id="candleToggleBtn">Candlesticks</button>
+        </div>
+        <p class="muted small session-legend">
+          <span class="legend-swatch legend-pre"></span>Pre-market
+          <span class="legend-swatch legend-after"></span>After-hours
+          <span class="legend-note">(shaded bands on 1D/4H — Twelve Data's free plan doesn't return actual pre/post-market prices, so these mark the time windows, not price action)</span>
+        </p>
+        <div class="chart-wrap" id="chartWrap">
+          <canvas id="priceChart" data-css-height="340" height="340"></canvas>
+          <div id="chartTooltip" class="chart-tooltip hidden"></div>
+          <button id="resetZoomBtn" class="reset-zoom-btn hidden" title="Back to the full range">⤢ Reset zoom</button>
+        </div>
+        <p class="muted small zoom-hint">Scroll to zoom, drag to pan once zoomed in.</p>
+        <p id="chartNote" class="muted hidden"></p>
+
+        <div class="chart-subpanel">
+          <div class="chart-subpanel-label">Volume</div>
+          <canvas id="volumeChart" data-css-height="65" height="65"></canvas>
+        </div>
+        <div class="chart-subpanel">
+          <div class="chart-subpanel-label">RSI (14) <button class="help-btn" id="rsiHelpBtn">?</button></div>
+          <canvas id="rsiChart" data-css-height="75" height="75"></canvas>
+        </div>
+        <div class="chart-subpanel">
+          <div class="chart-subpanel-label">MACD (12, 26, 9) <button class="help-btn" id="macdHelpBtn">?</button></div>
+          <canvas id="macdChart" data-css-height="75" height="75"></canvas>
+        </div>
+        <p id="srNote" class="muted small"></p>
       </div>
-      <div class="chart-subpanel">
-        <div class="chart-subpanel-label">RSI (14) <button class="help-btn" id="rsiHelpBtn">?</button></div>
-        <canvas id="rsiChart" data-css-height="75" height="75"></canvas>
+
+      <div id="tvChartArea" class="hidden">
+        <div id="tvChartContainer" class="tv-chart-container"></div>
+        <p class="muted small">Full TradingView charting engine, embedded via their free widget — real-time-ish data comes straight from TradingView, not this app's own Finnhub/Twelve Data proxy, so small differences from the MSV Chart are expected. Free to embed on a non-commercial site like this one; a paid TradingView agreement would be needed if $MSV ever becomes a commercial (revenue-generating) product — see CLAUDE.md.</p>
       </div>
-      <div class="chart-subpanel">
-        <div class="chart-subpanel-label">MACD (12, 26, 9) <button class="help-btn" id="macdHelpBtn">?</button></div>
-        <canvas id="macdChart" data-css-height="75" height="75"></canvas>
-      </div>
-      <p id="srNote" class="muted small"></p>
     </section>
 
     <section class="card" id="valuationSection">
@@ -563,6 +575,7 @@
 <script src="home.js"></script>
 <script src="learn.js"></script>
 <script src="chart.js"></script>
+<script src="tradingview.js"></script>
 <script src="invest.js"></script>
 <script src="autocomplete.js"></script>
 <script src="compare.js"></script>

@@ -560,6 +560,7 @@ async function loadTicker(symbol) {
     setStatus("");
 
     initChart(symbol);
+    initChartSourceToggle(symbol);
     initInvestCalc(symbol);
     loadSecondaryData(symbol, profile, myToken);
     loadOptions(symbol, quote, instrumentType);
@@ -652,6 +653,7 @@ async function loadCryptoTicker(symbol) {
     setStatus("");
 
     initChart(symbol); // already shows "not supported for this format" for exotic symbols
+    initChartSourceToggle(symbol); // TradingView's widget DOES support this crypto symbol format
     initInvestCalc(symbol); // already shows "not available" for exotic symbols
     loadCryptoNews(myToken);
     if (optionsSection) optionsSection.classList.add("hidden"); // no crypto options via Alpaca's US-equities endpoint

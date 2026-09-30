@@ -456,7 +456,7 @@ before `home.js`'s `CRYPTO_COINGECKO_IDS`; it now looks it up lazily).
 Order: config, definitions, changelog, sectorRules, analysis, clock,
 script, dataUtils, apiUsage, countries, worldMarkets, marketData,
 riskDashboard, supplyChain, sectors, etfs, crypto, home, learn, chart,
-invest, autocomplete, compare.
+tradingview, invest, autocomplete, compare.
 
 - `countries.js` — the 42-country table (`iso2` = worldmap.svg class,
   `etf` = live-verified US-listed country ETF), group tags (BRICS,
