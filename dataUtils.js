@@ -12,8 +12,10 @@
 
 const QUOTE_CACHE = {};   // symbol -> { data, at }
 const METRIC_CACHE = {};  // symbol -> { data, at }
+const PROFILE_CACHE = {}; // symbol -> { data, at }
 const QUOTE_TTL_MS = 2 * 60 * 1000;
 const METRIC_TTL_MS = 15 * 60 * 1000;
+const PROFILE_TTL_MS = 24 * 60 * 60 * 1000; // company profiles (name, market cap, industry) barely change day to day
 const inflight = {};
 
 function getFreshCache(cache, symbol, ttl) {
@@ -53,6 +55,25 @@ async function fetchMetricCached(symbol) {
       const m = (r && r.metric) || null;
       if (m) METRIC_CACHE[symbol] = { data: m, at: Date.now() };
       return m;
+    } catch { return null; } finally { delete inflight[key]; }
+  })();
+  return inflight[key];
+}
+
+// profile2 (company name, market cap, industry) — added for the Screener
+// (2026-09-30), which needs market cap and there's no cheaper source for
+// it than this endpoint (Finnhub's /stock/metric doesn't include it).
+// Long TTL since this data is nearly static day to day, unlike a quote.
+async function fetchProfileCached(symbol) {
+  const hit = getFreshCache(PROFILE_CACHE, symbol, PROFILE_TTL_MS);
+  if (hit) return hit;
+  const key = `p:${symbol}`;
+  if (inflight[key]) return inflight[key];
+  inflight[key] = (async () => {
+    try {
+      const p = await fetchJSON(finnhubUrl("/stock/profile2", { symbol }));
+      if (p && p.name) { PROFILE_CACHE[symbol] = { data: p, at: Date.now() }; return p; }
+      return null;
     } catch { return null; } finally { delete inflight[key]; }
   })();
   return inflight[key];

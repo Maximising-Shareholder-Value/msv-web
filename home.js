@@ -314,7 +314,6 @@ const PLACEHOLDER_INFO = {
   "stock-ideas": { icon: "💡", title: "Stock Ideas", description: "Curated stock ideas with a stated thesis — not built yet; needs an editorial or screening process behind it." },
   "stock-sentiment": { icon: "💬", title: "Stock Sentiment", description: "Aggregated analyst/news sentiment per ticker — no free sentiment data source has been vetted yet." },
   "analyst-actions": { icon: "🔀", title: "Analyst Upgrades & Downgrades", description: "A feed of recent rating changes across tickers — distinct from the per-ticker Analyst Recommendations trend chart already on the ticker page. Finnhub's free tier hasn't been checked for a ratings-change feed yet." },
-  "stock-screener": { icon: "🧮", title: "Stock Screener", description: "Filter stocks by valuation/growth/health criteria. This app is deliberately one-ticker-at-a-time today (see this repo's CLAUDE.md) — listed here as a real gap, not a commitment to reverse that." },
   "precious-metals": { icon: "🥇", title: "Precious Metals", description: "A dedicated gold/silver/platinum/palladium view — today these tickers only live mixed into the general Commodities browse category." },
   "forex": { icon: "💱", title: "Forex", description: "Currency pairs — not built yet. Finnhub has zero forex coverage on its free tier (confirmed), but Twelve Data's free tier does return real forex quotes (confirmed live 2026-09-24, e.g. EUR/USD) — a real candidate to build, not a dead end." },
   "insider-activity": { icon: "🕵️", title: "Insider Activity Feed", description: "A market-wide feed of recent insider buying and selling. Each ticker page already shows its own insider transactions — a cross-market feed isn't built yet." },
@@ -335,7 +334,6 @@ const EXPLORE_ICON_FALLBACKS = {
   "stock-ideas": '<circle cx="10" cy="8" r="4.3"/><line x1="8.3" y1="15" x2="11.7" y2="15"/><line x1="8.8" y1="17" x2="11.2" y2="17"/><line x1="10" y1="3.5" x2="10" y2="1.8"/>',
   "stock-sentiment": '<path d="M3,5 H17 V13 H8 L4.5,16 V13 H3 Z"/>',
   "analyst-actions": '<line x1="6" y1="16" x2="6" y2="4"/><polyline points="3.5,7 6,4 8.5,7"/><line x1="14" y1="4" x2="14" y2="16"/><polyline points="11.5,13 14,16 16.5,13"/>',
-  "stock-screener": '<path d="M3,4 H17 L12,10.5 V16 L8,14 V10.5 Z"/>',
   "precious-metals": '<ellipse cx="10" cy="6" rx="6" ry="2.3"/><path d="M4,6 V14 C4,15.3 6.7,16.3 10,16.3 C13.3,16.3 16,15.3 16,14 V6"/><path d="M4,10 C4,11.3 6.7,12.3 10,12.3 C13.3,12.3 16,11.3 16,10"/>',
   "forex": '<line x1="3" y1="7" x2="15" y2="7"/><polyline points="12,4 15,7 12,10"/><line x1="17" y1="13" x2="5" y2="13"/><polyline points="8,10 5,13 8,16"/>',
   "indexes": '<circle cx="10" cy="10" r="7.3"/><path d="M10,10 L10,3.5 A6.5,6.5 0 0 1 15.7,13.2 Z"/>',
@@ -368,7 +366,7 @@ const EXPLORE_DIRECTORY = [
   { title: "Stock Ideas", description: "Curated ideas with a thesis.", nav: "stock-ideas", live: false },
   { title: "Stock Sentiment", description: "Analyst/news sentiment per ticker.", nav: "stock-sentiment", live: false },
   { title: "Analyst Upgrades & Downgrades", description: "Rating-change feed.", nav: "analyst-actions", live: false },
-  { title: "Stock Screener", description: "Filter by valuation and growth.", nav: "stock-screener", live: false },
+  { title: "Stock Screener", description: "Filter by price, market cap, P/E and more (MVP, curated universe).", nav: "stock-screener", live: true },
   { title: "Insider Activity Feed", description: "Market-wide insider trades.", nav: "insider-activity", live: false },
   { title: "Short Interest", description: "Most heavily shorted stocks.", nav: "short-interest", live: false },
 
@@ -566,7 +564,7 @@ const ROUTES = {
   "stock-ideas": { path: "/stock-ideas", render: () => showPlaceholderPage("stock-ideas") },
   "stock-sentiment": { path: "/stock-sentiment", render: () => showPlaceholderPage("stock-sentiment") },
   "analyst-actions": { path: "/analyst-actions", render: () => showPlaceholderPage("analyst-actions") },
-  "stock-screener": { path: "/stock-screener", render: () => showPlaceholderPage("stock-screener") },
+  "stock-screener": { path: "/stock-screener", render: () => { goHome(); showHomeFocused("stock-screener"); renderScreenerPage(); } },
   "precious-metals": { path: "/precious-metals", render: () => showPlaceholderPage("precious-metals") },
   "forex": { path: "/forex", render: () => showPlaceholderPage("forex") },
 

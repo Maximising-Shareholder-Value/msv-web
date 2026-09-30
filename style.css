@@ -1957,6 +1957,23 @@ canvas#priceChart, canvas#volumeChart, canvas#rsiChart, canvas#macdChart { width
 .mi-panel-head p { margin: 0; }
 .mi-open-btn { padding: 8px 14px; border-radius: 8px; border: none; background: var(--accent); color: var(--accent-contrast); font-weight: 700; font-size: 12.5px; cursor: pointer; }
 .mi-open-btn:hover { background: var(--accent-strong); }
+.screener-filters { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end; margin: 12px 0 18px; }
+.screener-filters label { display: flex; flex-direction: column; gap: 4px; font-size: 11.5px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.02em; }
+.screener-filters select, .screener-filters input[type="number"] {
+  padding: 7px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-size: 12.5px;
+  font-family: inherit;
+  width: 132px;
+}
+.screener-filters select:focus, .screener-filters input:focus { outline: none; border-color: var(--accent); }
+.screener-reset-btn { padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--text-secondary); font-size: 12.5px; font-weight: 600; cursor: pointer; font-family: inherit; }
+.screener-reset-btn:hover { border-color: var(--accent); color: var(--accent); }
+.screener-count { margin-top: 8px; }
+
 .mi-panel-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 .mi-panel-cols h5 { margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); }
 .mi-edge-row { padding: 9px 0; border-top: 1px solid var(--border); }
