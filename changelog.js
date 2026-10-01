@@ -14,6 +14,14 @@
 // showing a header per commit.
 const CHANGELOG = [
   {
+    date: "2026-10-01T16:50:00+08:00",
+    items: [
+      "The price chart is bigger and the 1H/4H/1D ranges no longer waste almost half their width on empty pre-market/after-hours space — the real price line now fills the whole chart.",
+      "Fixed the 1W chart's date labels, which were showing only a time of day (e.g. \"9:30 AM\") with no date, making a 5-day chart look like it was stuck on one day.",
+      "The sidebar is narrower and the overall page is slightly smaller, for a denser, more professional layout.",
+    ],
+  },
+  {
     date: "2026-09-27T18:00:00+08:00",
     items: [
       "Market Data is now a full research page: 42 countries (all the BRICS members, Indonesia and many more emerging markets), a richer hover card, and a colour-by switch on the map. Click any country — on the map or in the list — for a detailed profile below it.",

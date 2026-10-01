@@ -237,13 +237,33 @@ what made "1W looks really weird" — found and fixed 2026-08-06). If a
 future range spans multiple days at intraday granularity, it needs this
 same index-based treatment.
 
-**Session shading** (pre-market/after-hours bands): gated to
-`chartState.range === "1D" || "4H"` only — drawing one shaded pair per
-calendar day present in the series is harmless for a single session but
-created a wall of stripes on 1W (5 days). Twelve Data's free tier ignores
-`extended_hours=true` entirely (confirmed byte-identical response with/
-without it) — the bands mark time windows, not real extended-hours price
-data, and shouldn't be represented otherwise without upgrading the plan.
+**No pre-market/after-hours shading (removed 2026-10-01).** 1D/4H used to
+extend the x-axis to the full 4am-8pm session window specifically to leave
+room for shaded bands marking where pre/after-hours would be — Twelve
+Data's free tier ignores `extended_hours=true` entirely (confirmed
+byte-identical response with/without it), so there was never real price
+data inside those bands, only empty space. On a real screen that meant
+the actual price line was squeezed into a fraction of the chart width,
+which is what Jozsua reported as "greyed out and unusable." Removed the
+axis extension in `getXMapper` and the `drawSessionShading()` function
+entirely — 1D/4H now bound tightly to the real regular-hours data like
+every other range. The free-tier limitation is still disclosed, just as
+one plain-text line (`.session-legend` in index.html) instead of chart
+real estate. If pre/post-market data ever becomes available (a paid tier),
+re-add the shading as a genuinely data-backed feature, not a time-window
+placeholder.
+
+**x-axis label bug found and fixed in the same pass (2026-10-01):**
+`formatChartDate()` picked time-only vs date-only formatting off the raw
+`series.intraday` flag — true for 1W's 30-minute bars same as any
+single-session range, but 1W spans 5 different days, so every label
+showed a bare time ("9:30 AM"…"3:55 PM") with no date, making the whole
+week look like one repeated day. Fixed by computing a
+`singleSessionIntraday` flag at the label call site
+(`series.intraday && chartState.range !== "1W"`) — the same distinction
+`getXMapper` already draws for its own axis-positioning decision, now
+reused for labeling too. Keep these two checks in sync if a future range
+ever spans multiple days at intraday granularity.
 
 **Line vs candlestick line-drawing**: any line-drawing feature (price
 line, SMA/EMA overlays, RSI/MACD panel lines) needs segment-aware
@@ -470,6 +490,21 @@ a given path — don't conclude a fix failed from one immediate check.
 
 ## Layout gotchas (2026-09-26)
 
+- **`--page-zoom` is 1.045, not round numbers** (2026-10-01: Jozsua's
+  "decrease font size 5%" applied to the only global scale knob the page
+  has — same mechanism as the original 2026-09-21 "+10% bigger" request,
+  now 1.1 × 0.95). It scales spacing and images along with type, not just
+  font-size, since there's no separate font-only variable — if a true
+  font-only scale is ever wanted, that needs converting the hardcoded
+  per-selector `px` font-sizes throughout this file to a `rem`-based
+  system, a much bigger change than this one knob.
+- **`.app-sidebar` width is 220px** (2026-10-01, down from 264px —
+  Jozsua asked for something closer to Seeking Alpha's denser nav).
+  `.app-nav-label` already had `overflow: hidden; text-overflow:
+  ellipsis; white-space: nowrap`, so this was a safe one-line change —
+  long labels (e.g. "Create Free Account") now ellipsis instead of
+  wrapping, the sidebar wordmark stays 3 fixed lines regardless of width
+  (see its 3 hardcoded `<span>`s in index.html, not organic text-wrap).
 - **`body { zoom: 1.1 }` breaks `100vh`.** Anything sized off the viewport
   inside the zoomed body renders 10% too tall — the sidebar's bottom (API
   usage panel) was cut off because of exactly this. The zoom now lives in

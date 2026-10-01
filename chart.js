@@ -1,6 +1,6 @@
-// Interactive price chart: axes, range switching, session shading,
-// synced hover crosshair across all panels, SMA/EMA overlays, and simple
-// technical-analysis panels (volume, RSI, MACD, support/resistance).
+// Interactive price chart: axes, range switching, synced hover crosshair
+// across all panels, SMA/EMA overlays, and simple technical-analysis
+// panels (volume, RSI, MACD, support/resistance).
 //
 // Data comes from Twelve Data (see config.js / README.md — Finnhub's free
 // plan blocks historical candles). Each range button maps to a Twelve Data
@@ -8,9 +8,13 @@
 //
 // Twelve Data's free tier does NOT return pre-market/after-hours bars even
 // with `extended_hours=true` (confirmed directly — identical output with
-// or without the parameter). So the session shading marks WHEN pre-market/
-// after-hours occur (useful context, e.g. explaining the gap in the line
-// overnight) even though there's no price data to show inside those bands.
+// or without the parameter). 1D/4H used to extend the x-axis past the real
+// data to leave room for shaded "this is when pre/after-hours would be"
+// bands — dropped 2026-10-01 (Jozsua's report: on a real screen the real
+// price line only filled a sliver of the chart width, with the rest dead
+// space, which read as broken, not informative). The axis now just bounds
+// itself tightly to the real regular-hours data, same as every other
+// range.
 //
 // RSI/MACD/SMA/EMA computed client-side with standard formulas;
 // support/resistance is a simple local-extrema clustering heuristic,
@@ -349,23 +353,8 @@ function getXMapper(series, plotW, visStart, visEnd) {
   if (visEnd === undefined) visEnd = series.closes.length - 1;
 
   if (series.intraday && chartState.range !== "1W") {
-    let minT = series.timesMs[visStart];
-    let maxT = series.timesMs[visEnd];
-
-    // 1D/4H specifically: extend the axis to the full session window
-    // (4am-8pm) so there's actual pixel space to shade pre-market/
-    // after-hours into. Without this, the axis is tightly bounded to
-    // just the real data points — and since Twelve Data's free tier only
-    // returns bars for 9:30am-4pm, minT/maxT would already equal the
-    // regular-hours boundary, leaving zero width for those bands
-    // (drawSessionShading would compute from >= to and draw nothing).
-    if (chartState.range === "1D" || chartState.range === "4H") {
-      const firstDateStr = series.times[visStart].slice(0, 10);
-      const lastDateStr = series.times[visEnd].slice(0, 10);
-      minT = Math.min(minT, parseNaiveTime(`${firstDateStr} 04:00:00`));
-      maxT = Math.max(maxT, parseNaiveTime(`${lastDateStr} 20:00:00`));
-    }
-
+    const minT = series.timesMs[visStart];
+    const maxT = series.timesMs[visEnd];
     const span = maxT - minT || 1;
     return {
       xFor: i => PAD_LEFT + ((series.timesMs[i] - minT) / span) * plotW,
@@ -389,36 +378,6 @@ function getXMapper(series, plotW, visStart, visEnd) {
     minT: null, maxT: null,
     indexForX: mouseX => Math.round(((mouseX - PAD_LEFT) / plotW) * (n || 1)) + visStart,
   };
-}
-
-// ---- Session shading (pre-market / regular / after-hours) ----
-function drawSessionShading(ctx, series, xmap, padTop, plotH) {
-  // Only 1D/4H: on multi-day intraday ranges (e.g. 1W), one shaded pair
-  // per day turns into a wall of repeating stripes that swamps the actual
-  // price line — this was the root cause of "1W chart looks really weird".
-  if (!series.intraday || !xmap.xForTime) return;
-  if (chartState.range !== "1D" && chartState.range !== "4H") return;
-
-  const dateSet = new Set(series.times.map(t => t.slice(0, 10)));
-  dateSet.forEach(dateStr => {
-    const preStart = parseNaiveTime(`${dateStr} 04:00:00`);
-    const regStart = parseNaiveTime(`${dateStr} 09:30:00`);
-    const regEnd = parseNaiveTime(`${dateStr} 16:00:00`);
-    const afterEnd = parseNaiveTime(`${dateStr} 20:00:00`);
-
-    const drawBand = (t0, t1, color) => {
-      const from = Math.max(t0, xmap.minT);
-      const to = Math.min(t1, xmap.maxT);
-      if (from >= to) return;
-      const x0 = xmap.xForTime(from);
-      const x1 = xmap.xForTime(to);
-      ctx.fillStyle = color;
-      ctx.fillRect(x0, padTop, Math.max(x1 - x0, 0), plotH);
-    };
-
-    drawBand(preStart, regStart, "rgba(224,171,46,0.12)"); // pre-market: soft amber
-    drawBand(regEnd, afterEnd, "rgba(140,160,200,0.13)"); // after-hours: soft blue-grey
-  });
 }
 
 // ---- Moving averages ----
@@ -558,9 +517,6 @@ function renderPricePanel(series, sr, hoverIdx) {
   const max = Math.max(...allLevels);
   const yFor = price => padTop + plotH - ((price - min) / (max - min || 1)) * plotH;
 
-  // session shading (drawn first, underneath everything)
-  drawSessionShading(ctx, series, xmap, padTop, plotH);
-
   // gridlines + y-axis labels
   const ticks = niceTicks(min, max, 4);
   ctx.strokeStyle = "rgba(140,160,160,0.15)";
@@ -576,13 +532,21 @@ function renderPricePanel(series, sr, hoverIdx) {
     ctx.fillText(chartFormatCurrency(t), 4, y);
   });
 
-  // x-axis labels — spread across the visible window only
+  // x-axis labels — spread across the visible window only.
+  // Time-only labels (e.g. "9:30 AM") only make sense within a single
+  // trading session (1H/4H/1D) — 1W is intraday-granularity bars but
+  // spans 5 different days, and labeling it with time-only made every
+  // point look like it belonged to the same single day (found 2026-10-01:
+  // the 1W x-axis read "9:30 AM … 3:30 PM" with no date anywhere). Reuse
+  // the same "single session vs multi-day" distinction getXMapper already
+  // draws for its own axis-positioning decision.
+  const singleSessionIntraday = series.intraday && chartState.range !== "1W";
   const visibleSpan = visEnd - visStart;
   const xLabelCount = Math.min(5, visibleSpan + 1);
   ctx.textBaseline = "top";
   for (let i = 0; i < xLabelCount; i++) {
     const idx = visStart + Math.round((i / (xLabelCount - 1 || 1)) * visibleSpan);
-    ctx.fillText(formatChartDate(times[idx], series.intraday), xmap.xFor(idx) - 14, h - padBottom + 6);
+    ctx.fillText(formatChartDate(times[idx], singleSessionIntraday), xmap.xFor(idx) - 14, h - padBottom + 6);
   }
 
   // support/resistance lines

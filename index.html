@@ -328,13 +328,9 @@
           <button data-overlay="ema20">EMA 20</button>
           <button data-chart-type="candles" id="candleToggleBtn">Candlesticks</button>
         </div>
-        <p class="muted small session-legend">
-          <span class="legend-swatch legend-pre"></span>Pre-market
-          <span class="legend-swatch legend-after"></span>After-hours
-          <span class="legend-note">(shaded bands on 1D/4H — Twelve Data's free plan doesn't return actual pre/post-market prices, so these mark the time windows, not price action)</span>
-        </p>
+        <p class="muted small session-legend">1H/4H/1D show regular trading hours only — Twelve Data's free plan doesn't return pre/post-market prices.</p>
         <div class="chart-wrap" id="chartWrap">
-          <canvas id="priceChart" data-css-height="340" height="340"></canvas>
+          <canvas id="priceChart" data-css-height="460" height="460"></canvas>
           <div id="chartTooltip" class="chart-tooltip hidden"></div>
           <button id="resetZoomBtn" class="reset-zoom-btn hidden" title="Back to the full range">⤢ Reset zoom</button>
         </div>
@@ -343,15 +339,15 @@
 
         <div class="chart-subpanel">
           <div class="chart-subpanel-label">Volume</div>
-          <canvas id="volumeChart" data-css-height="65" height="65"></canvas>
+          <canvas id="volumeChart" data-css-height="80" height="80"></canvas>
         </div>
         <div class="chart-subpanel">
           <div class="chart-subpanel-label">RSI (14) <button class="help-btn" id="rsiHelpBtn">?</button></div>
-          <canvas id="rsiChart" data-css-height="75" height="75"></canvas>
+          <canvas id="rsiChart" data-css-height="90" height="90"></canvas>
         </div>
         <div class="chart-subpanel">
           <div class="chart-subpanel-label">MACD (12, 26, 9) <button class="help-btn" id="macdHelpBtn">?</button></div>
-          <canvas id="macdChart" data-css-height="75" height="75"></canvas>
+          <canvas id="macdChart" data-css-height="90" height="90"></canvas>
         </div>
         <p id="srNote" class="muted small"></p>
       </div>
