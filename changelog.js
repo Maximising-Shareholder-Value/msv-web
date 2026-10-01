@@ -14,6 +14,12 @@
 // showing a header per commit.
 const CHANGELOG = [
   {
+    date: "2026-10-01T23:00:00+08:00",
+    items: [
+      "New Prediction Markets page: live odds from Polymarket, with Finance, Economy & Fed, Crypto, Business, Politics and Trending tabs.",
+    ],
+  },
+  {
     date: "2026-10-01T21:45:00+08:00",
     items: [
       "Sectors page: clicking a sector or industry now also shows the other ETFs that track the same market (e.g. Technology's XLK alongside Vanguard, Fidelity, iShares and VanEck alternatives), not just the one tracking ETF.",

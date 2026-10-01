@@ -52,6 +52,14 @@
     </nav>
     <hr class="app-nav-divider">
 
+    <!-- Prediction Markets (2026-10-01): live Polymarket odds. Its own
+         group since it's a distinct data source, not a sub-tab of
+         anything else already here. -->
+    <nav class="app-nav-group">
+      <button type="button" class="app-nav-item" data-nav="prediction-markets"><span class="app-nav-icon"><svg viewBox="0 0 20 20"><rect x="3" y="4" width="14" height="12" rx="1.5"/><line x1="11.5" y1="4" x2="11.5" y2="16"/></svg></span><span class="app-nav-label">Prediction Markets</span></button>
+    </nav>
+    <hr class="app-nav-divider">
+
     <nav class="app-nav-group">
       <button type="button" class="app-nav-item" data-nav="portfolio-builder"><span class="app-nav-icon"><svg viewBox="0 0 20 20"><rect x="4" y="13" width="12" height="3.3" rx="0.6"/><rect x="4" y="8.4" width="12" height="3.3" rx="0.6"/><rect x="4" y="3.8" width="12" height="3.3" rx="0.6"/></svg></span><span class="app-nav-label">Portfolio Builder</span></button>
       <button type="button" class="app-nav-item" data-nav="watchlist"><span class="app-nav-icon"><svg viewBox="0 0 20 20" class="app-nav-icon-filled"><polygon points="10,3 12.2,7.8 17.5,8.4 13.6,11.9 14.7,17.2 10,14.5 5.3,17.2 6.4,11.9 2.5,8.4 7.8,7.8"/></svg></span><span class="app-nav-label">Watchlist</span></button>
@@ -217,6 +225,11 @@
     <h3>Crypto <span class="card-subtitle">market overview, coins, DeFi, stablecoins and crypto in traditional markets</span></h3>
     <p class="muted small">Trying out a React + TypeScript rebuild of this page with more tabs (Overview, Markets, Exchanges, DeFi, Stablecoins, Crypto Cycles, News, Learn) — <a href="/react-crypto/" target="_blank" rel="noopener">open the beta →</a></p>
     <div id="cryptoRoot"></div>
+  </div>
+
+  <div class="card" id="predictionMarketsPageCard" data-home-section="prediction-markets" data-page-only="true">
+    <h3>Prediction Markets <span class="card-subtitle">live odds from Polymarket — real money, not a poll</span></h3>
+    <div id="predictionMarketsRoot"></div>
   </div>
 
   <div class="card screener-page-card" id="screenerPageCard" data-home-section="stock-screener" data-page-only="true">
@@ -589,6 +602,7 @@
 <script src="sectors.js"></script>
 <script src="etfs.js"></script>
 <script src="crypto.js"></script>
+<script src="predictionMarkets.js"></script>
 <script src="home.js"></script>
 <script src="screener.js"></script>
 <script src="learn.js"></script>

@@ -391,6 +391,7 @@ const EXPLORE_DIRECTORY = [
   { title: "Crypto Cycles", description: "Rainbow chart, Stock-to-Flow, halvings.", nav: "bitcoin-cycles", live: false },
   { title: "Crypto News", description: "News feed + regulation/adoption tracker.", nav: "crypto-news", live: false },
   { title: "Options Explorer", description: "Cross-market options screen.", nav: "options-explorer", live: false },
+  { title: "Prediction Markets", description: "Live Polymarket odds on finance, economy, crypto and more.", nav: "prediction-markets", live: true },
 
   { title: "Market Intelligence", description: "Who depends on whom in AI.", nav: "market-intelligence", live: true },
   { title: "Energy & Power Map", description: "Grid supply-chain map.", nav: "energy-theme", live: false, icon: "market-intelligence" },
@@ -419,7 +420,7 @@ const EXPLORE_DIRECTORY = [
 const EXPLORE_CATEGORIES = [
   { title: "Get Started", items: ["home", "create-account", "login", "compare", "how-to", "whats-new"] },
   { title: "Stock Analysis", items: ["stock-analysis", "winners", "losers", "most-active", "trending-tech", "blue-chip", "dividend-payers", "growth-stocks", "earnings-calendar", "stock-ideas", "stock-sentiment", "analyst-actions", "stock-screener", "insider-activity", "short-interest"] },
-  { title: "Market Outlook", items: ["macro", "us-economy", "global-economy", "governance", "economic-calendar", "indexes", "etfs", "bonds", "commodities", "precious-metals", "energy-markets", "forex", "crypto", "options-explorer"] },
+  { title: "Market Outlook", items: ["macro", "us-economy", "global-economy", "governance", "economic-calendar", "indexes", "etfs", "bonds", "commodities", "precious-metals", "energy-markets", "forex", "crypto", "options-explorer", "prediction-markets"] },
   { title: "Market Intelligence & Data", items: ["market-intelligence", "energy-theme", "ev-theme", "defense-theme", "market-data", "sectors", "market-news"] },
   { title: "Portfolio Tools", items: ["watchlist", "recently-viewed", "portfolio-builder", "portfolio-health-check", "performance", "price-alerts", "dividend-tracker"] },
   { title: "Learn & Premium", items: ["learn", "glossary", "premium"] },
@@ -557,6 +558,7 @@ const ROUTES = {
   "performance": { path: "/performance", render: () => showPlaceholderPage("performance") },
   "bitcoin-cycles": { path: "/bitcoin-cycles", render: () => showPlaceholderPage("bitcoin-cycles") },
   "crypto-news": { path: "/crypto-news", render: () => showPlaceholderPage("crypto-news") },
+  "prediction-markets": { path: "/prediction-markets", render: () => { goHome(); showHomeFocused("prediction-markets"); renderPredictionMarketsPage(); } },
   "macro": { path: "/macro", render: () => { goToHomeTab("macro"); showHomeFocused("home-tabs"); } },
   "portfolio-builder": { path: "/portfolio-builder", render: () => showPlaceholderPage("portfolio-builder") },
   "watchlist": { path: "/watchlist", render: () => { goHome(); showHomeFocused("watchlist"); } },

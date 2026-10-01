@@ -473,6 +473,40 @@ adding another column, check `/stock/metric`'s existing fields (grep
 `metric\.` across script.js for the ones already confirmed live) before
 assuming a new API call is needed.
 
+## Prediction Markets (`predictionMarkets.js`, added 2026-10-01)
+
+Live odds from Polymarket's public **Gamma API**
+(`gamma-api.polymarket.com`) — confirmed free and genuinely
+CORS-enabled (`access-control-allow-origin: *`), called directly from
+the browser, no `msv-api` proxy needed (same tier as CoinGecko). See
+msv-org-github's API_RESEARCH.md for the full research writeup.
+
+- **`outcomePrices` IS the probability** (0-1 scale) — a single
+  `/markets` call returns question, outcomes, prices, volume, liquidity
+  and end date together, no separate CLOB order-book call needed for a
+  browse view.
+- **`tag_id` works, `tag_slug` does not.** Confirmed live: passing
+  `tag_slug=economy` (or any slug) silently returns the same unfiltered
+  top-by-volume results regardless of value — several third-party guides
+  document `tag_slug` as if it filters, it doesn't on the live API. Use
+  the integer `tag_id` instead. `POLY_TABS` in predictionMarkets.js has
+  the IDs already found and verified (Finance 120, Economy & Fed 100328,
+  Crypto 21, Business 107, Politics 2) — these came from paginating the
+  full `/tags` list (2,100+ tags, no clean top-level category endpoint
+  exists) and checking each one actually returns on-topic markets, not
+  from the tag's label alone.
+- **Almost every market is binary** (`outcomes.length === 2`,
+  Yes/No-shaped) — multi-candidate situations like elections are
+  typically split into one binary market per candidate rather than one
+  true multi-outcome market. `polyCardHtml()` handles a >2-outcome
+  market by showing outcome[0] against everything else combined rather
+  than a dedicated layout — a simplification, not a bug, if this is
+  revisited for a richer multi-outcome display later.
+- Not investment advice, explicitly disclosed in the page footer —
+  Polymarket is a real-money, largely unregulated-outside-specific-
+  jurisdictions market; prices reflect trader positioning, not a
+  forecast from this app.
+
 ## Config / secrets
 
 `config.js` holds the real Finnhub/Twelve Data/FRED/CoinGecko/FMP keys
