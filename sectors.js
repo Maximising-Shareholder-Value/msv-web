@@ -169,6 +169,25 @@ SECTORS.forEach(sec => {
 });
 const SECTOR_ITEM_BY_ID = Object.fromEntries(SECTOR_ITEMS.map(i => [i.id, i]));
 
+// Each sector/industry here tracks via exactly ONE proxy ETF — but
+// etfs.js's ETF_CATEGORIES often groups several ETFs around that same
+// theme (e.g. tech's XLK sits alongside VGT/FTEC/IYW/SMH/SOXX/IGV/FDN in
+// its "Technology & semiconductors" category). Added 2026-10-01 so
+// clicking a sector/industry can show those other options too, not just
+// the single tracking ETF — Jozsua's request. Reads etfs.js's data at
+// CALL time, not at file-load time (etfs.js loads after this file — see
+// this app's own documented script-order gotcha in CLAUDE.md), so this
+// must only be called from inside a function, never at this file's top
+// level. Excludes the "sec-spdr" category on purpose: its 11 items are
+// one-ETF-per-sector (the same shape this page already shows), not
+// multiple funds on the same theme, so including it would just echo
+// sibling sectors back as if they were "more options for this one".
+function sectorRelatedEtfs(etfTicker) {
+  if (typeof ETF_CATEGORIES === "undefined") return [];
+  const cat = ETF_CATEGORIES.find(c => c.id !== "sec-spdr" && !c.dynamicGroup && c.items.some(([t]) => t === etfTicker));
+  return cat ? cat.items.filter(([t]) => t !== etfTicker) : [];
+}
+
 const sectorsState = { view: "sectors", selected: null, sort: { key: "d1", dir: -1 }, started: false, allMetricsRequested: false };
 
 // ---------------- data access ----------------
@@ -359,6 +378,7 @@ function renderSectorDetail(id) {
 
   const subIndustries = isSector ? sec.industries : [];
   const siblings = !isSector ? SECTOR_ITEMS.filter(x => x.parent === it.parent && x.id !== it.id) : [];
+  const relatedEtfs = sectorRelatedEtfs(it.etf);
 
   el.innerHTML = `
     <div class="cp-head">
@@ -379,6 +399,11 @@ function renderSectorDetail(id) {
       ${m ? `<div class="cp-perf">${perfKeys.map(([l, k]) => `<div class="cp-perf-cell ${changeClass(M(m, k))}"><span>${l}</span><strong>${fmtPctVal(M(m, k), 1)}</strong></div>`).join("")}</div>` : '<p class="muted small" id="secMetricLoading">Loading performance history…</p>'}
       ${m && M(m, "52WeekLow") !== null && M(m, "52WeekHigh") !== null && q ? `<div class="cp-52w"><span class="small muted">52-week range</span><span class="small">${formatCurrency(m["52WeekLow"])}</span><span class="cp-52w-track"><i style="left:${(Math.max(0, Math.min(1, (q.c - m["52WeekLow"]) / (m["52WeekHigh"] - m["52WeekLow"]))) * 100).toFixed(0)}%"></i></span><span class="small">${formatCurrency(m["52WeekHigh"])}</span></div>` : ""}
     </div>
+
+    ${relatedEtfs.length ? `<div class="cp-section"><h4>Other ETFs tracking this ${isSector ? "sector" : "industry"} <span class="card-subtitle">${relatedEtfs.length} more besides ${it.etf} — live prices</span></h4>
+      <div class="crypto-table-scroll"><table class="crypto-table quotes-table"><thead><tr><th>Ticker</th><th>Fund</th><th>Price</th><th>Chg %</th></tr></thead><tbody id="secRelatedEtfsBody">${relatedEtfs.map(([t, n]) => `<tr class="crypto-table-row" data-symbol="${t}"><td><strong>${t}</strong></td><td class="muted small">${n}</td><td class="rel-etf-price muted">…</td><td class="rel-etf-chg"></td></tr>`).join("")}</tbody></table></div>
+      <p class="muted small">Not ranked by market cap or assets under management — that data is paywalled on every free source this app checked (see BLOCKERS.md). Order shown is this app's own curated list, not a ranking.</p>
+    </div>` : ""}
 
     ${rel.length ? `<div class="cp-section"><h4>Versus the S&P 500 <span class="card-subtitle">${it.etf} (green) against SPY (grey) — who's leading?</span></h4><div class="rel-bars">${rel.map(x => `<div class="rel-row"><span class="rel-label">${x.label}</span><span class="rel-track"><i class="rel-spy" style="width:${(Math.abs(x.b) / relMax) * 48}%;${x.b >= 0 ? "left:50%" : `right:50%`}"></i><i class="rel-sec ${x.a >= 0 ? "pos" : "neg"}" style="width:${(Math.abs(x.a) / relMax) * 48}%;${x.a >= 0 ? "left:50%" : "right:50%"}"></i><i class="rel-zero"></i></span><span class="rel-val ${changeClass(x.a - x.b)}">${fmtSigned(x.a - x.b, 1, " pts")}</span></div>`).join("")}</div><p class="muted small">Right column = sector minus S&P 500. Positive means the sector has outperformed the market over that period.</p></div>` : ""}
 
@@ -417,4 +442,16 @@ function renderSectorDetail(id) {
     row.querySelector(".rep-range").innerHTML = pos === null ? "" : `<span class="day-range"><span class="day-range-marker" style="left:${(pos * 100).toFixed(0)}%"></span></span>`;
   }, { concurrency: 2, gapMs: 500 });
   body && body.querySelectorAll("tr").forEach(tr => tr.addEventListener("click", () => loadTicker(tr.dataset.symbol)));
+
+  const relBody = el.querySelector("#secRelatedEtfsBody");
+  if (relBody) {
+    loadQuotesThrottled(relatedEtfs.map(([t]) => t), (sym, qq) => {
+      const row = relBody.querySelector(`tr[data-symbol="${sym}"]`);
+      if (!row || !qq) return;
+      row.querySelector(".rel-etf-price").textContent = formatCurrency(qq.c);
+      row.querySelector(".rel-etf-price").classList.remove("muted");
+      const c = row.querySelector(".rel-etf-chg"); c.textContent = fmtPctVal(qq.dp); c.className = `rel-etf-chg ${changeClass(qq.dp)}`;
+    }, { concurrency: 2, gapMs: 500 });
+    relBody.querySelectorAll("tr").forEach(tr => tr.addEventListener("click", () => loadTicker(tr.dataset.symbol)));
+  }
 }

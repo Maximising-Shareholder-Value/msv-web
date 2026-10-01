@@ -590,7 +590,16 @@ tradingview, invest, autocomplete, compare.
   (a *proxy*; sector ETF holdings aren't free). "Representative companies"
   are a **curated list, explicitly not live holdings**; all were
   live-quote-checked 2026-09-27 and dead ones pruned (delisted/acquired:
-  EA, CMA, MRO, CTRA, ABB, …; SQ→XYZ, FI→FISV).
+  EA, CMA, MRO, CTRA, ABB, …; SQ→XYZ, FI→FISV). **"Other ETFs tracking
+  this sector/industry" (2026-10-01):** `sectorRelatedEtfs()` cross-
+  references `etfs.js`'s `ETF_CATEGORIES` for other funds on the same
+  theme (e.g. tech's XLK alongside VGT/FTEC/IYW/SMH/SOXX/IGV/FDN) —
+  deliberately excludes the `sec-spdr` category (one ETF per sector, the
+  same shape this page already shows, not "more options"). 60/63
+  sector+industry entries matched (verified with a standalone data check
+  before wiring up the UI); the other 3 just don't show this section.
+  Explicitly NOT ranked by market cap/AUM — that data stays paywalled
+  (BLOCKERS.md), disclosed in the UI rather than faked.
 - `etfs.js` — 42 categories / ~290 ETFs in 8 families; every ticker
   live-checked. Expense ratio, holdings and AUM are paywalled (see
   BLOCKERS.md), so not shown. **By Issuer view (2026-10-01):** a second

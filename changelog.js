@@ -14,6 +14,12 @@
 // showing a header per commit.
 const CHANGELOG = [
   {
+    date: "2026-10-01T21:45:00+08:00",
+    items: [
+      "Sectors page: clicking a sector or industry now also shows the other ETFs that track the same market (e.g. Technology's XLK alongside Vanguard, Fidelity, iShares and VanEck alternatives), not just the one tracking ETF.",
+    ],
+  },
+  {
     date: "2026-10-01T20:30:00+08:00",
     items: [
       "ETFs page: a new \"By Issuer\" view groups all 290 ETFs by the company that runs the fund — Vanguard, BlackRock (iShares), State Street (SPDR), Charles Schwab, JPMorgan and 10 more — each with a short plain-English blurb on what that issuer is known for.",
