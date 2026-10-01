@@ -593,7 +593,12 @@ tradingview, invest, autocomplete, compare.
   EA, CMA, MRO, CTRA, ABB, …; SQ→XYZ, FI→FISV).
 - `etfs.js` — 42 categories / ~290 ETFs in 8 families; every ticker
   live-checked. Expense ratio, holdings and AUM are paywalled (see
-  BLOCKERS.md), so not shown.
+  BLOCKERS.md), so not shown. **By Issuer view (2026-10-01):** a second
+  toggle groups the same universe by the company that runs the fund
+  (Vanguard, BlackRock/iShares, State Street/SPDR, Schwab, JPMorgan,
+  etc. — 15 issuers, 87% of all tracked ETFs matched) instead of asset
+  class/theme — issuer is derived from each fund's own name prefix, not
+  hand-tagged, so it can't drift out of sync with the categories above.
 - `crypto.js` — CoinGecko (via msv-api): `/global`, `/coins/markets`
   (top 100 with sparkline + 1h/24h/7d/30d/1y changes in one call),
   `/search/trending`, `/coins/categories`, `/coins/{id}` + `market_chart`.

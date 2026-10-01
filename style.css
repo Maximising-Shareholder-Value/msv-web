@@ -2327,6 +2327,17 @@ canvas#priceChart, canvas#volumeChart, canvas#rsiChart, canvas#macdChart { width
 .etf-cat-head .muted { text-transform: uppercase; letter-spacing: 0.05em; font-size: 10.5px; font-weight: 700; }
 .etf-cat-head h3 { margin: 2px 0 4px; font-size: 17px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .etf-cat-head p { margin: 0; font-size: 13px; line-height: 1.5; color: var(--text-secondary); max-width: 900px; }
+
+/* By-issuer view (2026-10-01) — same card-grid idea as .etf-families,
+   but each tile is clickable (picks the issuer, like .etf-chip) rather
+   than just a label, and carries a short blurb instead of just a count. */
+.etf-issuers { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin: 12px 0 18px; }
+.etf-issuer-card { border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; background: var(--bg-surface-2); cursor: pointer; transition: border-color 0.15s ease; }
+.etf-issuer-card:hover { border-color: var(--accent); }
+.etf-issuer-card.active { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, var(--bg-surface-2)); }
+.etf-issuer-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.etf-issuer-head h4 { margin: 0; font-size: 14px; }
+.etf-issuer-blurb { margin: 6px 0 0; font-size: 12px; line-height: 1.5; color: var(--text-secondary); }
 .etf-foot { margin-top: 12px; }
 
 /* --- Crypto --- */

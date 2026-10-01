@@ -14,6 +14,12 @@
 // showing a header per commit.
 const CHANGELOG = [
   {
+    date: "2026-10-01T20:30:00+08:00",
+    items: [
+      "ETFs page: a new \"By Issuer\" view groups all 290 ETFs by the company that runs the fund — Vanguard, BlackRock (iShares), State Street (SPDR), Charles Schwab, JPMorgan and 10 more — each with a short plain-English blurb on what that issuer is known for.",
+    ],
+  },
+  {
     date: "2026-10-01T19:00:00+08:00",
     items: [
       "Stock Screener: 5 new columns — 52-Week High/Low, Beta, Dividend Yield, and Average Volume — using data already being fetched, no slower to load.",

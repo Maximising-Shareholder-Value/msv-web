@@ -12,6 +12,13 @@
 // NOT shown: they're paywalled on every free data source the project
 // checked (see BLOCKERS.md). Prices load live per category, a few at a time
 // (Finnhub's free tier is 60 calls/minute shared by all visitors).
+//
+// 2026-10-01: added a second "By Issuer" view (ETF_ISSUER_PREFIXES onward,
+// near the bottom of this file) — the same universe above, grouped by the
+// company that runs the fund (Vanguard, iShares, Schwab, JPMorgan, etc.)
+// instead of by asset class/theme. Derived from each item's existing name
+// string, not a separately maintained list — see that section's own
+// comment before changing how categories above name their items.
 
 const ETF_FAMILIES = [
   { id: "us", label: "US equity" },
@@ -131,7 +138,7 @@ function etfCategoryItems(cat) {
   return cat.items;
 }
 
-const etfState = { selected: "us-broad", query: "", token: 0 };
+const etfState = { selected: "us-broad", query: "", token: 0, view: "category" };
 const ETF_ALL_INDEX = () => { const seen = new Map(); ETF_CATEGORIES.forEach(cat => etfCategoryItems(cat).forEach(([t, n]) => { if (!seen.has(t)) seen.set(t, { t, n, cats: [] }); seen.get(t).cats.push(cat.id); })); return [...seen.values()]; };
 
 function renderEtfsPage() {
@@ -145,10 +152,24 @@ function renderEtfsPage() {
         <span class="muted small">${ETF_CATEGORIES.length} categories · every ticker live-checked · prices load live per category</span>
       </div>
       <div class="etf-search-results" id="etfSearchResults" hidden></div>
+      <div class="chart-source-toggle" id="etfViewToggle">
+        <button type="button" data-view="category" class="active">By Category</button>
+        <button type="button" data-view="issuer">By Issuer <span class="card-subtitle">who runs the fund</span></button>
+      </div>
       <div class="etf-families" id="etfFamilies"></div>
+      <div class="etf-issuers" id="etfIssuers" hidden></div>
       <div id="etfCategory"></div>`;
     document.getElementById("etfSearch").addEventListener("input", e => { etfState.query = e.target.value; paintEtfSearch(); });
+    document.getElementById("etfViewToggle").querySelectorAll("button").forEach(b => b.addEventListener("click", () => {
+      etfState.view = b.dataset.view;
+      document.getElementById("etfViewToggle").querySelectorAll("button").forEach(x => x.classList.toggle("active", x === b));
+      document.getElementById("etfFamilies").hidden = etfState.view !== "category";
+      document.getElementById("etfIssuers").hidden = etfState.view !== "issuer";
+      if (etfState.view === "issuer") { paintEtfIssuers(); openEtfIssuer(etfState.selectedIssuer || buildEtfIssuerGroups()[0].issuer); }
+      else { openEtfCategory(etfState.selected); }
+    }));
     paintEtfFamilies();
+    paintEtfIssuers();
   }
   paintEtfFamilies();
   openEtfCategory(etfState.selected);
@@ -189,6 +210,124 @@ function openEtfCategory(id) {
 
   const target = document.getElementById("etfQuotes");
   const paint = () => { if (token === etfState.token) renderQuotesView(items.map(i => ({ ...i, quote: i.quote })), cat.warn ? "Leveraged, inverse and volatility products are designed for short-term trading. Their long-run returns can differ dramatically from the index multiple they advertise." : "", target); };
+  paint();
+  let sinceRepaint = 0;
+  loadQuotesThrottled(items.map(i => i.symbol), (sym, q) => {
+    const it = items.find(i => i.symbol === sym);
+    if (it) it.quote = q;
+    if (++sinceRepaint >= 3) { sinceRepaint = 0; paint(); }
+  }, { concurrency: 3, gapMs: 300 }).then(() => paint());
+}
+
+// ---- By-issuer view (2026-10-01) ----
+// A second way to browse the SAME ETF universe above — by the company
+// that runs the fund, not by asset class/theme (Jozsua's request: "I
+// know Vanguard has VOO, VOOG etc, Schwab has SCHG/SCHB/SCHD, JPMorgan
+// has JEPI/JEPQ — I want this visualised simply").
+//
+// Issuer is DERIVED from each fund's existing name string rather than
+// hand-tagging ~300 tickers a second time — this file already writes
+// names consistently as "Vanguard X", "iShares Y", "SPDR Z" etc.
+// (confirmed by inspection of every category, not assumed), so deriving
+// it here means this view can never drift out of sync with
+// ETF_CATEGORIES above. ETF_ISSUER_OVERRIDES covers the one place that
+// convention breaks: the 11 S&P sector SPDRs (`sec-spdr` category) are
+// written as short names ("Technology", not "SPDR Technology") since
+// that category's own blurb already says SPDR. A ticker whose issuer
+// can't be derived or overridden just doesn't appear in this view —
+// deliberately, rather than guessing or mislabeling it.
+const ETF_ISSUER_PREFIXES = [
+  ["Vanguard", "Vanguard"],
+  ["iShares", "BlackRock (iShares)"],
+  ["SPDR", "State Street Global Advisors (SPDR)"],
+  ["Schwab", "Charles Schwab"],
+  ["Invesco", "Invesco"],
+  ["JPMorgan", "JPMorgan"],
+  ["ARK", "ARK Invest"],
+  ["Global X", "Global X"],
+  ["VanEck", "VanEck"],
+  ["WisdomTree", "WisdomTree"],
+  ["First Trust", "First Trust"],
+  ["Fidelity", "Fidelity"],
+  ["PIMCO", "PIMCO"],
+  ["Direxion", "Direxion"],
+  ["ProShares", "ProShares"],
+];
+
+const ETF_ISSUER_OVERRIDES = Object.fromEntries(
+  ["XLK", "XLF", "XLE", "XLV", "XLY", "XLP", "XLI", "XLU", "XLB", "XLRE", "XLC"]
+    .map(t => [t, "State Street Global Advisors (SPDR)"])
+);
+
+const ETF_ISSUER_INFO = {
+  "Vanguard": "Investor-owned, so profits go back into lower fees rather than to outside shareholders — still the cheapest option on most of its core index funds. The second-largest ETF issuer by assets.",
+  "BlackRock (iShares)": "The world's largest ETF issuer by assets under management, with the broadest lineup of any provider — a fund for nearly every asset class, country and niche strategy.",
+  "State Street Global Advisors (SPDR)": "Launched SPY in 1993, the first-ever US ETF and still one of the most-traded securities in the world. Dominant in sector investing (the 11 Select Sector SPDRs) and gold (GLD).",
+  "Charles Schwab": "Known for undercutting Vanguard and iShares by a basis point or two on core broad-market and factor funds — the house brand for Schwab's own brokerage, but tradable anywhere.",
+  "Invesco": "Best known for QQQ, tracking the Nasdaq-100 and one of the most-traded ETFs in the world; also runs equal-weight and other smart-beta strategies.",
+  "JPMorgan": "A newer entrant that built its ETF business around actively-managed income strategies — JEPI/JEPQ's covered-call approach became some of the most popular actively managed ETFs ever launched.",
+  "ARK Invest": "Actively-managed, highly concentrated bets on disruptive innovation (genomics, fintech, robotics). Far more volatile than a typical index ETF — famous for huge run-ups and drawdowns alike.",
+  "Global X": "Focused on thematic and income (covered-call) strategies — niches like robotics, uranium and options-income funds that broader issuers often don't cover.",
+  "VanEck": "A specialist in commodities, miners and niche international exposure — gold/junior gold miners, semiconductors, and single-country funds broader issuers skip.",
+  "WisdomTree": "Known for currency-hedged international funds (stripping out the effect of the dollar moving against foreign currencies) and dividend-weighted strategies.",
+  "First Trust": "Runs a mix of thematic (cybersecurity, cloud, internet) and smart-beta strategies, often reweighted on a fixed schedule rather than passively tracking a cap-weighted index.",
+  "Fidelity": "Entered ETFs more recently with very low-cost core and sector funds, leaning on the same scale that makes its mutual funds cheap.",
+  "PIMCO": "A bond specialist — actively-managed fixed-income funds from one of the largest bond managers in the world.",
+  "Direxion": "Leveraged and inverse funds (2x/3x daily) for short-term trading — not built to be held long-term; see the warning on this app's Leveraged & Inverse category.",
+  "ProShares": "The original leveraged/inverse ETF issuer, plus some of the most popular short-volatility and inverse products (SQQQ, VIXY).",
+};
+
+function etfIssuerFor(ticker, name) {
+  if (ETF_ISSUER_OVERRIDES[ticker]) return ETF_ISSUER_OVERRIDES[ticker];
+  const hit = ETF_ISSUER_PREFIXES.find(([prefix]) => name.startsWith(prefix));
+  return hit ? hit[1] : null;
+}
+
+// Built once per call from ETF_ALL_INDEX (not cached) so it always
+// reflects whatever's currently in ETF_CATEGORIES above, same as every
+// other derived view in this file.
+function buildEtfIssuerGroups() {
+  const byIssuer = new Map();
+  ETF_ALL_INDEX().forEach(({ t, n }) => {
+    const issuer = etfIssuerFor(t, n);
+    if (!issuer) return;
+    if (!byIssuer.has(issuer)) byIssuer.set(issuer, []);
+    byIssuer.get(issuer).push({ symbol: t, name: n });
+  });
+  return [...byIssuer.entries()]
+    .map(([issuer, items]) => ({ issuer, items }))
+    .sort((a, b) => b.items.length - a.items.length);
+}
+
+function paintEtfIssuers() {
+  const el = document.getElementById("etfIssuers");
+  if (!el) return;
+  const groups = buildEtfIssuerGroups();
+  el.innerHTML = groups.map(g => `
+    <div class="etf-issuer-card${g.issuer === etfState.selectedIssuer ? " active" : ""}" data-issuer="${escapeHtml(g.issuer)}">
+      <div class="etf-issuer-head"><h4>${escapeHtml(g.issuer)}</h4><span class="ctag">${g.items.length} ${g.items.length === 1 ? "fund" : "funds"}</span></div>
+      <p class="etf-issuer-blurb">${escapeHtml(ETF_ISSUER_INFO[g.issuer] || "")}</p>
+    </div>`).join("");
+  el.querySelectorAll(".etf-issuer-card").forEach(c => c.addEventListener("click", () => openEtfIssuer(c.dataset.issuer)));
+}
+
+function openEtfIssuer(issuer) {
+  const groups = buildEtfIssuerGroups();
+  const group = groups.find(g => g.issuer === issuer) || groups[0];
+  etfState.selectedIssuer = group.issuer;
+  const token = ++etfState.token;
+  document.querySelectorAll(".etf-issuer-card").forEach(c => c.classList.toggle("active", c.dataset.issuer === group.issuer));
+  const items = group.items.map(({ symbol, name }) => ({ symbol, name, quote: getFreshCache(QUOTE_CACHE, symbol, QUOTE_TTL_MS) }));
+  const el = document.getElementById("etfCategory");
+  el.innerHTML = `
+    <div class="etf-cat-head">
+      <div><div class="muted small">By issuer</div><h3>${escapeHtml(group.issuer)} <span class="ctag">${items.length} ETFs</span></h3><p>${escapeHtml(ETF_ISSUER_INFO[group.issuer] || "")}</p></div>
+    </div>
+    <div id="etfQuotes"></div>
+    <p class="muted small etf-foot">Grouped by reading each fund's own name (this app writes ETF names as "Vanguard X", "iShares Y" etc. consistently) — not every issuer this app tracks is shown, only the ones with a clear, consistent name prefix. Live prices via Finnhub, a few at a time. Click any row for that ETF's full page. Not investment advice.</p>`;
+
+  const target = document.getElementById("etfQuotes");
+  const paint = () => { if (token === etfState.token) renderQuotesView(items.map(i => ({ ...i, quote: i.quote })), "", target); };
   paint();
   let sinceRepaint = 0;
   loadQuotesThrottled(items.map(i => i.symbol), (sym, q) => {
