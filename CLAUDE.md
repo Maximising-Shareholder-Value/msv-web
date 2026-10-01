@@ -352,11 +352,19 @@ just appending to the list.
   visiting one for the first time triggers fetching whatever categories
   aren't loaded yet. Default tab is a cheap static browse category, not a
   dynamic (ranked) one.
-- **Browse categories are genuinely zero-cost**: `BROWSE_CATEGORIES`
-  (6 categories × 12 items) shows name + ticker only, no live quotes at
-  all — deliberately kept separate from `RANKING_STOCK_SYMBOLS` (the
-  smaller set actually used for Winners/Losers/Most Active), so the
-  ranking cost doesn't grow just because the browse lists did.
+- **Browse categories are genuinely zero-cost at list stage**:
+  `BROWSE_CATEGORIES` (7 categories, ~22-24 items each as of 2026-10-01 —
+  grown from an original 12, then 18, then this) shows name + ticker
+  only, no live quotes fetched just to render the list — deliberately
+  kept separate from `RANKING_STOCK_SYMBOLS` (the smaller set actually
+  used for Winners/Losers/Most Active), so the ranking cost doesn't grow
+  just because the browse lists did. Every ticker added on 2026-10-01 was
+  live-verified against the real production Finnhub proxy first (real
+  `name` from `/stock/profile2` for stocks, real nonzero `/quote` for
+  ETFs/bonds/commodities) — this app has a real history of delisted/
+  renamed tickers slipping into hand-written lists (see etfs.js's/
+  sectors.js's own history), so don't hand-add a ticker here from
+  memory without checking it the same way.
 - **API usage widget** (`apiUsage.js`): a client-side estimate of Finnhub
   usage against the 60/min limit, based on requests THIS BROWSER TAB
   initiated — not a precise shared counter (some requests get served
@@ -438,8 +446,8 @@ don't assume one pattern covers both if extending either:
   `defaultColumn`, `colorTheme`, etc.) were confirmed directly from the
   widget's own loader script, not guessed from a mocked-up example.
   `market: "america"` scopes it to US stocks — real whole-market
-  coverage, unlike the MSV Screener MVP's ~70-ticker curated universe it
-  sits next to.
+  coverage, unlike the MSV Screener MVP's ~94-ticker curated universe
+  it sits next to.
 
 **Same license terms apply to both** (confirmed from tradingview.com/
 policies/): the attribution bar can't be hidden or removed, and free use
@@ -450,6 +458,20 @@ either a paid TradingView agreement or removal in favor of their
 in-house equivalents (chart.js's chart works standalone; the MSV
 Screener MVP already exists independently). See msv-org-github
 BLOCKERS.md's "Standing watch-items" — revisit before any monetization.
+
+## Stock Screener MVP (`screener.js`)
+
+Filters/sorts the 4 *stock* `BROWSE_CATEGORIES` (home.js) — Trending
+Tech, Blue Chip, Dividend Payers, Growth, ~94 tickers as of 2026-10-01.
+`SCREENER_COLUMNS` is the single source of truth for both the table
+header and sort keys; `screenerRowHtml()` must stay in the same order.
+5 columns (52-Week High, 52-Week Low, Beta, Dividend Yield, Avg Volume
+10-Day) added 2026-10-01 at zero extra API cost — `ensureScreenerData()`
+already fetches a full `/stock/metric` response per ticker for `peTTM`,
+and these fields were already sitting unused in that same response. If
+adding another column, check `/stock/metric`'s existing fields (grep
+`metric\.` across script.js for the ones already confirmed live) before
+assuming a new API call is needed.
 
 ## Config / secrets
 

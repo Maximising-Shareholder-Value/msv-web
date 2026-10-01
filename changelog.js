@@ -14,6 +14,13 @@
 // showing a header per commit.
 const CHANGELOG = [
   {
+    date: "2026-10-01T19:00:00+08:00",
+    items: [
+      "Stock Screener: 5 new columns — 52-Week High/Low, Beta, Dividend Yield, and Average Volume — using data already being fetched, no slower to load.",
+      "Trending Tech, Blue Chip, Dividend Payers, Growth, ETFs, Bond ETFs and Commodities each got more real tickers (every new one checked against live market data first).",
+    ],
+  },
+  {
     date: "2026-10-01T16:50:00+08:00",
     items: [
       "The price chart is bigger and the 1H/4H/1D ranges no longer waste almost half their width on empty pre-market/after-hours space — the real price line now fills the whole chart.",

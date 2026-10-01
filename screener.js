@@ -11,16 +11,18 @@
 // (home.js) — the four *stock* categories only (Trending Tech, Blue Chip,
 // Dividend Payers, Growth); the ETF/Bond ETF/Commodities categories are
 // excluded since market cap/P/E don't apply to them the same way. That's
-// ~70 tickers, not the whole market — labelled as such in the UI. A
+// ~94 tickers (grown from ~70 on 2026-10-01 when those 4 categories grew
+// — see home.js), not the whole market — labelled as such in the UI. A
 // broader-market version is possible if Financial Modeling Prep's Stock
 // Screener endpoint turns out to be genuinely free-tier accessible (not
 // yet confirmed live — see msv-org-github TODO.md).
 //
-// Cost: quote + metric + profile2 per ticker (~70 × 3 ≈ 210 calls),
+// Cost: quote + metric + profile2 per ticker (~94 × 3 ≈ 282 calls),
 // throttled through the same dataUtils.js cache used everywhere else in
 // this app — paid once per cache window (profile2 cached 24h, metric
 // 15min, quote 2min) and shared across every visitor via msv-api's edge
-// cache, not once per page view.
+// cache, not once per page view. A cold first load now takes a little
+// longer than before (same throttle: concurrency 2, 1.2s gap).
 
 const SCREENER_CATEGORY_IDS = ["trending-tech", "blue-chip", "dividend-payers", "growth"];
 
@@ -65,8 +67,8 @@ function screenerCapBucket(marketCapMillions) {
 // throttle below governs the real raw-call rate directly. Deliberately
 // conservative (concurrency 2, 1.2s gap ≈ 100 calls/min) since this
 // shares Finnhub's 60/min free-tier budget with every other visitor and
-// page on the live deployment — a cold first load of the full ~70-stock
-// universe (≈210 calls) takes a couple of minutes; cached afterward
+// page on the live deployment — a cold first load of the full ~94-stock
+// universe (≈282 calls) takes a couple of minutes; cached afterward
 // (quote 2min, metric 15min, profile 24h — see dataUtils.js) for anyone
 // who loads the page in that window. Renders progressively as data
 // arrives rather than blocking on a spinner, so it's usable immediately.
@@ -119,24 +121,42 @@ function screenerFilteredRows() {
   });
 }
 
+// The 5 columns below (52W High/Low, Beta, Div Yield, Avg Volume) add no
+// new network calls — they're already sitting unused in the same
+// `metric` object ensureScreenerData() fetches per ticker (one
+// /stock/metric call already pays for all of it), just not previously
+// surfaced as columns.
 const SCREENER_COLUMNS = [
   { key: "symbol", label: "Symbol", get: r => r.symbol, text: true },
   { key: "price", label: "Price", get: r => r.quote?.c },
   { key: "pct", label: "Chg %", get: r => r.quote?.dp },
   { key: "marketCap", label: "Market Cap", get: r => r.marketCap },
   { key: "pe", label: "P/E", get: r => r.metric?.peTTM },
+  { key: "week52high", label: "52W High", get: r => r.metric?.["52WeekHigh"] },
+  { key: "week52low", label: "52W Low", get: r => r.metric?.["52WeekLow"] },
+  { key: "beta", label: "Beta", get: r => r.metric?.beta },
+  { key: "divYield", label: "Div Yield", get: r => r.metric?.dividendYieldIndicatedAnnual },
+  { key: "avgVolume", label: "Avg Vol (10D)", get: r => r.metric?.["10DayAverageTradingVolume"] },
   { key: "category", label: "Category", get: r => r.category, text: true },
 ];
 
 function screenerRowHtml(r) {
   const pct = r.quote?.dp;
   const dir = !isNum(pct) ? "" : pct >= 0 ? "positive" : "negative";
+  const beta = r.metric?.beta;
+  const divYield = r.metric?.dividendYieldIndicatedAnnual;
+  const avgVolume = r.metric?.["10DayAverageTradingVolume"];
   return `
     <td><strong>${displaySymbol(r.symbol)}</strong> <span class="muted small quote-name">${escapeHtml(r.name)}</span></td>
     <td>${fmtNum(r.quote?.c)}</td>
     <td class="${dir}">${isNum(pct) ? `${pct >= 0 ? "▲" : "▼"} ${pct >= 0 ? "+" : ""}${pct.toFixed(2)}%` : "--"}</td>
     <td>${fmtCompact(r.marketCap != null ? r.marketCap * 1e6 : null, "$")}</td>
     <td>${isNum(r.metric?.peTTM) ? r.metric.peTTM.toFixed(1) : "--"}</td>
+    <td>${fmtNum(r.metric?.["52WeekHigh"])}</td>
+    <td>${fmtNum(r.metric?.["52WeekLow"])}</td>
+    <td>${isNum(beta) ? beta.toFixed(2) : "--"}</td>
+    <td>${isNum(divYield) ? `${divYield.toFixed(2)}%` : "--"}</td>
+    <td>${isNum(avgVolume) ? `${avgVolume.toFixed(1)}M` : "--"}</td>
     <td>${escapeHtml(r.category)}</td>
   `;
 }
