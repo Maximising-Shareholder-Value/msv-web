@@ -40,7 +40,20 @@ function useSecondsSince(t: number | null) {
 
 export function App() {
   // ---- state: things that change, and when they change the page re-draws ----
-  const [theme, setTheme] = useLocalStorage<"light" | "dark">("poc-theme", "light");
+  // Theme reads/writes the SAME localStorage key as the main site
+  // (script.js's THEME_KEY) — both apps share one origin, so picking a
+  // theme on either page now carries over to the other instead of
+  // flipping back and forth. Can't use the generic useLocalStorage hook
+  // here: it JSON-stringifies values, but script.js stores the theme as
+  // a plain unquoted string ("light"/"dark"), so a shared, matching
+  // raw-string read/write is needed instead.
+  const [theme, setTheme] = useState<"light" | "dark">(() => {
+    try {
+      const saved = localStorage.getItem("stockDashboardTheme");
+      if (saved === "light" || saved === "dark") return saved;
+    } catch { /* storage blocked: fine, fall through to system preference */ }
+    return window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+  });
   const [autoRefresh, setAutoRefresh] = useLocalStorage<boolean>("poc-auto-refresh", true);
   const [favourites, setFavourites] = useLocalStorage<string[]>("poc-favourites", ["bitcoin", "ethereum"]);
   const [tab, setTab] = useState(() => new URLSearchParams(location.search).get("tab") || "overview");
@@ -48,7 +61,10 @@ export function App() {
   const [selected, setSelected] = useState<string | null>(() => new URLSearchParams(location.search).get("coin"));
   const [trendingIds, setTrendingIds] = useState<string[]>([]);
 
-  useEffect(() => { document.documentElement.setAttribute("data-theme", theme); }, [theme]);
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    try { localStorage.setItem("stockDashboardTheme", theme); } catch { /* storage blocked: fine */ }
+  }, [theme]);
 
   useEffect(() => {
     const url = new URL(location.href);
@@ -78,8 +94,7 @@ export function App() {
     <main className="poc-page">
       <div className="poc-banner">
         <div>
-          <strong>React + TypeScript beta</strong>
-          <span className="muted small"> — the Crypto page rebuilt as components. Same data, same styling as the live site.</span>
+          <a href="/" className="cp-btn cp-btn-ghost">← Back to $MSV</a>
         </div>
         <div className="poc-controls">
           <span className="muted small">{coins.loading && !coins.data ? "Loading…" : age !== null ? `Updated ${age}s ago` : ""}</span>

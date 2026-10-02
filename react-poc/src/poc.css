@@ -1,7 +1,11 @@
 /* Only what the POC adds on top of the live site's style.css */
 .poc-page { max-width: 1240px; margin: 0 auto; padding: 24px 20px 60px; }
-.poc-banner { display: flex; justify-content: space-between; align-items: center; gap: 12px 20px; flex-wrap: wrap; padding: 12px 16px; margin-bottom: 16px; border: 1px dashed var(--accent); border-radius: 12px; background: color-mix(in srgb, var(--accent) 8%, var(--bg-surface)); }
+/* No longer a "beta" callout (dashed border) now this is the real Crypto
+   page, 2026-10-02 — a plain header bar holding the back-to-site link and
+   refresh/theme controls instead. */
+.poc-banner { display: flex; justify-content: space-between; align-items: center; gap: 12px 20px; flex-wrap: wrap; padding: 12px 16px; margin-bottom: 16px; border: 1px solid var(--border); border-radius: 12px; background: var(--bg-surface); }
 .poc-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.poc-banner a.cp-btn { display: inline-block; text-decoration: none; }
 .poc-toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; cursor: pointer; }
 .poc-star-cell { width: 28px; padding-right: 0 !important; }
 .poc-star { background: none; border: none; cursor: pointer; font-size: 16px; line-height: 1; color: var(--text-muted); padding: 2px; }
