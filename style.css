@@ -61,12 +61,13 @@ body {
 /* The zoom factor lives in a variable so anything sized off the viewport
    (sidebar height, sticky columns) can divide it back out — `100vh`
    inside a zoomed body renders zoom-times TOO TALL, which is what cut off
-   the bottom of the sidebar (2026-09-26 fix). 1.1 * 0.95 = 1.045
-   (2026-10-01: "decrease font size 5%" request) — this is the only
-   global scale knob the page has, so dialing it down shrinks type AND
-   spacing/images together, same as the earlier +10% request did in the
-   other direction, rather than a font-only change. */
-:root { --page-zoom: 1.045; }
+   the bottom of the sidebar (2026-09-26 fix). History: 1.1 (+10%,
+   2026-09-21) -> 1.045 (-5%, 2026-10-01 "decrease font size 5%") -> 0.95
+   (2026-10-02, "zoom out a little more" / "reduce the sizes a little" for
+   the whole site) — this is the only global scale knob the page has, so
+   dialing it down shrinks type AND spacing/images together, same
+   mechanism each time, rather than a font-only change. */
+:root { --page-zoom: 0.95; }
 @media (max-width: 700px) {
   /* Phones already have limited width — stacking a 10% zoom on top
      shrinks the effective viewport further and forces more wrapping
