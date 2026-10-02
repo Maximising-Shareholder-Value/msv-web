@@ -14,6 +14,12 @@
 // showing a header per commit.
 const CHANGELOG = [
   {
+    date: "2026-10-02T13:30:00+08:00",
+    items: [
+      "Crypto page rebuilt in React — faster, and the first page in a gradual rebuild of the whole site. Same 8 tabs as the beta (Overview, Markets, Exchanges, DeFi, Stablecoins, Crypto Cycles, News, Learn), now the real page instead of a separate beta link.",
+    ],
+  },
+  {
     date: "2026-10-02T12:00:00+08:00",
     items: [
       "Whole site scaled down slightly for a more compact look (page-wide zoom 104.5% → 95%).",

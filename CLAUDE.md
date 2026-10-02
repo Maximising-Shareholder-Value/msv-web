@@ -595,12 +595,14 @@ a given path — don't conclude a fix failed from one immediate check.
 Still no build step: each file is a plain `<script>` sharing globals, so
 **script order in index.html matters** — a file may only use another
 file's functions at *call* time, but any top-level `const` that reads a
-global from a later file will throw (this bit `crypto.js`, which loads
-before `home.js`'s `CRYPTO_COINGECKO_IDS`; it now looks it up lazily).
-Order: config, definitions, changelog, sectorRules, analysis, clock,
-script, dataUtils, apiUsage, countries, worldMarkets, marketData,
-riskDashboard, supplyChain, sectors, etfs, crypto, home, learn, chart,
-tradingview, invest, autocomplete, compare.
+global from a later file will throw (this bit the old `crypto.js`, which
+loaded before `home.js`'s `CRYPTO_COINGECKO_IDS`; it looked it up lazily
+to work around it — moot now that `crypto.js` is retired, see the React
+migration section below, but the general gotcha still applies to any
+other file). Order: config, definitions, changelog, sectorRules,
+analysis, clock, script, dataUtils, apiUsage, countries, worldMarkets,
+marketData, riskDashboard, supplyChain, sectors, etfs, home, learn,
+chart, tradingview, invest, autocomplete, compare.
 
 - `countries.js` — the 42-country table (`iso2` = worldmap.svg class,
   `etf` = live-verified US-listed country ETF), group tags (BRICS,
@@ -663,7 +665,7 @@ tradingview, invest, autocomplete, compare.
   `portfolio-builder`, previewing content that only exists in
   `react-poc/` so far.
 
-## React proof of concept (`react-poc/`, 2026-09-27) — Phase 1 deployed 2026-09-30
+## React migration (`react-poc/`, started 2026-09-27) — Crypto is now the real page (2026-10-02)
 
 The Crypto page rebuilt in React + TypeScript (Vite), approved as a first
 step towards migrating the whole frontend. Its own `package.json`/
@@ -688,18 +690,35 @@ important — `react-poc/`'s actual source/config/node_modules were
 confirmed still NOT publicly fetchable afterward (checked the response
 *body*, not just status code, same discipline as the `.assetsignore`
 verification story above, since the SPA fallback returns 200 for
-literally everything). Linked from the live Crypto page as a clearly
-labelled beta, **not yet a replacement** for the real page. A new
-`react-build` CI job (`.github/workflows/ci.yml`) runs `npm ci && npm run
-build` inside `react-poc/` on every PR so a broken build fails before
-merge — build-only, doesn't need a real API key since Vite never executes
-the code, just bundles it.
+literally everything). At this point it was linked from the live Crypto
+page as a clearly labelled beta, not yet a replacement for the real
+page. A `react-build` CI job (`.github/workflows/ci.yml`) runs `npm ci &&
+npm run build` inside `react-poc/` on every PR so a broken build fails
+before merge — build-only, doesn't need a real API key since Vite never
+executes the code, just bundles it.
 
-**Next phase (not started):** migrate a real page's actual functionality
-into this pipeline — Crypto itself is the natural first candidate, since
-its POC already exists; see the org's TODO.md for the fuller page-by-page
-migration order (Sectors/ETFs/Screener/Market Data next, ticker deep-dive
-page last).
+**React migration Phase 3, page 1 — Crypto graduated from beta to the
+real page (2026-10-02):** `crypto.js` is deleted; the sidebar's Crypto,
+Crypto Cycles, and Crypto News items (`ROUTES` in `home.js`) now do a
+real browser navigation to `/react-crypto/` (`?tab=cycles` / `?tab=news`
+for the latter two) instead of rendering the old vanilla view or a
+"Soon" placeholder — `react-crypto/` is a separate static build with its
+own routing, not an in-app SPA view, so this can't be a same-page route
+change like every other page still is. Two follow-on fixes made at the
+same time, now that this is a real destination and not a side experiment
+opened in a new tab: the React app's theme toggle reads/writes the
+**same** `localStorage` key as the main site (`stockDashboardTheme`,
+previously its own separate `poc-theme` key) so switching between pages
+doesn't flip light/dark on you, and a "← Back to $MSV" link replaced the
+old "React + TypeScript beta" banner. **Known gap, not fixed yet:** the
+React page still has no left sidebar of its own, so navigating to any
+*other* section from there means using that back link first — fine for
+now with only one page migrated, but worth revisiting once a few more
+pages exist and a shared app shell becomes worth building.
+
+**Next up:** Sectors, per the org's TODO.md page-by-page order (ETFs,
+Screener, Market Data, Market Intelligence, Learn, Home, ticker
+deep-dive page, then the sidebar/router shell itself last).
 
 Grew same-day from a straight rebuild into 8 tabs (Overview, Markets,
 Exchanges, DeFi, Stablecoins, Crypto Cycles, News, Learn) once Jozsua

@@ -1,14 +1,18 @@
-# React + TypeScript beta — the Crypto page
+# React + TypeScript — the Crypto page
 
-The live $MSV Crypto page (`../crypto.js`) rebuilt as React components, to
-compare the two approaches side by side. Started 2026-09-27. It reuses
-`../style.css`, so it looks the same.
+The real $MSV Crypto page, rebuilt as React components (the old vanilla
+version, `crypto.js`, was retired 2026-10-02). It reuses `../style.css`, so
+it looks the same as the rest of the site, and shares the main site's
+`stockDashboardTheme` localStorage key so the light/dark toggle stays in
+sync between pages.
 
-**Deployed since 2026-09-30 (React migration Phase 1)** at
-[msv-web.jozsua-heng.workers.dev/react-crypto/](https://msv-web.jozsua-heng.workers.dev/react-crypto/),
-linked from the live Crypto page as a beta — **not yet the real Crypto page**,
-just proof the build pipeline works end-to-end in production. See "Deploying
-it" below before assuming the site auto-updates when this folder changes.
+**Live since 2026-09-30, became the real page 2026-10-02 (React migration
+Phase 3, page 1)** at
+[msv-web.jozsua-heng.workers.dev/react-crypto/](https://msv-web.jozsua-heng.workers.dev/react-crypto/)
+— the sidebar's Crypto / Crypto Cycles / Crypto News items all navigate
+here now (a real browser navigation, not an in-app SPA route, since this
+is a separate static build with its own routing). See "Deploying it" below
+before assuming the site auto-updates when this folder changes.
 
 ## Run it
 
