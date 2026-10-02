@@ -138,6 +138,7 @@ const learnBannerEl = document.getElementById("learnBanner");
 const econCalendarContentEl = document.getElementById("econCalendarContent");
 const earningsCalendarContentEl = document.getElementById("earningsCalendarContent");
 const sectorHeatmapContentEl = document.getElementById("sectorHeatmapContent");
+const forexStripContentEl = document.getElementById("forexStripContent");
 
 // One shared ticker list feeds BOTH the index strip AND the world map's
 // per-exchange markers (worldMarkets.js reads homeState.marketTickers by
@@ -211,6 +212,18 @@ const SECTOR_ETFS = [
   ["XLRE", "Real Estate"], ["XLC", "Communication Services"],
 ];
 
+// 2026-10-02 homepage addition: Finnhub's free tier has zero forex
+// coverage (unchanged — see root CLAUDE.md), but Twelve Data's free tier
+// DOES support forex quotes, confirmed live 2026-09-24 (see TODO.md's
+// homepage-brainstorm list) and re-confirmed directly against production
+// before building this (EUR/USD, USD/SGD, USD/JPY all returned real
+// quotes). 6 major pairs, one person's-currency-first ordering (USD
+// pairs people actually look up, not alphabetical).
+const FOREX_PAIRS = [
+  ["EUR/USD", "Euro"], ["GBP/USD", "British Pound"], ["USD/JPY", "Japanese Yen"],
+  ["USD/SGD", "Singapore Dollar"], ["USD/AUD", "Australian Dollar"], ["USD/CHF", "Swiss Franc"],
+];
+
 // Hand-maintained on purpose (2026-09-19 roadmap note: "dates are known
 // well in advance, low maintenance" — not worth a live feed for this).
 // Expanded 2026-09-26 (Jozsua: "more dates, clickable links"). Every date
@@ -269,6 +282,15 @@ function initHome() {
   renderEconCalendar();
   loadEarningsCalendar();
   loadSectorHeatmap();
+  // Deferred to a timeout, not called directly like the loaders above:
+  // twelveDataUrl() lives in chart.js, which loads AFTER home.js in
+  // index.html's script order (see CLAUDE.md's "script order matters"
+  // note) — calling it synchronously here, before chart.js has even run,
+  // would throw ReferenceError mid-initHome() and silently skip every
+  // call after it (initHomeLayout, the sidebar wiring). A 0ms timeout
+  // runs after the whole synchronous script-loading phase finishes, by
+  // which point chart.js has already executed.
+  setTimeout(loadForexStrip, 0);
   if (typeof renderMarketIntel === "function") renderMarketIntel();
   initHomeLayout();
 }
@@ -871,6 +893,33 @@ function renderSectorHeatmap(results) {
   sectorHeatmapContentEl.querySelectorAll(".sector-heatmap-tile").forEach(tile => {
     tile.addEventListener("click", () => loadTicker(tile.dataset.symbol));
   });
+}
+
+// One batched Twelve Data /quote call for all 6 pairs (comma-separated
+// symbols return one object keyed by symbol instead of a flat quote,
+// confirmed live) — a single request, not 6, same zero-extra-cost
+// pattern as the other homepage cards above.
+let forexStripLoaded = false;
+function loadForexStrip() {
+  if (!forexStripContentEl || forexStripLoaded) return;
+  forexStripLoaded = true;
+  fetchJSON(twelveDataUrl("/quote", { symbol: FOREX_PAIRS.map(([symbol]) => symbol).join(",") }))
+    .then(data => renderForexStrip(data))
+    .catch(() => { forexStripContentEl.innerHTML = '<p class="muted">Couldn\'t load currency data right now.</p>'; });
+}
+
+function renderForexStrip(data) {
+  const chips = FOREX_PAIRS.map(([symbol, name]) => {
+    const q = data?.[symbol];
+    const close = q ? Number(q.close) : null;
+    const pct = q ? Number(q.percent_change) : null;
+    const valueClass = pct == null || Number.isNaN(pct) ? "muted" : pct >= 0 ? "positive" : "negative";
+    const valueText = close == null || Number.isNaN(close)
+      ? "···"
+      : `${close.toFixed(close < 10 ? 4 : 2)} (${pct >= 0 ? "+" : ""}${pct.toFixed(2)}%)`;
+    return `<div class="index-chip"><span class="index-chip-name">${name}</span><span class="index-chip-value ${valueClass}">${valueText}</span></div>`;
+  }).join("");
+  forexStripContentEl.innerHTML = `<div class="index-strip">${chips}</div>`;
 }
 
 // Zero API cost — reads what script.js already saved to localStorage
