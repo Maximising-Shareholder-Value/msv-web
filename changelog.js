@@ -14,6 +14,12 @@
 // showing a header per commit.
 const CHANGELOG = [
   {
+    date: "2026-10-02T12:00:00+08:00",
+    items: [
+      "Whole site scaled down slightly for a more compact look (page-wide zoom 104.5% → 95%).",
+    ],
+  },
+  {
     date: "2026-10-01T23:00:00+08:00",
     items: [
       "New Prediction Markets page: live odds from Polymarket, with Finance, Economy & Fed, Crypto, Business, Politics and Trending tabs.",
