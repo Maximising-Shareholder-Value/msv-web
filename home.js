@@ -340,7 +340,7 @@ const PLACEHOLDER_INFO = {
   "stock-sentiment": { icon: "💬", title: "Stock Sentiment", description: "Aggregated analyst/news sentiment per ticker — no free sentiment data source has been vetted yet." },
   "analyst-actions": { icon: "🔀", title: "Analyst Upgrades & Downgrades", description: "A feed of recent rating changes across tickers — distinct from the per-ticker Analyst Recommendations trend chart already on the ticker page. Finnhub's free tier hasn't been checked for a ratings-change feed yet." },
   "precious-metals": { icon: "🥇", title: "Precious Metals", description: "A dedicated gold/silver/platinum/palladium view — today these tickers only live mixed into the general Commodities browse category." },
-  "forex": { icon: "💱", title: "Forex", description: "Currency pairs — not built yet. Finnhub has zero forex coverage on its free tier (confirmed), but Twelve Data's free tier does return real forex quotes (confirmed live 2026-09-24, e.g. EUR/USD) — a real candidate to build, not a dead end." },
+  "forex": { icon: "💱", title: "Forex", description: "A 6-pair snapshot (EUR/USD, GBP/USD, USD/JPY, USD/SGD, USD/AUD, USD/CHF) now lives on the homepage's Currency card — but a full dedicated Forex page/category, like the Sectors or ETFs pages have, isn't built yet." },
   "insider-activity": { icon: "🕵️", title: "Insider Activity Feed", description: "A market-wide feed of recent insider buying and selling. Each ticker page already shows its own insider transactions — a cross-market feed isn't built yet." },
   "short-interest": { icon: "📉", title: "Short Interest", description: "Which stocks are most heavily shorted. No free short-interest source has been vetted yet." },
   "energy-markets": { icon: "🛢️", title: "Energy Markets", description: "A dedicated oil, gas and power view. Today these only exist as tickers inside the Commodities category." },
@@ -679,6 +679,21 @@ function goToHomeTab(tabId) {
   switchTab(tabId);
 }
 
+// Shared by loadMarketTickers() and renderForexStrip() — both build an
+// "<value> (+/-X.XX%)" index-chip and need the same positive/negative/
+// muted logic; centralized so a NaN/missing-data fix only needs making
+// once; `formattedValue` is pre-formatted by the caller since the two
+// use sites format differently (currency vs a raw forex decimal).
+function indexChipValue(formattedValue, pct) {
+  const safePct = Number.isFinite(pct) ? pct : null;
+  if (formattedValue == null) return { valueClass: "muted", valueText: "···" };
+  if (safePct == null) return { valueClass: "muted", valueText: formattedValue };
+  return {
+    valueClass: safePct >= 0 ? "positive" : "negative",
+    valueText: `${formattedValue} (${safePct >= 0 ? "+" : ""}${safePct.toFixed(2)}%)`,
+  };
+}
+
 // Synchronous now (no fetch) — reads MARKET_TICKERS_SAMPLE instead of
 // calling Finnhub. Clicking a chip still opens the real, live ticker page
 // via loadTicker(); only this homepage snapshot is static.
@@ -690,9 +705,7 @@ function loadMarketTickers() {
 
   indexStripEl.innerHTML = MARKET_TICKERS.map(([symbol, name, flag]) => {
     const quote = MARKET_TICKERS_SAMPLE[symbol];
-    const dp = quote ? (quote.dp ?? 0) : 0;
-    const valueClass = quote ? (dp >= 0 ? "positive" : "negative") : "muted";
-    const valueText = quote ? `${formatCurrency(quote.c)} (${dp >= 0 ? "+" : ""}${dp.toFixed(2)}%)` : "···";
+    const { valueClass, valueText } = indexChipValue(quote ? formatCurrency(quote.c) : null, quote ? (quote.dp ?? 0) : null);
     return `<div class="index-chip" data-symbol="${symbol}"><span class="index-chip-name">${flag ? `${flag} ` : ""}${name}</span><span class="index-chip-value ${valueClass}">${valueText}</span></div>`;
   }).join("");
 
@@ -912,11 +925,9 @@ function renderForexStrip(data) {
   const chips = FOREX_PAIRS.map(([symbol, name]) => {
     const q = data?.[symbol];
     const close = q ? Number(q.close) : null;
-    const pct = q ? Number(q.percent_change) : null;
-    const valueClass = pct == null || Number.isNaN(pct) ? "muted" : pct >= 0 ? "positive" : "negative";
-    const valueText = close == null || Number.isNaN(close)
-      ? "···"
-      : `${close.toFixed(close < 10 ? 4 : 2)} (${pct >= 0 ? "+" : ""}${pct.toFixed(2)}%)`;
+    const pct = q ? Number(q.percent_change) : NaN;
+    const formattedValue = close == null || Number.isNaN(close) ? null : close.toFixed(close < 10 ? 4 : 2);
+    const { valueClass, valueText } = indexChipValue(formattedValue, pct);
     return `<div class="index-chip"><span class="index-chip-name">${name}</span><span class="index-chip-value ${valueClass}">${valueText}</span></div>`;
   }).join("");
   forexStripContentEl.innerHTML = `<div class="index-strip">${chips}</div>`;
