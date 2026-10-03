@@ -791,3 +791,49 @@ the SPA fallback never gets a chance to hand it HTML. Doesn't touch
 `.assetsignore` or the SPA fallback setting. If `IS_LOCAL_DEV`'s hostname
 list in script.js ever changes, update this inline script's copy too —
 it's duplicated (deliberately — it has to run before `script.js` loads).
+
+## Session status: React is now the main site (2026-10-03)
+
+**Where things live now.** The main site is the React build in `app/` (built from
+`react-poc/`, deployed at `/app/`). `index.html` is a small redirect page: `/` opens
+`/app/?page=home`, `?ticker=X` opens the ticker page, `?country=X` opens Market Data, and each
+sidebar path opens its page (the route table is generated from the React sidebar). The
+old vanilla homepage is kept as `legacy.html` for side-by-side checks; the old JS files
+(`home.js`, `script.js`, `marketData.js`, etc.) are still in the repo but nothing loads
+them except `legacy.html`. Remove them only after the review.
+
+**React pages** (all `?page=…`): home, explore, sectors, etfs, screener, ipo, news,
+market-data, market-intel, learn, macro, prediction-markets, compare, ticker (stock, ETF
+and crypto layouts), placeholder (`&key=…`, the "coming soon" pages). The sidebar is
+`components/AppSidebar.tsx` (items and icons from `data/sidebar.ts`, generated from
+`index.html`). Each page's data is in `src/data/` (copied from the vanilla files) and its
+fetches are in `src/lib/` (`finnhub.ts`, `coingecko.ts`, `worldBank.ts`, `risk.ts`,
+`macro.ts`, `options.ts`, `invest.ts`, `chart.ts`, `twelveData.ts`, `apiUsage.ts`).
+
+**Data rules that still apply.** Every Finnhub call goes through one queue (one request
+about every 1.1 s, free tier 60/min) and is cached; a cold homepage or screener takes
+about a minute to fill. All data requests go through `trackedFetch` in `lib/apiUsage.ts`,
+which feeds the sidebar's API usage panel (per-tab estimate, with bars). CoinGecko's
+`/coins/markets` is refused by the proxy (403); the Crypto page falls back to calling
+CoinGecko directly. Use `/coins/{id}` for per-coin data (the proxy allows it).
+
+**Deploy gotchas.** After some deploys the Worker serves the redirect page for `/app/`
+addresses (asset fallback). A second `npx wrangler deploy` fixes it; always check
+`/app/?page=home` in a browser after deploying. Don't reuse `/react-crypto/`: it has a
+bad cache entry at Cloudflare's edge and can't be purged from here.
+
+**Known open problems (as of 2026-10-03):**
+
+- **Visual quality is the top problem.** The React pages don't look like the old site. The
+  cause: the React markup doesn't match the old DOM that `style.css` was written for, and
+  several override rules were stacked on top in `react-poc/src/poc.css`. The fix: for each
+  page, compare it with `legacy.html` at the same width, copy the old structure and class
+  names, and delete the overrides for that page. Start with Explore, then home, then the
+  ticker pages.
+- Homepage: one long page; the explore and "your lists" sections still need the visual pass.
+- Wording: the React pages use shorter text than the old site; the old introduction and
+  section copy is in `legacy.html`.
+- Unverified: figures on Market Data, Macro and the ticker pages haven't been checked line by
+  line against the old pages.
+- Decisions still open: custom domain; Workers Builds emails; TradingView licence; which
+  pillar next; the chart polish target; the world map dropdown (built from a written note).
