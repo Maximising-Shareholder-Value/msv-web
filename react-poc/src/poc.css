@@ -569,3 +569,9 @@
 /* Homepage: uses the full width of the screen beside the sidebar. */
 .hp { max-width: none !important; width: 100%; box-sizing: border-box; }
 .hp-section { width: 100%; box-sizing: border-box; }
+
+/* Sidebar: wider, the name fits, and nav labels wrap instead of being cut off. */
+.app-sidebar { width: 244px; }
+.app-sidebar-logo { padding-right: 8px; }
+.app-sidebar-fullname span { font-size: 9.5px; letter-spacing: 0.1em; white-space: nowrap; }
+.app-sidebar .app-nav-label { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.25; }
