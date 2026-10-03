@@ -232,3 +232,15 @@ export function getPeers(symbol: string): Promise<string[] | null> {
     return Array.isArray(r) ? (r as string[]).filter(s => s && s !== symbol).slice(0, 12) : null;
   });
 }
+
+export interface InsiderTrade { name: string; transactionDate: string; change: number; transactionPrice: number | null }
+
+const insiderCache = new Map<string, Cached<InsiderTrade[] | null>>();
+
+/** Recent Form 4 insider trades (Finnhub /stock/insider-transactions). */
+export function getInsiderTrades(symbol: string): Promise<InsiderTrade[] | null> {
+  return cachedOrFetch(insiderCache, PROFILE_TTL_MS / 24, symbol, async () => {
+    const r = await finnhub<{ data?: InsiderTrade[] }>("/stock/insider-transactions", { symbol });
+    return Array.isArray(r.data) ? r.data : [];
+  });
+}

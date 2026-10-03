@@ -16,9 +16,10 @@ import { IndicatorGrid, type IndicatorSpec } from "./Indicators";
 import { PriceChart } from "./PriceChart";
 import { Analysts } from "./Analysts";
 import { NewsAndPeers } from "./NewsAndPeers";
+import { Ownership } from "./Ownership";
 
 const STILL_ON_MAIN_SITE = [
-  "MACD and support/resistance on the chart", "Financial statements", "Shares and ownership", "Insider transactions",
+  "MACD and support/resistance on the chart", "Financial statements",
   "SEC filings", "Options",
 ];
 
@@ -154,6 +155,8 @@ export function TickerPage({ symbol }: { symbol: string }) {
       <Section title="Momentum"><IndicatorGrid items={momentum} industry={industry} /></Section>
 
       <Section title="Analysts and earnings"><Analysts symbol={symbol} /></Section>
+
+      <Section title="Ownership and insider trades"><Ownership symbol={symbol} sharesOutstandingMillions={profile.shareOutstanding ?? null} /></Section>
 
       <Section title="News and similar companies"><NewsAndPeers symbol={symbol} /></Section>
 
