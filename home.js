@@ -565,7 +565,7 @@ function showExploreProducts() {
 const ROUTES = {
   "home": { path: "/", render: () => { goHome(); if (homeState.activeTab !== "trending-tech") switchTab("trending-tech"); } },
   "stock-analysis": { path: "/stock-analysis", render: () => { goToHomeTab("winners"); showHomeFocused("home-tabs"); } },
-  "market-data": { path: "/market-data", render: () => { goHome(); showHomeFocused("market-data"); renderMarketDataPage(); } },
+  "market-data": { path: "/market-data", render: () => { window.location.href = "/react-crypto/?page=market-data"; } },
   "market-news": { path: "/market-news", render: () => { window.location.href = "/react-crypto/?page=news"; } },
   "learn": { path: "/learn", render: () => { goToHomeTab("learn"); showHomeFocused("home-tabs"); } },
   "sectors": { path: "/sectors", render: () => { window.location.href = "/react-crypto/?page=sectors"; } },
