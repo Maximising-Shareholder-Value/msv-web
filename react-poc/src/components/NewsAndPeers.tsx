@@ -44,7 +44,7 @@ export function NewsAndPeers({ symbol }: { symbol: string }) {
         {peers && peers.length === 0 && <p className="muted small">No peers listed.</p>}
         {peers && peers.length > 0 && (
           <div className="recently-viewed-row">
-            {peers.map(p => <a key={p} className="recently-viewed-chip" href={`/react-crypto/?page=ticker&symbol=${encodeURIComponent(p)}`}><strong>{p}</strong></a>)}
+            {peers.map(p => <a key={p} className="recently-viewed-chip" href={`/app/?page=ticker&symbol=${encodeURIComponent(p)}`}><strong>{p}</strong></a>)}
           </div>
         )}
       </div>

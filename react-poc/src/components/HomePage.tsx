@@ -153,7 +153,7 @@ function DidYouKnow() {
       <h4>Did you know</h4>
       <p><strong>{topic.title}:</strong> {topic.oneLiner}</p>
       <p className="muted small" dangerouslySetInnerHTML={{ __html: topic.body[0] }} />
-      <a href={`/react-crypto/?page=learn#learn-topic-${topic.id}`} className="did-you-know-link">Read more in {cat.title} →</a>
+      <a href={`/app/?page=learn#learn-topic-${topic.id}`} className="did-you-know-link">Read more in {cat.title} →</a>
     </div>
   );
 }

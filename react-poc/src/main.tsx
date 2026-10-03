@@ -25,12 +25,12 @@ import { AppSidebar } from "./components/AppSidebar";
 // One build, several pages. The page is picked from the query string
 // (?page=sectors, ?page=ipo, ?page=news); anything else shows the Crypto page.
 // A query string rather than a path, because the live site's single-page
-// fallback would serve the main site's index.html for /react-crypto/sectors.
+// fallback would serve the main site's index.html for /app/sectors.
 const page = new URLSearchParams(location.search).get("page");
 
 // Each page gets its own browser-tab title. The Crypto page keeps its own, set in index.html.
 const TITLES: Record<string, string> = {
-  sectors: "Sectors", etfs: "ETFs", screener: "Stock Screener", ipo: "IPO Calendar", news: "Market News", "market-data": "Market Data", "market-intel": "Market Intelligence", learn: "Learn", home: "Markets", explore: "Explore", compare: "Compare", macro: "Macro",
+  sectors: "Sectors", etfs: "ETFs", screener: "Stock Screener", ipo: "IPO Calendar", news: "Market News", "market-data": "Market Data", "market-intel": "Market Intelligence", learn: "Learn", home: "Markets", explore: "Explore", compare: "Compare", macro: "Macro", ticker: "Ticker", placeholder: "Coming soon", "prediction-markets": "Prediction Markets",
 };
 if (page && TITLES[page]) document.title = `$MSV — ${TITLES[page]}`;
 

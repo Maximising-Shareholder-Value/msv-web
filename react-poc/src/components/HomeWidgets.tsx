@@ -24,7 +24,7 @@ export function IndexStrip() {
         const q = (MARKET_TICKERS_SAMPLE as Record<string, { c: number; dp?: number }>)[symbol];
         const v = chipValue(q ? fmtPrice(q.c) : null, q ? (q.dp ?? 0) : null);
         const country = COUNTRY_LIST.find(c => c.etf === symbol);
-        const href = country ? `/react-crypto/?page=market-data&country=${country.iso2}` : `/?ticker=${encodeURIComponent(symbol)}`;
+        const href = country ? `/app/?page=market-data&country=${country.iso2}` : `/?ticker=${encodeURIComponent(symbol)}`;
         return (
           <a key={symbol} className="index-chip" href={href}>
             <span className="index-chip-name">{flag ? `${flag} ` : ""}{name}</span>
@@ -53,7 +53,7 @@ export function SectorHeatmap() {
         const strength = dp === null ? 0 : Math.min(Math.abs(dp) / 3, 1) * 0.5 + 0.1;
         const bg = dp === null ? "var(--surface-2, #1a2430)" : dp >= 0 ? `rgba(16,185,129,${strength.toFixed(2)})` : `rgba(239,68,68,${strength.toFixed(2)})`;
         return (
-          <a key={symbol} className="sector-heat-tile" href={`/react-crypto/?page=sectors&sector=${symbol}`} style={{ background: bg }}>
+          <a key={symbol} className="sector-heat-tile" href={`/app/?page=sectors&sector=${symbol}`} style={{ background: bg }}>
             <span>{name}</span>
             <strong className={changeClass(dp)}>{q === undefined ? "…" : q ? fmtPct(dp) : "—"}</strong>
           </a>

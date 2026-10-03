@@ -677,14 +677,14 @@ vanilla-to-React mapping.
 
 **React migration Phase 1 — build pipeline proven in production
 (2026-09-30):** `npm run build` (inside `react-poc/`) now outputs to a new
-sibling folder `msv-web/react-crypto/` (not the default `react-poc/dist/`,
+sibling folder `msv-web/app/` (not the default `react-poc/dist/`,
 which stays excluded wholesale by `.assetsignore`) — see `vite.config.ts`'s
-`outDir`/`base` settings. `react-crypto/` is a plain top-level static
+`outDir`/`base` settings. `app/` is a plain top-level static
 folder like any other, gitignored (it's a build artifact, regenerated
 before each deploy that includes it — **there's no CI/CD auto-build yet**,
 `npm run build` must be run by hand before `npx wrangler deploy` whenever
 this changes). Deployed and verified live: real data renders at
-[msv-web.jozsua-heng.workers.dev/react-crypto/](https://msv-web.jozsua-heng.workers.dev/react-crypto/)
+[msv-web.jozsua-heng.workers.dev/app/](https://msv-web.jozsua-heng.workers.dev/app/)
 (confirmed via a real browser check, zero console errors), and — just as
 important — `react-poc/`'s actual source/config/node_modules were
 confirmed still NOT publicly fetchable afterward (checked the response
@@ -700,9 +700,9 @@ executes the code, just bundles it.
 **React migration Phase 3, page 1 — Crypto graduated from beta to the
 real page (2026-10-02):** `crypto.js` is deleted; the sidebar's Crypto,
 Crypto Cycles, and Crypto News items (`ROUTES` in `home.js`) now do a
-real browser navigation to `/react-crypto/` (`?tab=cycles` / `?tab=news`
+real browser navigation to `/app/` (`?tab=cycles` / `?tab=news`
 for the latter two) instead of rendering the old vanilla view or a
-"Soon" placeholder — `react-crypto/` is a separate static build with its
+"Soon" placeholder — `app/` is a separate static build with its
 own routing, not an in-app SPA view, so this can't be a same-page route
 change like every other page still is. Two follow-on fixes made at the
 same time, now that this is a real destination and not a side experiment

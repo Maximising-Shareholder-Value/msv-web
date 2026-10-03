@@ -565,23 +565,23 @@ function showExploreProducts() {
 const ROUTES = {
   "home": { path: "/", render: () => { goHome(); if (homeState.activeTab !== "trending-tech") switchTab("trending-tech"); } },
   "stock-analysis": { path: "/stock-analysis", render: () => { goToHomeTab("winners"); showHomeFocused("home-tabs"); } },
-  "market-data": { path: "/market-data", render: () => { window.location.href = "/react-crypto/?page=market-data"; } },
-  "market-news": { path: "/market-news", render: () => { window.location.href = "/react-crypto/?page=news"; } },
+  "market-data": { path: "/market-data", render: () => { window.location.href = "/app/?page=market-data"; } },
+  "market-news": { path: "/market-news", render: () => { window.location.href = "/app/?page=news"; } },
   "learn": { path: "/learn", render: () => { goToHomeTab("learn"); showHomeFocused("home-tabs"); } },
-  "sectors": { path: "/sectors", render: () => { window.location.href = "/react-crypto/?page=sectors"; } },
+  "sectors": { path: "/sectors", render: () => { window.location.href = "/app/?page=sectors"; } },
   "market-intelligence": { path: "/market-intelligence", render: () => { goHome(); showHomeFocused("market-intelligence"); } },
-  "etfs": { path: "/etfs", render: () => { window.location.href = "/react-crypto/?page=etfs"; } },
+  "etfs": { path: "/etfs", render: () => { window.location.href = "/app/?page=etfs"; } },
   "indexes": { path: "/indexes", render: () => { goHome(); showHomeFocused("etfs"); etfState.selected = "us-broad"; renderEtfsPage(); } },
   "bonds": { path: "/bonds", render: () => { goHome(); showHomeFocused("etfs"); etfState.selected = "bond-treasury"; renderEtfsPage(); } },
   "commodities": { path: "/commodities", render: () => { goHome(); showHomeFocused("etfs"); etfState.selected = "com-broad"; renderEtfsPage(); } },
   // Crypto migrated to the React rebuild 2026-10-02 (Phase 3 page 1) —
   // a real browser navigation away from this SPA, not an in-app view, since
-  // react-crypto/ is a separate static build with its own routing/state.
+  // app/ is a separate static build with its own routing/state.
   // crypto.js (the old renderCryptoPage() etc.) was retired along with this.
-  "crypto": { path: "/crypto", render: () => { window.location.href = "/react-crypto/"; } },
+  "crypto": { path: "/crypto", render: () => { window.location.href = "/app/"; } },
   "performance": { path: "/performance", render: () => showPlaceholderPage("performance") },
-  "bitcoin-cycles": { path: "/bitcoin-cycles", render: () => { window.location.href = "/react-crypto/?tab=cycles"; } },
-  "crypto-news": { path: "/crypto-news", render: () => { window.location.href = "/react-crypto/?tab=news"; } },
+  "bitcoin-cycles": { path: "/bitcoin-cycles", render: () => { window.location.href = "/app/?tab=cycles"; } },
+  "crypto-news": { path: "/crypto-news", render: () => { window.location.href = "/app/?tab=news"; } },
   "prediction-markets": { path: "/prediction-markets", render: () => { goHome(); showHomeFocused("prediction-markets"); renderPredictionMarketsPage(); } },
   "macro": { path: "/macro", render: () => { goToHomeTab("macro"); showHomeFocused("home-tabs"); } },
   "portfolio-builder": { path: "/portfolio-builder", render: () => showPlaceholderPage("portfolio-builder") },
@@ -595,7 +595,7 @@ const ROUTES = {
   "stock-ideas": { path: "/stock-ideas", render: () => showPlaceholderPage("stock-ideas") },
   "stock-sentiment": { path: "/stock-sentiment", render: () => showPlaceholderPage("stock-sentiment") },
   "analyst-actions": { path: "/analyst-actions", render: () => showPlaceholderPage("analyst-actions") },
-  "stock-screener": { path: "/stock-screener", render: () => { window.location.href = "/react-crypto/?page=screener"; } },
+  "stock-screener": { path: "/stock-screener", render: () => { window.location.href = "/app/?page=screener"; } },
   "precious-metals": { path: "/precious-metals", render: () => showPlaceholderPage("precious-metals") },
   "forex": { path: "/forex", render: () => showPlaceholderPage("forex") },
 

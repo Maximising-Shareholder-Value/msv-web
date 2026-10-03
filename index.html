@@ -6,60 +6,60 @@
 <title>$MSV</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Ccircle cx='24' cy='24' r='23' fill='%231baf7a'/%3E%3Ctext x='24' y='30' text-anchor='middle' font-family='Arial' font-weight='700' font-size='15' fill='%23fff'%3EMSV%3C/text%3E%3C/svg%3E">
 <script>
-// The main site is now the React app (react-crypto/). This page only forwards
+// The main site is now the React app (app/). This page only forwards
 // visitors there. The previous vanilla homepage is kept as legacy.html.
 (function () {
   var routes = {
- "home": "/react-crypto/?page=home",
- "explore-products": "/react-crypto/?page=explore",
- "stock-screener": "/react-crypto/?page=screener",
- "market-data": "/react-crypto/?page=market-data",
- "market-news": "/react-crypto/?page=news",
- "learn": "/react-crypto/?page=learn",
- "sectors": "/react-crypto/?page=sectors",
- "market-intelligence": "/react-crypto/?page=market-intel",
- "etfs": "/react-crypto/?page=etfs",
- "compare": "/react-crypto/?page=compare",
- "prediction-markets": "/react-crypto/?page=prediction-markets",
- "macro": "/react-crypto/?page=macro",
- "create-account": "/react-crypto/?page=placeholder&key=create-account",
- "login": "/react-crypto/?page=placeholder&key=login",
- "premium": "/react-crypto/?page=placeholder&key=premium",
- "performance": "/react-crypto/?page=placeholder&key=performance",
- "portfolio-builder": "/react-crypto/?page=placeholder&key=portfolio-builder",
- "portfolio-health-check": "/react-crypto/?page=placeholder&key=portfolio-health-check",
- "crypto": "/react-crypto/",
- "bitcoin-cycles": "/react-crypto/?tab=cycles",
- "crypto-news": "/react-crypto/?tab=news",
- "stock-analysis": "/react-crypto/?page=home",
- "watchlist": "/react-crypto/?page=home",
- "stock-ideas": "/react-crypto/?page=placeholder&key=stock-ideas",
- "stock-sentiment": "/react-crypto/?page=placeholder&key=stock-sentiment",
- "analyst-actions": "/react-crypto/?page=placeholder&key=analyst-actions",
- "precious-metals": "/react-crypto/?page=placeholder&key=precious-metals",
- "forex": "/react-crypto/?page=placeholder&key=forex",
- "insider-activity": "/react-crypto/?page=placeholder&key=insider-activity",
- "short-interest": "/react-crypto/?page=placeholder&key=short-interest",
- "energy-markets": "/react-crypto/?page=placeholder&key=energy-markets",
- "options-explorer": "/react-crypto/?page=placeholder&key=options-explorer",
- "energy-theme": "/react-crypto/?page=placeholder&key=energy-theme",
- "ev-theme": "/react-crypto/?page=placeholder&key=ev-theme",
- "defense-theme": "/react-crypto/?page=placeholder&key=defense-theme",
- "price-alerts": "/react-crypto/?page=placeholder&key=price-alerts",
- "dividend-tracker": "/react-crypto/?page=placeholder&key=dividend-tracker"
+ "home": "/app/?page=home",
+ "explore-products": "/app/?page=explore",
+ "stock-screener": "/app/?page=screener",
+ "market-data": "/app/?page=market-data",
+ "market-news": "/app/?page=news",
+ "learn": "/app/?page=learn",
+ "sectors": "/app/?page=sectors",
+ "market-intelligence": "/app/?page=market-intel",
+ "etfs": "/app/?page=etfs",
+ "compare": "/app/?page=compare",
+ "prediction-markets": "/app/?page=prediction-markets",
+ "macro": "/app/?page=macro",
+ "create-account": "/app/?page=placeholder&key=create-account",
+ "login": "/app/?page=placeholder&key=login",
+ "premium": "/app/?page=placeholder&key=premium",
+ "performance": "/app/?page=placeholder&key=performance",
+ "portfolio-builder": "/app/?page=placeholder&key=portfolio-builder",
+ "portfolio-health-check": "/app/?page=placeholder&key=portfolio-health-check",
+ "crypto": "/app/",
+ "bitcoin-cycles": "/app/?tab=cycles",
+ "crypto-news": "/app/?tab=news",
+ "stock-analysis": "/app/?page=home",
+ "watchlist": "/app/?page=home",
+ "stock-ideas": "/app/?page=placeholder&key=stock-ideas",
+ "stock-sentiment": "/app/?page=placeholder&key=stock-sentiment",
+ "analyst-actions": "/app/?page=placeholder&key=analyst-actions",
+ "precious-metals": "/app/?page=placeholder&key=precious-metals",
+ "forex": "/app/?page=placeholder&key=forex",
+ "insider-activity": "/app/?page=placeholder&key=insider-activity",
+ "short-interest": "/app/?page=placeholder&key=short-interest",
+ "energy-markets": "/app/?page=placeholder&key=energy-markets",
+ "options-explorer": "/app/?page=placeholder&key=options-explorer",
+ "energy-theme": "/app/?page=placeholder&key=energy-theme",
+ "ev-theme": "/app/?page=placeholder&key=ev-theme",
+ "defense-theme": "/app/?page=placeholder&key=defense-theme",
+ "price-alerts": "/app/?page=placeholder&key=price-alerts",
+ "dividend-tracker": "/app/?page=placeholder&key=dividend-tracker"
 };
   var q = new URLSearchParams(location.search);
   var key = location.pathname.replace(/^\/+|\/+$/g, "");
   // Never bounce a React address: if one ever gets this page, stop instead of looping.
-  if (location.pathname.indexOf("/react-crypto") === 0) { document.body.setAttribute("data-stopped", "1"); return; }
-  var target = routes[key] || "/react-crypto/?page=home";
-  if (q.get("ticker")) target = "/react-crypto/?page=ticker&symbol=" + encodeURIComponent(q.get("ticker").toUpperCase());
-  if (key === "" && q.get("ticker") === null && q.get("country")) target = "/react-crypto/?page=market-data&country=" + encodeURIComponent(q.get("country"));
+  if (location.pathname.indexOf("/app") === 0) { document.body.setAttribute("data-stopped", "1"); return; }
+  var target = routes[key] || "/app/?page=home";
+  if (q.get("ticker")) target = "/app/?page=ticker&symbol=" + encodeURIComponent(q.get("ticker").toUpperCase());
+  if (key === "" && q.get("ticker") === null && q.get("country")) target = "/app/?page=market-data&country=" + encodeURIComponent(q.get("country"));
   location.replace(target);
 })();
 </script>
 </head>
 <body>
-<p style="font-family:sans-serif;padding:24px">Opening $MSV… <a href="/react-crypto/?page=home">continue</a></p>
+<p style="font-family:sans-serif;padding:24px">Opening $MSV… <a href="/app/?page=home">continue</a></p>
 </body>
 </html>

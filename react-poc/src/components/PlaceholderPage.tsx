@@ -14,7 +14,7 @@ export function PlaceholderPage({ pageKey }: { pageKey: string }) {
         <span className="placeholder-badge">Coming soon</span>
         <h2>{info.title}</h2>
         <p>{info.description}</p>
-        <a className="placeholder-home-btn" href="/react-crypto/?page=home">← Back to Home</a>
+        <a className="placeholder-home-btn" href="/app/?page=home">← Back to Home</a>
       </div>
     </section>
   );

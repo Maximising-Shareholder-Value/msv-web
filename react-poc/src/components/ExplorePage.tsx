@@ -21,7 +21,7 @@ const REACT_PAGES: Record<string, string> = {
 
 function hrefFor(item: ExploreItem): string {
   const page = REACT_PAGES[item.nav];
-  if (page) return `/react-crypto/?page=${page}`;
+  if (page) return `/app/?page=${page}`;
   return `/${item.nav}`;
 }
 

@@ -8,7 +8,7 @@ sync between pages.
 
 **Live since 2026-09-30, became the real page 2026-10-02 (React migration
 Phase 3, page 1)** at
-[msv-web.jozsua-heng.workers.dev/react-crypto/](https://msv-web.jozsua-heng.workers.dev/react-crypto/)
+[msv-web.jozsua-heng.workers.dev/app/](https://msv-web.jozsua-heng.workers.dev/app/)
 — the sidebar's Crypto / Crypto Cycles / Crypto News items all navigate
 here now (a real browser navigation, not an in-app SPA route, since this
 is a separate static build with its own routing). See "Deploying it" below
@@ -21,7 +21,7 @@ cd react-poc
 npm install        # first time only
 npm run dev        # http://localhost:5173
 npm run typecheck  # TypeScript check, no output files
-npm run build      # production bundle into ../react-crypto/
+npm run build      # production bundle into ../app/
 ```
 
 It calls the same deployed `msv-api` proxy as the live site, so no API keys
@@ -32,7 +32,7 @@ are needed locally.
 There's still no CI/CD auto-build — `npm run build` here must be run **by
 hand, before** `npx wrangler deploy` in `../`, any time this folder changes
 and you want that change live. `vite.config.ts`'s `outDir` points at
-`../react-crypto/` (a plain static folder msv-web deploys like any other,
+`../app/` (a plain static folder msv-web deploys like any other,
 gitignored since it's a build artifact — never edit its contents directly,
 they get overwritten) rather than the default `dist/` inside this folder,
 which `.assetsignore` deliberately excludes wholesale (source, node_modules,

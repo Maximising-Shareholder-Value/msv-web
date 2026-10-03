@@ -19,7 +19,7 @@ export function PageNav({ current }: { current: string }) {
     <nav className="react-page-nav" aria-label="Pages">
       <a href="/" className="react-page-nav-back">← Back to $MSV</a>
       {LINKS.map(l => (
-        <a key={l.page} href={`/react-crypto/?page=${l.page}`} className={l.page === current ? "active" : ""} aria-current={l.page === current ? "page" : undefined}>
+        <a key={l.page} href={`/app/?page=${l.page}`} className={l.page === current ? "active" : ""} aria-current={l.page === current ? "page" : undefined}>
           {l.label}
         </a>
       ))}

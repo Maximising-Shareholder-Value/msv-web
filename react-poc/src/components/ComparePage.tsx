@@ -96,7 +96,7 @@ function CompareTable({ entries }: { entries: Entry[] }) {
     <div className="compare-table" style={{ ["--compare-cols" as string]: entries.length }}>
       <div className="compare-cell compare-corner" />
       {entries.map(e => (
-        <a key={e.symbol} className="compare-cell compare-col-header" href={`/react-crypto/?page=ticker&symbol=${encodeURIComponent(e.symbol)}`}>
+        <a key={e.symbol} className="compare-cell compare-col-header" href={`/app/?page=ticker&symbol=${encodeURIComponent(e.symbol)}`}>
           <div className="compare-col-name">{e.profile?.name ?? e.symbol}</div>
           <div className="compare-col-ticker">{e.symbol}</div>
         </a>

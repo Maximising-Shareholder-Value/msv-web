@@ -9,4 +9,4 @@ test-results/
 # build artifact like dist/, regenerated before each deploy that includes
 # it, not committed. See react-poc's vite.config.ts and CLAUDE.md's React
 # migration section for why it lands here instead of react-poc/dist/.
-react-crypto/
+app/
