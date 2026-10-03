@@ -10,6 +10,7 @@ import { CRYPTO_COINS, getCoinDetail, type CoinDetail } from "../lib/coingecko";
 import { getQuote, type Quote } from "../lib/finnhub";
 import { fmtCompact, fmtPct, fmtPrice, changeClass } from "../lib/format";
 import { IndicatorGrid, type IndicatorSpec } from "./Indicators";
+import * as Ex from "../lib/examples";
 
 export function CryptoTicker({ symbol }: { symbol: string }) {
   const coin = CRYPTO_COINS.find(c => c.symbol === symbol) ?? null;
@@ -80,10 +81,10 @@ function CryptoDetail({ detail, price }: { detail: CoinDetail; price: number | n
 
   return (
     <>
-      <section className="cp-section"><h4>Market stats</h4><IndicatorGrid items={stats} industry={null} />
+      <section className="cp-section"><h4>Market stats</h4><IndicatorGrid items={stats} industry={null} examples={Ex.cryptoRankExample(detail.market_cap_rank)} />
         <p className="small muted">Market cap {detail.market_cap ? `$${fmtCompact(detail.market_cap)}` : "—"} · 24h volume {detail.total_volume ? `$${fmtCompact(detail.total_volume)}` : "—"}</p>
       </section>
-      <section className="cp-section"><h4>Performance</h4><IndicatorGrid items={perf} industry={null} /></section>
+      <section className="cp-section"><h4>Performance</h4><IndicatorGrid items={perf} industry={null} examples={Ex.cryptoMonthExample(detail.price_change_percentage_30d)} /></section>
       <section className="cp-section">
         <h4>All-time high and low</h4>
         <IndicatorGrid items={range} industry={null} />

@@ -21,6 +21,7 @@ import { Options } from "./Options";
 import { EtfTicker } from "./EtfTicker";
 import { CryptoTicker } from "./CryptoTicker";
 import { Invest } from "./Invest";
+import * as Ex from "../lib/examples";
 
 
 // Crypto symbols (with a colon) have their own layout. Routing here, before any hooks,
@@ -152,14 +153,14 @@ function StockTicker({ symbol }: { symbol: string }) {
         </dl>
       </Section>
 
-      <Section title="Valuation" sub="colour dots compare each figure with typical ranges for this company's sector"><IndicatorGrid items={valuation} industry={industry} /></Section>
-      <Section title="Growth"><IndicatorGrid items={growth} industry={industry} /></Section>
-      <Section title="Profitability"><IndicatorGrid items={profitability} industry={industry} /></Section>
-      <Section title="Financial health"><IndicatorGrid items={health} industry={industry} /></Section>
-      <Section title="Efficiency"><IndicatorGrid items={efficiency} industry={industry} /></Section>
-      <Section title="Risk"><IndicatorGrid items={risk} industry={industry} /></Section>
-      <Section title="Dividends"><IndicatorGrid items={dividends} industry={industry} /></Section>
-      <Section title="Momentum"><IndicatorGrid items={momentum} industry={industry} /></Section>
+      <Section title="Valuation" sub="colour dots compare each figure with typical ranges for this company's sector"><IndicatorGrid items={valuation} industry={industry} examples={Ex.valuationExample(m("peTTM"), m("pbAnnual"))} /></Section>
+      <Section title="Growth"><IndicatorGrid items={growth} industry={industry} examples={Ex.growthExample(m("revenueGrowthTTMYoy"), m("epsGrowthTTMYoy"))} /></Section>
+      <Section title="Profitability"><IndicatorGrid items={profitability} industry={industry} examples={Ex.profitabilityExample(m("grossMarginTTM"), m("netProfitMarginTTM"), m("roeTTM"))} /></Section>
+      <Section title="Financial health"><IndicatorGrid items={health} industry={industry} examples={Ex.healthExample(m("totalDebt/totalEquityAnnual"), m("currentRatioAnnual"))} /></Section>
+      <Section title="Efficiency"><IndicatorGrid items={efficiency} industry={industry} examples={Ex.efficiencyExample(m("assetTurnoverTTM"))} /></Section>
+      <Section title="Risk"><IndicatorGrid items={risk} industry={industry} examples={Ex.riskExample(m("netInterestCoverageAnnual"), m("payoutRatioAnnual"))} /></Section>
+      <Section title="Dividends"><IndicatorGrid items={dividends} industry={industry} examples={Ex.dividendsExample(m("dividendYieldIndicatedAnnual"), m("dividendGrowthRate5Y"))} /></Section>
+      <Section title="Momentum"><IndicatorGrid items={momentum} industry={industry} examples={Ex.momentumExample(m("yearToDatePriceReturnDaily"), m("52WeekPriceReturnDaily"))} /></Section>
 
       <Section title="Analysts and earnings"><Analysts symbol={symbol} /></Section>
 

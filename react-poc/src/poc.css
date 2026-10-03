@@ -296,3 +296,5 @@
 .compare-col-name { font-weight: 600; }
 .compare-col-ticker { font-size: 11px; color: var(--text-secondary, #9aa6b2); }
 .compare-row-label { color: var(--text-secondary, #9aa6b2); }
+.real-life { margin-top: 10px; padding: 10px 12px; border-left: 3px solid var(--accent, #10b981); font-size: 13px; line-height: 1.55; }
+.real-life-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary, #9aa6b2); margin: 0 0 4px; }

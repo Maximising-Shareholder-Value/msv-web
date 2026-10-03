@@ -12,6 +12,7 @@ import { IndicatorGrid, type IndicatorSpec } from "./Indicators";
 import { PriceChart } from "./PriceChart";
 import { Options } from "./Options";
 import { Filings } from "./Filings";
+import * as Ex from "../lib/examples";
 
 export function EtfTicker({ symbol, quote, metric }: { symbol: string; quote: Quote; metric: Metric | null | undefined }) {
   const [fund, setFund] = useState<FundProfile | null | undefined>(undefined);
@@ -61,8 +62,8 @@ export function EtfTicker({ symbol, quote, metric }: { symbol: string; quote: Qu
         )}
       </section>
 
-      <section className="cp-section"><h4>Price performance</h4><IndicatorGrid items={performance} industry={null} /></section>
-      <section className="cp-section"><h4>Trading activity &amp; risk</h4><IndicatorGrid items={activity} industry={null} /></section>
+      <section className="cp-section"><h4>Price performance</h4><IndicatorGrid items={performance} industry={null} examples={Ex.fundReturnExample(m("52WeekPriceReturnDaily"))} /></section>
+      <section className="cp-section"><h4>Trading activity &amp; risk</h4><IndicatorGrid items={activity} industry={null} examples={Ex.fundBetaExample(m("beta"))} /></section>
       <section className="cp-section"><h4>Price chart</h4><PriceChart symbol={symbol} /></section>
       <section className="cp-section"><h4>Options <span className="muted small">indicative quotes; expiries within 45 days</span></h4><Options symbol={symbol} price={quote.c} /></section>
       <section className="cp-section"><h4>SEC filings <span className="muted small">fund filings, such as portfolio holdings reports</span></h4><Filings symbol={symbol} /></section>

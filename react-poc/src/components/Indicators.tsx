@@ -14,7 +14,7 @@ export interface IndicatorSpec {
   percent?: boolean;
 }
 
-export function IndicatorGrid({ items, industry }: { items: IndicatorSpec[]; industry: string | null }) {
+export function IndicatorGrid({ items, industry, examples = [] }: { items: IndicatorSpec[]; industry: string | null; examples?: string[] }) {
   const [open, setOpen] = useState<{ label: string; defKey: string; value: number | null } | null>(null);
   const bucket = getSectorBucket(industry);
   return (
@@ -24,6 +24,12 @@ export function IndicatorGrid({ items, industry }: { items: IndicatorSpec[]; ind
           <IndicatorCard key={item.label} item={item} bucket={bucket} onHelp={() => setOpen({ label: item.label, defKey: item.defKey, value: item.value ?? null })} />
         ))}
       </div>
+      {examples.length > 0 && (
+        <div className="real-life">
+          <p className="real-life-label">In real terms</p>
+          {examples.map((e, i) => <p key={i} dangerouslySetInnerHTML={{ __html: e }} />)}
+        </div>
+      )}
       {open && <Tooltip {...open} industry={industry} bucket={bucket} onClose={() => setOpen(null)} />}
     </>
   );
