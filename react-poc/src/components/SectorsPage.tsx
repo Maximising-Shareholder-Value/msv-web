@@ -210,7 +210,9 @@ function SectorDetail({ item, quote, metric, benchmark, quotes, metrics, onOpen,
           <p className="muted small">{item.desc}</p>
         </div>
         <div className="sectors-detail-actions">
-          {!isSector && <button type="button" className="cp-btn cp-btn-ghost" onClick={onUp}>↑ {sector.name}</button>}
+          {/* A plain link, not a button: the main site's ticker page is a separate page, opened via ?ticker= on its home page. */}
+          <a className="cp-btn" href={`/?ticker=${encodeURIComponent(item.etf)}`}>Open {item.etf} page →</a>
+          {!isSector &&<button type="button" className="cp-btn cp-btn-ghost" onClick={onUp}>↑ {sector.name}</button>}
           <button type="button" className="cp-btn cp-btn-ghost" onClick={onClose}>✕ Close</button>
         </div>
       </div>

@@ -8,7 +8,9 @@
 // request per indicator, cached in worldData), and Finnhub for the country
 // ETF's quote + performance metrics (2 calls, fetched on click, cached).
 
-const marketState = { selected: null, group: "all", query: "", directoryLoaded: false };
+// view: "dropdown" (default, a compact picker) or "list" (the full searchable
+// directory). Added 2026-10-03 — the country list used to be the only view.
+const marketState = { selected: null, group: "all", query: "", directoryLoaded: false, view: "dropdown" };
 
 const GROUP_ORDER = ["brics", "developed", "emerging", "frontier"];
 
@@ -43,6 +45,7 @@ function directoryRowHtml(c) {
 function renderCountryDirectory() {
   const el = document.getElementById("countryDirectory");
   if (!el) return;
+  if (marketState.view === "dropdown") { renderCountryDropdown(el); return; }
   const q = marketState.query.trim().toLowerCase();
   const matches = c => {
     if (q && !`${c.name} ${c.city} ${c.etf || ""} ${c.iso2}`.toLowerCase().includes(q)) return false;
@@ -62,6 +65,7 @@ function renderCountryDirectory() {
 
   el.innerHTML = `
     <div class="cd-head">
+      ${directoryViewToggleHtml()}
       <input type="search" class="cd-search" id="cdSearch" placeholder="Search countries, cities, ETFs…" value="${escapeHtml(marketState.query)}" autocomplete="off">
       <div class="cd-chips">${chips.map(([id, label]) => `<button type="button" data-group="${id}" class="${marketState.group === id ? "active" : ""}">${label}</button>`).join("")}</div>
     </div>
@@ -77,6 +81,47 @@ function renderCountryDirectory() {
   });
   el.querySelectorAll(".cd-chips button").forEach(b => b.addEventListener("click", () => { marketState.group = b.dataset.group; renderCountryDirectory(); }));
   el.querySelectorAll(".cd-row").forEach(r => r.addEventListener("click", () => selectCountry(r.dataset.iso2, { scroll: true })));
+  bindDirectoryToggle(el);
+}
+
+// The Dropdown / Full list switch shown at the top of the directory.
+function directoryViewToggleHtml() {
+  const v = marketState.view;
+  return `<div class="cd-view-toggle" role="group" aria-label="Country picker style">
+    <button type="button" data-view="dropdown" class="${v === "dropdown" ? "active" : ""}">Dropdown</button>
+    <button type="button" data-view="list" class="${v === "list" ? "active" : ""}">Full list</button>
+  </div>`;
+}
+
+function bindDirectoryToggle(el) {
+  el.querySelectorAll(".cd-view-toggle button").forEach(b => b.addEventListener("click", () => {
+    marketState.view = b.dataset.view;
+    renderCountryDirectory();
+  }));
+}
+
+// The compact default: one grouped dropdown. Picking a country opens its
+// profile, same as clicking it on the map or in the full list.
+function renderCountryDropdown(el) {
+  const options = GROUP_ORDER.map(gid => {
+    const g = COUNTRY_GROUPS.find(x => x.id === gid);
+    const rows = COUNTRIES.filter(c => c.group === gid);
+    if (!rows.length) return "";
+    return `<optgroup label="${g.label} (${rows.length})">${rows.map(c =>
+      `<option value="${c.iso2}"${marketState.selected === c.iso2 ? " selected" : ""}>${c.flag} ${c.name} · ${c.etf || "macro only"}</option>`).join("")}</optgroup>`;
+  }).join("");
+  el.innerHTML = `
+    <div class="cd-head">
+      ${directoryViewToggleHtml()}
+      <select class="cd-select" id="cdSelect" aria-label="Choose a country">
+        <option value="">Choose a country…</option>${options}
+      </select>
+    </div>
+    <p class="muted small cd-foot">Pick a country to open its profile. Switch to Full list for search, filters and live prices on every row.</p>`;
+  bindDirectoryToggle(el);
+  el.querySelector("#cdSelect").addEventListener("change", e => {
+    if (e.target.value) selectCountry(e.target.value, { scroll: true });
+  });
 }
 
 // Live ETF quotes for the whole directory, a few at a time, filling rows in

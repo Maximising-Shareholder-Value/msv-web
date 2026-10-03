@@ -1561,6 +1561,11 @@ function initHowToModal() {
   });
 }
 
+// Deep link: ?ticker=XLI opens that ticker's page. Read it here, BEFORE the
+// router below runs — navigateTo() rewrites the address to the bare path, which
+// drops the query string. Used by the React Sectors page's "Open XLI page" button.
+const deepLinkTicker = new URLSearchParams(location.search).get("ticker");
+
 initHome();
 initHowToModal();
 
@@ -1580,3 +1585,7 @@ window.addEventListener("popstate", e => {
   const navKey = PATH_TO_NAV[location.pathname] || "home";
   navigateTo(navKey, { push: false });
 })();
+
+// Opens the deep-linked ticker once the whole page has loaded, so it lands on top
+// of the home view the router has just set up.
+if (deepLinkTicker) window.addEventListener("load", () => loadTicker(deepLinkTicker.trim().toUpperCase()));

@@ -2408,3 +2408,9 @@ canvas#priceChart, canvas#volumeChart, canvas#rsiChart, canvas#macdChart { width
 /* "Soon" tag on sidebar items that are prototyped in the React POC but not
    yet ported into this page (2026-09-27). */
 .app-nav-soon { font-size: 8.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); border: 1px solid var(--border); border-radius: 999px; padding: 1px 5px; margin-left: 5px; vertical-align: middle; }
+
+/* ---- Country picker: Dropdown / Full list (marketData.js, 2026-10-03) ---- */
+.cd-view-toggle { display: inline-flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-bottom: 8px; }
+.cd-view-toggle button { background: none; border: 0; color: var(--text-secondary); padding: 5px 10px; font: inherit; font-size: 12px; cursor: pointer; }
+.cd-view-toggle button.active { background: var(--accent); color: var(--accent-contrast); }
+.cd-select { width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface-2, transparent); color: inherit; font: inherit; font-size: 13px; }
