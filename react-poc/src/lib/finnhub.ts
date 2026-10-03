@@ -10,6 +10,8 @@
 // The vanilla site does the same job in dataUtils.js (fetchQuoteCached,
 // fetchMetricCached, runThrottled). Keep the two in step if one changes.
 
+import type { NewsItem } from "./types";
+
 const API_BASE = "https://msv-api.jozsua-heng.workers.dev";
 const QUOTE_TTL_MS = 2 * 60 * 1000;
 const METRIC_TTL_MS = 15 * 60 * 1000;
@@ -92,4 +94,33 @@ export function getMetric(symbol: string): Promise<Metric | null> {
 export function metricValue(m: Metric | null | undefined, key: string): number | null {
   const v = m?.[key];
   return typeof v === "number" && Number.isFinite(v) ? v : null;
+}
+
+const newsCache = new Map<string, Cached<NewsItem[] | null>>();
+const ipoCache = new Map<string, Cached<IpoRow[] | null>>();
+const NEWS_TTL_MS = 5 * 60 * 1000;
+const IPO_TTL_MS = 60 * 60 * 1000;
+
+/** Market news for one Finnhub category: "general", "merger", "forex" or "crypto". */
+export function getNews(category: string): Promise<NewsItem[] | null> {
+  return cachedOrFetch(newsCache, NEWS_TTL_MS, category, () => finnhub<NewsItem[]>("/news", { category }));
+}
+
+export interface IpoRow {
+  date: string;
+  exchange: string;
+  name: string;
+  symbol: string | null;
+  price: string | null;
+  numberOfShares: number | null;
+  totalSharesValue: number | null;
+  status: string;  // "filed" | "expected" | "priced"
+}
+
+/** IPO calendar between two YYYY-MM-DD dates (Finnhub's /calendar/ipo). */
+export function getIpoCalendar(from: string, to: string): Promise<IpoRow[] | null> {
+  return cachedOrFetch(ipoCache, IPO_TTL_MS, `${from}:${to}`, async () => {
+    const r = await finnhub<{ ipoCalendar?: IpoRow[] }>("/calendar/ipo", { from, to });
+    return r.ipoCalendar ?? [];
+  });
 }

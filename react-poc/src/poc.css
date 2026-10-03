@@ -114,3 +114,18 @@
 .sectors-range-bar span { position: absolute; top: -4px; width: 4px; height: 12px; background: var(--accent, #10b981); border-radius: 2px; }
 .sectors-facts { display: flex; gap: 24px; flex-wrap: wrap; margin-top: 8px; }
 .sectors-facts div { display: flex; flex-direction: column; gap: 2px; }
+
+/* ---- Shared page nav, IPO calendar and market news (2026-10-03) ---- */
+.react-page-nav { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--border, #2a3642); font-size: 0.85rem; }
+.react-page-nav a { color: var(--text-secondary, #9aa6b2); text-decoration: none; padding: 4px 2px; border-bottom: 2px solid transparent; }
+.react-page-nav a.active { color: inherit; border-bottom-color: var(--accent, #10b981); }
+.react-page-nav-back { margin-right: 8px; }
+.news-page, .ipo-page { padding: 16px; max-width: 1200px; margin: 0 auto; }
+.news-toolbar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin: 10px 0 6px; }
+.news-search { flex: 1; min-width: 200px; padding: 7px 10px; border-radius: 6px; border: 1px solid var(--border, #2a3642); background: var(--surface-2, transparent); color: inherit; font: inherit; font-size: 13px; }
+.news-summary { display: block; font-size: 12.5px; color: var(--text-secondary, #9aa6b2); line-height: 1.45; margin: 2px 0; }
+.ipo-toggle { display: inline-flex; gap: 6px; align-items: center; font-size: 0.85rem; color: var(--text-secondary, #9aa6b2); }
+.ipo-spac-tag { margin-left: 8px; font-size: 10px; }
+.ipo-foot { margin-top: 14px; line-height: 1.5; }
+
+.ipo-page .crypto-table th, .ipo-page .crypto-table td { text-align: left; }
