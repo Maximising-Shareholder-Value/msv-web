@@ -1,20 +1,22 @@
-// components/TickerPage.tsx — the ticker deep-dive page, first slice (React).
-// Covers the stock overview: header with price and move, the day's range and
-// the 52-week range, company facts and the valuation figures. The rest of the
-// page (growth, profitability, financial statements, filings, options, chart,
-// news, tooltips) is still on the main site and is linked from here.
+// components/TickerPage.tsx — the ticker deep-dive page (React). Covers the stock
+// overview (header, price, ranges, company facts) and the financial sections:
+// valuation, growth, profitability, financial health, efficiency, risk,
+// dividends and momentum, with the same indicator cards, traffic lights and
+// tooltips as the main site.
 //
-// ETFs and crypto have their own layouts on the main site, so they're pointed
-// there for now.
+// Still on the main site, linked from here: the price chart, financial
+// statements, ownership and insider transactions, SEC filings, options,
+// recommendations and earnings, news and peers. ETFs and crypto also stay on
+// the main site for now.
 
 import { useEffect, useState } from "react";
 import { getQuote, getMetric, getCompanyProfile, metricValue, type Quote, type Metric, type CompanyProfile } from "../lib/finnhub";
-import { fmtCompact, fmtPct, fmtPrice, changeClass } from "../lib/format";
+import { fmtPct, fmtPrice, changeClass } from "../lib/format";
+import { IndicatorGrid, type IndicatorSpec } from "./Indicators";
 
-const SECTIONS_ON_MAIN_SITE = [
-  "Growth and profitability", "Financial health and efficiency", "Dividends and risk",
-  "Financial statements", "Shares and ownership", "Insider transactions", "SEC filings",
-  "Options", "Price chart", "Recommendations and earnings", "News and peers",
+const STILL_ON_MAIN_SITE = [
+  "Price chart (with indicators)", "Financial statements", "Shares and ownership", "Insider transactions",
+  "SEC filings", "Options", "Analyst recommendations and earnings", "News and peers",
 ];
 
 export function TickerPage({ symbol }: { symbol: string }) {
@@ -35,17 +37,13 @@ export function TickerPage({ symbol }: { symbol: string }) {
     return <section className="ticker-page"><p className="muted">Loading {symbol}…</p></section>;
   }
   if (!quote) {
-    return (
-      <section className="ticker-page">
-        <p>No live quote for <strong>{symbol}</strong>. Check the symbol, or try again in a minute if the free data tier is rate-limited.</p>
-      </section>
-    );
+    return <section className="ticker-page"><p>No live quote for <strong>{symbol}</strong>. Check the symbol, or try again in a minute if the free data tier is rate-limited.</p></section>;
   }
   if (!profile) {
     return (
       <section className="ticker-page">
         <Header symbol={symbol} quote={quote} profile={null} />
-        <p className="muted">{symbol} is an ETF, fund, or index, or it has no company profile. The ETF and crypto layouts are still on the main site.</p>
+        <p className="muted">{symbol} is an ETF, fund or index, or has no company profile. The ETF layout is still on the main site.</p>
         <a className="cp-btn" href={`/?ticker=${encodeURIComponent(symbol)}`}>Open {symbol} on the main site →</a>
       </section>
     );
@@ -53,15 +51,73 @@ export function TickerPage({ symbol }: { symbol: string }) {
 
   const low = metricValue(metric, "52WeekLow"), high = metricValue(metric, "52WeekHigh");
   const rangePos = low !== null && high !== null && high > low ? Math.max(0, Math.min(100, ((quote.c - low) / (high - low)) * 100)) : null;
-  const pe = metricValue(metric, "peTTM"), pb = metricValue(metric, "pbAnnual");
+  const industry = profile.finnhubIndustry ?? null;
+  const m = (k: string) => metricValue(metric, k);
+
+  const valuation: IndicatorSpec[] = [
+    { label: "P/E Ratio", value: m("peTTM"), defKey: "peRatio" },
+    { label: "P/B Ratio", value: m("pbAnnual"), defKey: "pbRatio" },
+    { label: "EV/EBITDA", value: m("evEbitdaTTM"), defKey: "evEbitda" },
+    { label: "EV/Revenue", value: m("evRevenueTTM"), defKey: "evRevenue" },
+    { label: "Market Cap ($M)", value: profile.marketCapitalization ?? null, defKey: "marketCap" },
+    { label: "EPS (TTM)", value: m("epsTTM"), defKey: "epsTTM" },
+    { label: "Shares Outstanding (M)", value: profile.shareOutstanding ?? null, defKey: "sharesOutstanding" },
+    { label: "Price/Sales (TTM)", value: m("psTTM"), defKey: "priceToSales" },
+    { label: "Price/Cash Flow (TTM)", value: m("pcfShareTTM"), defKey: "priceToCashFlow" },
+  ];
+  const growth: IndicatorSpec[] = [
+    { label: "Revenue Growth (TTM YoY)", value: m("revenueGrowthTTMYoy"), defKey: "revenueGrowth", percent: true },
+    { label: "EPS Growth (TTM YoY)", value: m("epsGrowthTTMYoy"), defKey: "epsGrowth", percent: true },
+    { label: "Revenue Growth (5Y)", value: m("revenueGrowth5Y"), defKey: "revenueGrowth", percent: true },
+    { label: "EPS Growth (5Y)", value: m("epsGrowth5Y"), defKey: "epsGrowth", percent: true },
+    { label: "Revenue Growth (Quarterly YoY)", value: m("revenueGrowthQuarterlyYoy"), defKey: "revenueGrowth", percent: true },
+    { label: "EPS Growth (Quarterly YoY)", value: m("epsGrowthQuarterlyYoy"), defKey: "epsGrowth", percent: true },
+  ];
+  const profitability: IndicatorSpec[] = [
+    { label: "Gross Margin", value: m("grossMarginTTM"), defKey: "grossMargin", percent: true },
+    { label: "Operating Margin", value: m("operatingMarginTTM"), defKey: "operatingMargin", percent: true },
+    { label: "Net Margin", value: m("netProfitMarginTTM"), defKey: "netMargin", percent: true },
+    { label: "Return on Equity", value: m("roeTTM"), defKey: "roe", percent: true },
+    { label: "Return on Assets", value: m("roaTTM"), defKey: "roa", percent: true },
+    { label: "Return on Investment", value: m("roiTTM"), defKey: "roi", percent: true },
+    { label: "Gross Margin (5Y avg)", value: m("grossMargin5Y"), defKey: "grossMargin", percent: true },
+    { label: "Operating Margin (5Y avg)", value: m("operatingMargin5Y"), defKey: "operatingMargin", percent: true },
+    { label: "Net Margin (5Y avg)", value: m("netProfitMargin5Y"), defKey: "netMargin", percent: true },
+  ];
+  const health: IndicatorSpec[] = [
+    { label: "Quick Ratio", value: m("quickRatioAnnual"), defKey: "quickRatio" },
+    { label: "Current Ratio", value: m("currentRatioAnnual"), defKey: "currentRatio" },
+    { label: "Debt/Equity", value: m("totalDebt/totalEquityAnnual"), defKey: "debtToEquity" },
+  ];
+  const efficiency: IndicatorSpec[] = [
+    { label: "Asset Turnover", value: m("assetTurnoverTTM"), defKey: "assetTurnover" },
+    { label: "Inventory Turnover", value: m("inventoryTurnoverTTM"), defKey: "inventoryTurnover" },
+    { label: "Receivables Turnover", value: m("receivablesTurnoverTTM"), defKey: "receivablesTurnover" },
+  ];
+  const risk: IndicatorSpec[] = [
+    { label: "Interest Coverage", value: m("netInterestCoverageAnnual"), defKey: "interestCoverage" },
+    { label: "Long-Term Debt/Equity", value: m("longTermDebt/equityAnnual"), defKey: "ltDebtToEquity" },
+    { label: "Dividend Payout Ratio", value: m("payoutRatioAnnual"), defKey: "payoutRatio", percent: true },
+  ];
+  const dividends: IndicatorSpec[] = [
+    { label: "Dividend Yield", value: m("dividendYieldIndicatedAnnual"), defKey: "dividendYield", percent: true },
+    { label: "Dividend Per Share", value: m("dividendPerShareTTM"), defKey: "dividendPerShare" },
+    { label: "5Y Dividend Growth", value: m("dividendGrowthRate5Y"), defKey: "dividendGrowth5Y", percent: true },
+  ];
+  const momentum: IndicatorSpec[] = [
+    { label: "YTD Return", value: m("yearToDatePriceReturnDaily"), defKey: "ytdReturn", percent: true },
+    { label: "52-Week Return", value: m("52WeekPriceReturnDaily"), defKey: "week52Return", percent: true },
+    { label: "vs. S&P 500 (13-wk)", value: m("priceRelativeToS&P50013Week"), defKey: "priceVsSP500", percent: true },
+    { label: "Beta", value: m("beta"), defKey: "beta" },
+  ];
 
   return (
     <section className="ticker-page">
       <Header symbol={symbol} quote={quote} profile={profile} />
 
       <div className="ticker-stats">
-        {[["Open", quote.o], ["Day high", quote.h], ["Day low", quote.l], ["Prev close", quote.pc]].map(([label, v]) => (
-          <div key={label as string} className="cp-stat"><span className="muted small">{label as string}</span><strong>{fmtPrice(v as number)}</strong></div>
+        {([["Open", quote.o], ["Day high", quote.h], ["Day low", quote.l], ["Prev close", quote.pc]] as [string, number][]).map(([label, v]) => (
+          <div key={label} className="cp-stat"><span className="muted small">{label}</span><strong>{fmtPrice(v)}</strong></div>
         ))}
       </div>
 
@@ -76,38 +132,25 @@ export function TickerPage({ symbol }: { symbol: string }) {
 
       <Section title="Company facts">
         <dl className="ticker-facts">
-          {[["Exchange", profile.exchange], ["Industry", profile.finnhubIndustry], ["Headquarters", profile.country], ["Listed (IPO)", profile.ipo]].map(([label, v]) => (
-            v ? <div key={label as string}><dt className="muted small">{label as string}</dt><dd>{v}</dd></div> : null
+          {([["Exchange", profile.exchange], ["Industry", profile.finnhubIndustry], ["Headquarters", profile.country], ["Listed (IPO)", profile.ipo]] as [string, string | undefined][]).map(([label, v]) => (
+            v ? <div key={label}><dt className="muted small">{label}</dt><dd>{v}</dd></div> : null
           ))}
           {profile.weburl && <div><dt className="muted small">Website</dt><dd><a href={profile.weburl} target="_blank" rel="noopener noreferrer">{profile.weburl.replace(/^https?:\/\//, "").replace(/\/$/, "")}</a></dd></div>}
         </dl>
       </Section>
 
-      <Section title="Valuation" sub="latest figures; hover tooltips are on the main site for now">
-        <div className="ticker-valuation">
-          {[
-            ["P/E ratio", pe?.toFixed(2)],
-            ["P/B ratio", pb?.toFixed(2)],
-            ["EV/EBITDA", metricValue(metric, "evEbitdaTTM")?.toFixed(2)],
-            ["Price / sales", metricValue(metric, "psTTM")?.toFixed(2)],
-            ["Market cap", profile.marketCapitalization ? `$${fmtCompact(profile.marketCapitalization * 1e6)}` : undefined],
-            ["EPS (TTM)", metricValue(metric, "epsTTM")?.toFixed(2)],
-            ["Shares outstanding", profile.shareOutstanding ? `${fmtCompact(profile.shareOutstanding * 1e6)}` : undefined],
-          ].map(([label, value]) => (
-            <div key={label as string} className="ticker-card">
-              <span className="muted small">{label}</span>
-              <strong>{value ?? "—"}</strong>
-            </div>
-          ))}
-        </div>
-        {pe !== null && pe > 0 && (
-          <p className="small">Put $100 into this stock and you're claiming about <strong>${(100 / pe).toFixed(2)}</strong> of the company's annual earnings. That's the flip side of a P/E of {pe.toFixed(1)}.</p>
-        )}
-      </Section>
+      <Section title="Valuation" sub="colour dots compare each figure with typical ranges for this company's sector"><IndicatorGrid items={valuation} industry={industry} /></Section>
+      <Section title="Growth"><IndicatorGrid items={growth} industry={industry} /></Section>
+      <Section title="Profitability"><IndicatorGrid items={profitability} industry={industry} /></Section>
+      <Section title="Financial health"><IndicatorGrid items={health} industry={industry} /></Section>
+      <Section title="Efficiency"><IndicatorGrid items={efficiency} industry={industry} /></Section>
+      <Section title="Risk"><IndicatorGrid items={risk} industry={industry} /></Section>
+      <Section title="Dividends"><IndicatorGrid items={dividends} industry={industry} /></Section>
+      <Section title="Momentum"><IndicatorGrid items={momentum} industry={industry} /></Section>
 
       <Section title="Still on the main site">
-        <p className="muted small">These sections of the ticker page haven't been ported yet. Each one opens on the main site for now:</p>
-        <ul className="ticker-todo">{SECTIONS_ON_MAIN_SITE.map(s => <li key={s}><a href={`/?ticker=${encodeURIComponent(symbol)}`}>{s} →</a></li>)}</ul>
+        <p className="muted small">These sections of the ticker page haven't been ported yet. Each opens on the main site for now:</p>
+        <ul className="ticker-todo">{STILL_ON_MAIN_SITE.map(s => <li key={s}><a href={`/?ticker=${encodeURIComponent(symbol)}`}>{s} →</a></li>)}</ul>
       </Section>
     </section>
   );
@@ -139,3 +182,4 @@ function Section({ title, sub, children }: { title: string; sub?: string; childr
     </section>
   );
 }
+

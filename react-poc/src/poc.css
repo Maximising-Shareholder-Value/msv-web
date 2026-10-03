@@ -254,3 +254,19 @@
 .ticker-valuation { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; margin-bottom: 8px; }
 .ticker-card { display: flex; flex-direction: column; gap: 3px; padding: 10px 12px; border: 1px solid var(--border, #2a3642); border-radius: 8px; }
 .ticker-todo { line-height: 1.8; font-size: 13px; }
+
+/* ---- Ticker page: indicator cards and tooltips (Indicators.tsx, 2026-10-03) ---- */
+.indicator-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px; }
+.indicator { border: 1px solid var(--border, #2a3642); border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; }
+.indicator-label { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary, #9aa6b2); }
+.indicator-value { font-size: 1.1rem; font-weight: 600; display: flex; flex-direction: column; gap: 2px; }
+.traffic-label { font-size: 11px; font-weight: 400; }
+.traffic-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.traffic-good { background: #10b981; } .traffic-warning { background: #f59e0b; } .traffic-serious { background: #f97316; } .traffic-critical { background: #ef4444; }
+.help-btn { margin-left: auto; background: none; border: 1px solid var(--border, #2a3642); border-radius: 50%; width: 18px; height: 18px; font-size: 11px; color: inherit; cursor: pointer; }
+.tooltip-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 50; }
+.tooltip-popup { background: var(--bg-surface, #111820); border: 1px solid var(--border, #2a3642); border-radius: 10px; padding: 16px; max-width: 480px; width: calc(100% - 32px); max-height: 80vh; overflow-y: auto; font-size: 13.5px; line-height: 1.55; }
+.tooltip-header { display: flex; justify-content: space-between; align-items: center; }
+.tooltip-header h4 { margin: 0; }
+.tooltip-header button { background: none; border: 0; color: inherit; font-size: 20px; cursor: pointer; }
+.ticker-page .cp-section { margin-top: 18px; }
