@@ -269,3 +269,19 @@ export function getFilings(symbol: string): Promise<SecFiling[] | null> {
     return Array.isArray(r) ? (r as SecFiling[]) : [];
   });
 }
+
+export interface FundProfile { companyName?: string; website?: string; isin?: string; description?: string }
+
+const fundCache = new Map<string, Cached<FundProfile | null>>();
+const FMP_API = "https://msv-api.jozsua-heng.workers.dev";
+
+/** Fund name, website, ISIN and description from Financial Modeling Prep (/profile). */
+export function getFundProfile(symbol: string): Promise<FundProfile | null> {
+  return cachedOrFetch(fundCache, PROFILE_TTL_MS, symbol, async () => {
+    const res = await fetch(`${FMP_API}/api/fmp?${new URLSearchParams({ path: "/profile", symbol })}`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    const p = Array.isArray(data) ? data[0] : null;
+    return p && p.symbol ? (p as FundProfile) : null;
+  });
+}

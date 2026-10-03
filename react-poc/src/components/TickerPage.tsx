@@ -20,6 +20,7 @@ import { Ownership } from "./Ownership";
 import { Financials } from "./Financials";
 import { Filings } from "./Filings";
 import { Options } from "./Options";
+import { EtfTicker } from "./EtfTicker";
 
 const STILL_ON_MAIN_SITE = [
   "MACD and support/resistance on the chart",
@@ -50,8 +51,7 @@ export function TickerPage({ symbol }: { symbol: string }) {
     return (
       <section className="ticker-page">
         <Header symbol={symbol} quote={quote} profile={null} />
-        <p className="muted">{symbol} is an ETF, fund or index, or has no company profile. The ETF layout is still on the main site.</p>
-        <a className="cp-btn" href={`/?ticker=${encodeURIComponent(symbol)}`}>Open {symbol} on the main site →</a>
+        <EtfTicker symbol={symbol} quote={quote} metric={metric} />
       </section>
     );
   }
