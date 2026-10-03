@@ -311,3 +311,14 @@
 .placeholder-page { padding: 16px; max-width: 700px; margin: 0 auto; }
 .placeholder-card { padding: 24px; display: flex; flex-direction: column; gap: 8px; }
 .placeholder-icon { font-size: 2rem; }
+
+/* ---- Macro page (MacroPage.tsx, 2026-10-03) ---- */
+.macro-page { padding: 16px; max-width: 1100px; margin: 0 auto; }
+.macro-controls { display: flex; flex-direction: column; gap: 8px; margin: 8px 0 14px; }
+.macro-country-picker, .macro-search-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.macro-country-btn { background: none; border: 1px solid var(--border, #2a3642); border-radius: 999px; padding: 4px 12px; color: inherit; font: inherit; font-size: 12.5px; cursor: pointer; }
+.macro-country-btn.active { background: var(--accent, #10b981); color: var(--accent-contrast, #06120d); border-color: transparent; }
+.macro-page h3 { margin: 10px 0; }
+.macro-date { font-size: 11px; color: var(--text-secondary, #9aa6b2); }
+.macro-governance-title { margin-top: 18px; }
+.macro-compare-label { color: var(--text-secondary, #9aa6b2); }

@@ -18,6 +18,7 @@ import { TickerPage } from "./components/TickerPage";
 import { ComparePage } from "./components/ComparePage";
 import { PlaceholderPage } from "./components/PlaceholderPage";
 import { PredictionMarketsPage } from "./components/PredictionMarketsPage";
+import { MacroPage } from "./components/MacroPage";
 import { PageNav } from "./components/PageNav";
 import { AppSidebar } from "./components/AppSidebar";
 
@@ -29,7 +30,7 @@ const page = new URLSearchParams(location.search).get("page");
 
 // Each page gets its own browser-tab title. The Crypto page keeps its own, set in index.html.
 const TITLES: Record<string, string> = {
-  sectors: "Sectors", etfs: "ETFs", screener: "Stock Screener", ipo: "IPO Calendar", news: "Market News", "market-data": "Market Data", "market-intel": "Market Intelligence", learn: "Learn", home: "Markets", explore: "Explore", compare: "Compare",
+  sectors: "Sectors", etfs: "ETFs", screener: "Stock Screener", ipo: "IPO Calendar", news: "Market News", "market-data": "Market Data", "market-intel": "Market Intelligence", learn: "Learn", home: "Markets", explore: "Explore", compare: "Compare", macro: "Macro",
 };
 if (page && TITLES[page]) document.title = `$MSV — ${TITLES[page]}`;
 
@@ -58,6 +59,7 @@ function CurrentPage() {
   if (page === "home") return <Framed current="home"><HomePage /></Framed>;
   if (page === "explore") return <Framed current="explore"><ExplorePage /></Framed>;
   if (page === "placeholder") { const key = new URLSearchParams(location.search).get("key") ?? ""; return <Framed current={key}><PlaceholderPage pageKey={key} /></Framed>; }
+  if (page === "macro") return <Framed current="macro"><MacroPage /></Framed>;
   if (page === "prediction-markets") return <Framed current="prediction-markets"><PredictionMarketsPage /></Framed>;
   if (page === "compare") return <Framed current="compare"><ComparePage /></Framed>;
   if (page === "ticker") return <Framed current="ticker"><TickerPage symbol={(new URLSearchParams(location.search).get("symbol") ?? "AAPL").toUpperCase()} /></Framed>;
