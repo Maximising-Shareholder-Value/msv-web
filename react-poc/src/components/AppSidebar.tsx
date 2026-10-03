@@ -82,6 +82,7 @@ function ApiUsage() {
         <div key={row.key + row.per} className="api-usage-line">
           <span>{row.label}</span>
           <span className="muted">{row.limit ? `${row.count} / ${row.limit} ${row.per}` : `${row.count}/min`}</span>
+          {row.limit && <span className="api-usage-bar"><i className={row.count / row.limit > 0.8 ? "hot" : ""} style={{ width: `${Math.min(100, (row.count / row.limit) * 100)}%` }} /></span>}
         </div>
       ))}
     </div>

@@ -559,3 +559,13 @@
 @media (max-width: 1000px) {
   .hp-about, .hp-two, .hp-news-grid, .hp-country-card { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* Usage bars, as on the main site: a thin track with a fill that turns amber near the limit. */
+.api-usage-panel .api-usage-line { flex-wrap: wrap; }
+.api-usage-panel .api-usage-bar { flex-basis: 100%; height: 3px; background: var(--border, #2a3642); border-radius: 2px; overflow: hidden; margin-top: 2px; }
+.api-usage-panel .api-usage-bar i { display: block; height: 100%; background: var(--accent, #10b981); }
+.api-usage-panel .api-usage-bar i.hot { background: #f59e0b; }
+
+/* Homepage: uses the full width of the screen beside the sidebar. */
+.hp { max-width: none !important; width: 100%; box-sizing: border-box; }
+.hp-section { width: 100%; box-sizing: border-box; }
