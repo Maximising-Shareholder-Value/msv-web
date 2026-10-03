@@ -15,6 +15,7 @@ import { LearnPage } from "./components/LearnPage";
 import { HomePage } from "./components/HomePage";
 import { ExplorePage } from "./components/ExplorePage";
 import { PageNav } from "./components/PageNav";
+import { AppSidebar } from "./components/AppSidebar";
 
 // One build, several pages. The page is picked from the query string
 // (?page=sectors, ?page=ipo, ?page=news); anything else shows the Crypto page.
@@ -31,10 +32,13 @@ if (page && TITLES[page]) document.title = `$MSV — ${TITLES[page]}`;
 // The three new pages share a nav bar linking them together.
 function Framed({ current, children }: { current: string; children: ReactNode }) {
   return (
-    <>
-      <PageNav current={current} />
-      {children}
-    </>
+    <div className="app-shell">
+      <AppSidebar current={current} />
+      <div className="app-main">
+        <PageNav current={current} />
+        {children}
+      </div>
+    </div>
   );
 }
 
