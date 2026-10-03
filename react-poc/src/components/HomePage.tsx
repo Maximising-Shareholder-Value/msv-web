@@ -16,6 +16,7 @@ import type { NewsItem } from "../lib/types";
 import { IndexStrip, SectorHeatmap, ForexStrip, EconCalendar } from "./HomeWidgets";
 import { MarketBreadth, EarningsCalendar, CryptoTable } from "./HomeMore";
 import { RecentlyViewed, Watchlist, HowTo } from "./HomeLists";
+import { WorldMap } from "./WorldMap";
 
 const RANKING_TABS = [
   { id: "winners", title: "Winners" },
@@ -56,14 +57,22 @@ export function HomePage() {
 
   return (
     <section className="home-page">
-      <header className="sectors-header">
-        <h2>Markets</h2>
-        <span className="muted small">Live prices by category · rankings use today's move</span>
-      </header>
+      <div className="home-hero">
+        <div>
+          <h1>Markets today</h1>
+          <p className="muted small">{new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric", year: "numeric" })} · live prices, news and the global economy</p>
+        </div>
+        <MarketBreadth />
+      </div>
 
       <IndexStrip />
-      <MarketBreadth />
 
+      <div className="home-block">
+        <div className="home-block-head"><h3>World markets</h3><span className="muted small">Click a country for its market profile</span></div>
+        <WorldMap selected={null} onSelect={iso2 => { location.href = `/app/?page=market-data&country=${iso2}`; }} quotes={{}} mode="groups" onMode={() => {}} wbData={{}} showModes={false} />
+      </div>
+
+      <div className="home-block-head"><h3>Market movers</h3><span className="muted small">Live prices by category</span></div>
       <div className="home-tabs" role="tablist">
         {RANKING_TABS.map(t => (
           <button key={t.id} type="button" role="tab" aria-selected={tab === t.id} className={tab === t.id ? "active" : ""} onClick={() => setTab(t.id)}>{t.title}</button>
@@ -106,13 +115,13 @@ export function HomePage() {
         </div>
 
         <aside className="home-side">
+          <TopNews />
           <div className="home-card"><RecentlyViewed /><Watchlist /></div>
-          <div className="home-card"><h4>How to use $MSV</h4><HowTo /></div>
           <div className="home-card"><h4>Earnings this week</h4><EarningsCalendar /></div>
           <div className="home-card"><h4>Economic calendar</h4><EconCalendar /></div>
           <div className="home-card"><h4>Sectors today</h4><SectorHeatmap /></div>
           <div className="home-card"><h4>Currencies</h4><ForexStrip /></div>
-          <TopNews />
+          <div className="home-card"><h4>How to use $MSV</h4><HowTo /></div>
           <DidYouKnow />
         </aside>
       </div>

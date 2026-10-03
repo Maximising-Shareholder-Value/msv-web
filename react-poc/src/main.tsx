@@ -56,7 +56,12 @@ function CurrentPage() {
   if (page === "market-data") return <Framed current="market-data"><MarketDataPage /></Framed>;
   if (page === "market-intel") return <Framed current="market-intel"><MarketIntelPage /></Framed>;
   if (page === "learn") return <Framed current="learn"><LearnPage /></Framed>;
-  if (page === "home") return <Framed current="home"><HomePage /></Framed>;
+  if (page === "home") return (
+    <div className="app-shell">
+      <AppSidebar current="home" />
+      <div className="app-main home-main-frame"><HomePage /></div>
+    </div>
+  );
   if (page === "explore") return <Framed current="explore"><ExplorePage /></Framed>;
   if (page === "placeholder") { const key = new URLSearchParams(location.search).get("key") ?? ""; return <Framed current={key}><PlaceholderPage pageKey={key} /></Framed>; }
   if (page === "macro") return <Framed current="macro"><MacroPage /></Framed>;

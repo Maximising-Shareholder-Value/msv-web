@@ -64,9 +64,10 @@ interface Props {
   mode: string;
   onMode: (id: string) => void;
   wbData: Record<string, WbStore | undefined>;
+  showModes?: boolean;
 }
 
-export function WorldMap({ selected, onSelect, quotes, mode, onMode, wbData }: Props) {
+export function WorldMap({ selected, onSelect, quotes, mode, onMode, wbData, showModes = true }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [ready, setReady] = useState(false);
@@ -191,12 +192,12 @@ export function WorldMap({ selected, onSelect, quotes, mode, onMode, wbData }: P
 
   return (
     <div className="world-map-wrap">
-      <div className="map-color-toggle" role="group" aria-label="Colour the map by">
+      {showModes && <div className="map-color-toggle" role="group" aria-label="Colour the map by">
         <span className="map-color-label">Color by</span>
         {MAP_MODES.map(m => (
           <button key={m.id} type="button" className={m.id === mode ? "active" : ""} onClick={() => onMode(m.id)}>{m.label}</button>
         ))}
-      </div>
+      </div>}
       <div
         className="world-markets-map"
         ref={containerRef}
