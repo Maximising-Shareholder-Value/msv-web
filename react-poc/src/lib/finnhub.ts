@@ -244,3 +244,16 @@ export function getInsiderTrades(symbol: string): Promise<InsiderTrade[] | null>
     return Array.isArray(r.data) ? r.data : [];
   });
 }
+
+export interface ReportItem { concept: string; label?: string; value: number }
+export interface FinancialFiling { endDate: string; form: string; report?: { ic?: ReportItem[] } }
+
+const financialsCache = new Map<string, Cached<FinancialFiling[] | null>>();
+
+/** Quarterly statements straight from SEC filings (Finnhub /stock/financials-reported). */
+export function getFinancials(symbol: string): Promise<FinancialFiling[] | null> {
+  return cachedOrFetch(financialsCache, PROFILE_TTL_MS, symbol, async () => {
+    const r = await finnhub<{ data?: FinancialFiling[] }>("/stock/financials-reported", { symbol, freq: "quarterly" });
+    return Array.isArray(r.data) ? r.data : [];
+  });
+}
