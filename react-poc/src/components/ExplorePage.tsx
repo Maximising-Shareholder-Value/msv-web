@@ -48,11 +48,9 @@ export function ExploreTile({ item }: { item: ExploreItem }) {
 
 export function ExplorePage() {
   return (
-    <section className="explore-page">
-      <header className="sectors-header">
-        <h2>Explore $MSV</h2>
-        <span className="muted small">Everything this app offers in one place, including what's still on the way</span>
-      </header>
+    <div className="card">
+      <h2>Explore $MSV</h2>
+      <p className="muted">Everything this app offers, in one place — including what's still on the way.</p>
       {EXPLORE_CATEGORIES.map(cat => {
         const items = cat.items.map(nav => EXPLORE_DIRECTORY.find(e => e.nav === nav)).filter((e): e is ExploreItem => !!e);
         if (!items.length) return null;
@@ -65,6 +63,6 @@ export function ExplorePage() {
           </div>
         );
       })}
-    </section>
+    </div>
   );
 }

@@ -34,6 +34,16 @@ const TITLES: Record<string, string> = {
 };
 if (page && TITLES[page]) document.title = `$MSV — ${TITLES[page]}`;
 
+// Light or dark, for every page. The same saved choice the old site uses
+// ("stockDashboardTheme"); with none saved, follow the system setting. Done here,
+// before anything renders, because only the Crypto page used to set it.
+(function applySavedTheme() {
+  let theme: string | null = null;
+  try { theme = localStorage.getItem("stockDashboardTheme"); } catch { /* storage blocked: fall through */ }
+  if (theme !== "light" && theme !== "dark") theme = window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", theme);
+})();
+
 // The three new pages share a nav bar linking them together.
 function Framed({ current, children }: { current: string; children: ReactNode }) {
   return (
@@ -62,7 +72,13 @@ function CurrentPage() {
       <div className="app-main home-main-frame"><HomePage /></div>
     </div>
   );
-  if (page === "explore") return <Framed current="explore"><ExplorePage /></Framed>;
+  // The sidebar item's key is "explore-products"; the top nav's is "explore".
+  if (page === "explore") return (
+    <div className="app-shell">
+      <AppSidebar current="explore-products" />
+      <div className="app-main"><PageNav current="explore" /><ExplorePage /></div>
+    </div>
+  );
   if (page === "placeholder") { const key = new URLSearchParams(location.search).get("key") ?? ""; return <Framed current={key}><PlaceholderPage pageKey={key} /></Framed>; }
   if (page === "macro") return <Framed current="macro"><MacroPage /></Framed>;
   if (page === "prediction-markets") return <Framed current="prediction-markets"><PredictionMarketsPage /></Framed>;
