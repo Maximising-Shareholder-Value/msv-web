@@ -22,11 +22,8 @@ import { Filings } from "./Filings";
 import { Options } from "./Options";
 import { EtfTicker } from "./EtfTicker";
 import { CryptoTicker } from "./CryptoTicker";
+import { Invest } from "./Invest";
 
-const STILL_ON_MAIN_SITE = [
-  "MACD and support/resistance on the chart",
-  "Options",
-];
 
 // Crypto symbols (with a colon) have their own layout. Routing here, before any hooks,
 // keeps the hook order fixed for each layout.
@@ -146,6 +143,8 @@ function StockTicker({ symbol }: { symbol: string }) {
 
       {!symbol.includes(":") && <Section title="Price chart"><PriceChart symbol={symbol} /></Section>}
 
+      <Section title="What if you'd invested?"><Invest symbol={symbol} /></Section>
+
       <Section title="Company facts">
         <dl className="ticker-facts">
           {([["Exchange", profile.exchange], ["Industry", profile.finnhubIndustry], ["Headquarters", profile.country], ["Listed (IPO)", profile.ipo]] as [string, string | undefined][]).map(([label, v]) => (
@@ -176,10 +175,6 @@ function StockTicker({ symbol }: { symbol: string }) {
 
       <Section title="News and similar companies"><NewsAndPeers symbol={symbol} /></Section>
 
-      <Section title="Still on the main site">
-        <p className="muted small">These sections of the ticker page haven't been ported yet. Each opens on the main site for now:</p>
-        <ul className="ticker-todo">{STILL_ON_MAIN_SITE.map(s => <li key={s}><a href={`/?ticker=${encodeURIComponent(symbol)}`}>{s} →</a></li>)}</ul>
-      </Section>
     </section>
   );
 }
