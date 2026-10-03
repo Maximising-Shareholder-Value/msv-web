@@ -4,10 +4,8 @@
 // dividends and momentum, with the same indicator cards, traffic lights and
 // tooltips as the main site.
 //
-// Still on the main site, linked from here: the price chart, financial
-// statements, ownership and insider transactions, SEC filings, options,
-// recommendations and earnings, news and peers. ETFs and crypto also stay on
-// the main site for now.
+// Every section of the stock, ETF and crypto pages is here now. Still to do: the
+// "real-life example" paragraphs and the comparison view, which is a separate page on the main site.
 
 import { useEffect, useState } from "react";
 import { getQuote, getMetric, getCompanyProfile, metricValue, type Quote, type Metric, type CompanyProfile } from "../lib/finnhub";
