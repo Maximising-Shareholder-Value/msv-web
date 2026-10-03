@@ -257,3 +257,15 @@ export function getFinancials(symbol: string): Promise<FinancialFiling[] | null>
     return Array.isArray(r.data) ? r.data : [];
   });
 }
+
+export interface SecFiling { form: string; filedDate: string; filingUrl?: string; reportUrl?: string }
+
+const filingsCache = new Map<string, Cached<SecFiling[] | null>>();
+
+/** Recent SEC filings for a company (Finnhub /stock/filings). */
+export function getFilings(symbol: string): Promise<SecFiling[] | null> {
+  return cachedOrFetch(filingsCache, PROFILE_TTL_MS, symbol, async () => {
+    const r = await finnhub<unknown>("/stock/filings", { symbol });
+    return Array.isArray(r) ? (r as SecFiling[]) : [];
+  });
+}

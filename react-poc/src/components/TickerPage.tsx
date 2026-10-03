@@ -18,10 +18,11 @@ import { Analysts } from "./Analysts";
 import { NewsAndPeers } from "./NewsAndPeers";
 import { Ownership } from "./Ownership";
 import { Financials } from "./Financials";
+import { Filings } from "./Filings";
 
 const STILL_ON_MAIN_SITE = [
   "MACD and support/resistance on the chart",
-  "SEC filings", "Options",
+  "Options",
 ];
 
 export function TickerPage({ symbol }: { symbol: string }) {
@@ -156,6 +157,8 @@ export function TickerPage({ symbol }: { symbol: string }) {
       <Section title="Momentum"><IndicatorGrid items={momentum} industry={industry} /></Section>
 
       <Section title="Analysts and earnings"><Analysts symbol={symbol} /></Section>
+
+      <Section title="SEC filings"><Filings symbol={symbol} /></Section>
 
       <Section title="Financial statements" sub="latest quarters, from SEC filings"><Financials symbol={symbol} /></Section>
 
