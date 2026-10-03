@@ -3,9 +3,8 @@
 // Losers / Most Active rankings, the market-news column and the daily "Did you
 // know" tip.
 //
-// NOT YET PORTED (still on the vanilla homepage): the index strip, the market
-// breadth strip, the economic and earnings calendars, the sector heatmap, the
-// forex strip, the crypto tab, the watchlist and recently viewed, the explore
+// NOT YET PORTED (still on the vanilla homepage): the market breadth strip,
+// the earnings calendar, the crypto tab, the watchlist and recently viewed, the explore
 // page, the how-to walkthrough, and the sidebar/router shell.
 
 import { useEffect, useMemo, useState } from "react";
@@ -15,6 +14,7 @@ import { getNews, type Quote } from "../lib/finnhub";
 import { useQuotes } from "../lib/useQuotes";
 import { fmtPct, fmtPrice, changeClass } from "../lib/format";
 import type { NewsItem } from "../lib/types";
+import { IndexStrip, SectorHeatmap, ForexStrip, EconCalendar } from "./HomeWidgets";
 
 const RANKING_TABS = [
   { id: "winners", title: "Winners" },
@@ -60,6 +60,8 @@ export function HomePage() {
         <span className="muted small">Live prices by category · rankings use today's move</span>
       </header>
 
+      <IndexStrip />
+
       <div className="home-tabs" role="tablist">
         {RANKING_TABS.map(t => (
           <button key={t.id} type="button" role="tab" aria-selected={tab === t.id} className={tab === t.id ? "active" : ""} onClick={() => setTab(t.id)}>{t.title}</button>
@@ -98,6 +100,9 @@ export function HomePage() {
         </div>
 
         <aside className="home-side">
+          <div className="home-card"><h4>Economic calendar</h4><EconCalendar /></div>
+          <div className="home-card"><h4>Sectors today</h4><SectorHeatmap /></div>
+          <div className="home-card"><h4>Currencies</h4><ForexStrip /></div>
           <TopNews />
           <DidYouKnow />
         </aside>
