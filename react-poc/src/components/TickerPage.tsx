@@ -21,13 +21,20 @@ import { Financials } from "./Financials";
 import { Filings } from "./Filings";
 import { Options } from "./Options";
 import { EtfTicker } from "./EtfTicker";
+import { CryptoTicker } from "./CryptoTicker";
 
 const STILL_ON_MAIN_SITE = [
   "MACD and support/resistance on the chart",
   "Options",
 ];
 
+// Crypto symbols (with a colon) have their own layout. Routing here, before any hooks,
+// keeps the hook order fixed for each layout.
 export function TickerPage({ symbol }: { symbol: string }) {
+  return symbol.includes(":") ? <CryptoTicker symbol={symbol} /> : <StockTicker symbol={symbol} />;
+}
+
+function StockTicker({ symbol }: { symbol: string }) {
   const [quote, setQuote] = useState<Quote | null | undefined>(undefined);
   const [profile, setProfile] = useState<CompanyProfile | null | undefined>(undefined);
   const [metric, setMetric] = useState<Metric | null | undefined>(undefined);
