@@ -19,6 +19,7 @@ import { NewsAndPeers } from "./NewsAndPeers";
 import { Ownership } from "./Ownership";
 import { Financials } from "./Financials";
 import { Filings } from "./Filings";
+import { Options } from "./Options";
 
 const STILL_ON_MAIN_SITE = [
   "MACD and support/resistance on the chart",
@@ -157,6 +158,8 @@ export function TickerPage({ symbol }: { symbol: string }) {
       <Section title="Momentum"><IndicatorGrid items={momentum} industry={industry} /></Section>
 
       <Section title="Analysts and earnings"><Analysts symbol={symbol} /></Section>
+
+      <Section title="Options" sub="indicative quotes; expiries within 45 days"><Options symbol={symbol} price={quote.c} /></Section>
 
       <Section title="SEC filings"><Filings symbol={symbol} /></Section>
 
