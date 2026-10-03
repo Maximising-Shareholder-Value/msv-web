@@ -30,7 +30,8 @@ export type Metric = Record<string, number | null | undefined>;
 interface Cached<T> { data: T; at: number }
 const quoteCache = new Map<string, Cached<Quote | null>>();
 const metricCache = new Map<string, Cached<Metric | null>>();
-const inflight = new Map<string, Promise<unknown>>();
+// In-flight requests, kept per cache so two caches with the same key never share a result.
+const inflightByCache = new Map<object, Map<string, Promise<unknown>>>();
 
 let running = 0;
 const waiting: (() => void)[] = [];
@@ -63,14 +64,15 @@ function cachedOrFetch<T>(
 ): Promise<T | null> {
   const hit = cache.get(key);
   if (hit && Date.now() - hit.at < ttl) return Promise.resolve(hit.data);
-  const flightKey = `${key}:${ttl}`;
-  const pending = inflight.get(flightKey);
+  let inflight = inflightByCache.get(cache);
+  if (!inflight) { inflight = new Map(); inflightByCache.set(cache, inflight); }
+  const pending = inflight.get(key);
   if (pending) return pending as Promise<T | null>;
   const p = queued(fetcher)
     .then(data => { cache.set(key, { data, at: Date.now() }); return data; })
     .catch(() => null)
-    .finally(() => inflight.delete(flightKey));
-  inflight.set(flightKey, p);
+    .finally(() => inflight!.delete(key));
+  inflight.set(key, p);
   return p;
 }
 
@@ -183,5 +185,50 @@ export function getCompanyProfile(symbol: string): Promise<CompanyProfile | null
   return cachedOrFetch(companyCache, PROFILE_TTL_MS, `full:${symbol}`, async () => {
     const p = await finnhub<CompanyProfile>("/stock/profile2", { symbol });
     return p && p.name ? p : null;
+  });
+}
+
+export interface RecommendationTrend { period: string; strongBuy: number; buy: number; hold: number; sell: number; strongSell: number }
+export interface EarningsQuarter { period: string; estimate: number | null; actual: number | null; surprisePercent: number | null }
+
+const recCache = new Map<string, Cached<RecommendationTrend[] | null>>();
+const earnCache = new Map<string, Cached<EarningsQuarter[] | null>>();
+
+/** Analyst recommendation counts by month (Finnhub /stock/recommendation). */
+export function getRecommendations(symbol: string): Promise<RecommendationTrend[] | null> {
+  return cachedOrFetch(recCache, METRIC_TTL_MS, symbol, async () => {
+    const r = await finnhub<unknown>("/stock/recommendation", { symbol });
+    return Array.isArray(r) ? (r as RecommendationTrend[]) : null;
+  });
+}
+
+/** Recent quarterly earnings, expected against actual (Finnhub /stock/earnings). */
+export function getEarningsHistory(symbol: string): Promise<EarningsQuarter[] | null> {
+  return cachedOrFetch(earnCache, PROFILE_TTL_MS, symbol, async () => {
+    const r = await finnhub<unknown>("/stock/earnings", { symbol });
+    return Array.isArray(r) ? (r as EarningsQuarter[]) : null;
+  });
+}
+
+export interface CompanyNewsItem { headline: string; summary: string; source: string; url: string; datetime: number }
+
+const companyNewsCache = new Map<string, Cached<CompanyNewsItem[] | null>>();
+const peersCache = new Map<string, Cached<string[] | null>>();
+
+/** Recent headlines about one company (Finnhub /company-news, last 14 days). */
+export function getCompanyNews(symbol: string): Promise<CompanyNewsItem[] | null> {
+  return cachedOrFetch(companyNewsCache, NEWS_TTL_MS, symbol, async () => {
+    const to = new Date(), from = new Date(to.getTime() - 14 * 86400000);
+    const fmt = (d: Date) => d.toISOString().slice(0, 10);
+    const r = await finnhub<unknown>("/company-news", { symbol, from: fmt(from), to: fmt(to) });
+    return Array.isArray(r) ? (r as CompanyNewsItem[]).slice(0, 12) : null;
+  });
+}
+
+/** Companies in the same space, as Finnhub lists them (/stock/peers). */
+export function getPeers(symbol: string): Promise<string[] | null> {
+  return cachedOrFetch(peersCache, PROFILE_TTL_MS, symbol, async () => {
+    const r = await finnhub<unknown>("/stock/peers", { symbol });
+    return Array.isArray(r) ? (r as string[]).filter(s => s && s !== symbol).slice(0, 12) : null;
   });
 }

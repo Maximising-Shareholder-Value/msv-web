@@ -14,10 +14,12 @@ import { getQuote, getMetric, getCompanyProfile, metricValue, type Quote, type M
 import { fmtPct, fmtPrice, changeClass } from "../lib/format";
 import { IndicatorGrid, type IndicatorSpec } from "./Indicators";
 import { PriceChart } from "./PriceChart";
+import { Analysts } from "./Analysts";
+import { NewsAndPeers } from "./NewsAndPeers";
 
 const STILL_ON_MAIN_SITE = [
   "MACD and support/resistance on the chart", "Financial statements", "Shares and ownership", "Insider transactions",
-  "SEC filings", "Options", "Analyst recommendations and earnings", "News and peers",
+  "SEC filings", "Options",
 ];
 
 export function TickerPage({ symbol }: { symbol: string }) {
@@ -150,6 +152,10 @@ export function TickerPage({ symbol }: { symbol: string }) {
       <Section title="Risk"><IndicatorGrid items={risk} industry={industry} /></Section>
       <Section title="Dividends"><IndicatorGrid items={dividends} industry={industry} /></Section>
       <Section title="Momentum"><IndicatorGrid items={momentum} industry={industry} /></Section>
+
+      <Section title="Analysts and earnings"><Analysts symbol={symbol} /></Section>
+
+      <Section title="News and similar companies"><NewsAndPeers symbol={symbol} /></Section>
 
       <Section title="Still on the main site">
         <p className="muted small">These sections of the ticker page haven't been ported yet. Each opens on the main site for now:</p>
