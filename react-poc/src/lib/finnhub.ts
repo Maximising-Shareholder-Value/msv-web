@@ -124,3 +124,19 @@ export function getIpoCalendar(from: string, to: string): Promise<IpoRow[] | nul
     return r.ipoCalendar ?? [];
   });
 }
+
+export interface Profile {
+  name?: string;
+  marketCapitalization?: number;  // in millions of USD
+}
+
+const profileCache = new Map<string, Cached<Profile | null>>();
+const PROFILE_TTL_MS = 24 * 60 * 60 * 1000;  // company profiles barely change day to day
+
+/** Company profile (name, market cap). Market cap is in millions of dollars. */
+export function getProfile(symbol: string): Promise<Profile | null> {
+  return cachedOrFetch(profileCache, PROFILE_TTL_MS, symbol, async () => {
+    const p = await finnhub<Profile>("/stock/profile2", { symbol });
+    return p && p.name ? p : null;
+  });
+}

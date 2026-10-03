@@ -152,3 +152,15 @@
 .etfs-foot { margin-top: 14px; line-height: 1.5; }
 @media (max-width: 760px) { .etfs-layout { grid-template-columns: 1fr; } }
 .etfs-table th:nth-child(2), .etfs-table td:nth-child(2) { text-align: left; }
+
+/* ---- Stock Screener (ScreenerPage.tsx, 2026-10-03) ---- */
+.screener-page { padding: 16px; max-width: 1280px; margin: 0 auto; }
+.screener-filters { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: flex-end; margin: 10px 0; }
+.screener-filters label { display: flex; flex-direction: column; gap: 4px; font-size: 0.75rem; color: var(--text-secondary, #9aa6b2); }
+.screener-filters select, .screener-filters input { padding: 6px 8px; border-radius: 6px; border: 1px solid var(--border, #2a3642); background: var(--surface-2, transparent); color: inherit; font: inherit; font-size: 13px; min-width: 120px; }
+.screener-filters input { width: 96px; min-width: 0; }
+.screener-reset-btn { padding: 7px 12px; border-radius: 6px; border: 1px solid var(--border, #2a3642); background: none; color: inherit; font: inherit; font-size: 13px; cursor: pointer; }
+.screener-sortable { cursor: pointer; user-select: none; }
+.screener-table td a { color: inherit; text-decoration: none; }
+.screener-table td a:hover { text-decoration: underline; }
+.screener-foot { margin-top: 12px; line-height: 1.5; }

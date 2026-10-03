@@ -5,6 +5,7 @@
 const LINKS: { page: string; label: string }[] = [
   { page: "sectors", label: "Sectors" },
   { page: "etfs", label: "ETFs" },
+  { page: "screener", label: "Screener" },
   { page: "ipo", label: "IPO calendar" },
   { page: "news", label: "Market news" },
 ];
