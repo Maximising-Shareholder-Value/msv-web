@@ -63,7 +63,7 @@ function CurrentPage() {
   if (page === "prediction-markets") return <Framed current="prediction-markets"><PredictionMarketsPage /></Framed>;
   if (page === "compare") return <Framed current="compare"><ComparePage /></Framed>;
   if (page === "ticker") return <Framed current="ticker"><TickerPage symbol={(new URLSearchParams(location.search).get("symbol") ?? "AAPL").toUpperCase()} /></Framed>;
-  return <App />;
+  return <Framed current="crypto"><App /></Framed>;
 }
 
 createRoot(document.getElementById("root")!).render(

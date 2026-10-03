@@ -322,3 +322,15 @@
 .macro-date { font-size: 11px; color: var(--text-secondary, #9aa6b2); }
 .macro-governance-title { margin-top: 18px; }
 .macro-compare-label { color: var(--text-secondary, #9aa6b2); }
+
+/* ---- Full-width layout beside the sidebar (2026-10-03) ----
+   The React pages used to sit in centred columns of 700 to 1280 px, leaving the right
+   side empty and the content close to the sidebar. Now the content fills the space
+   beside the sidebar, with a clear gap from it. */
+.app-main { flex: 1; min-width: 0; padding: 0 32px 40px 32px; }
+.app-main > section, .app-main > .poc-page {
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 20px 0 !important;
+}
+.app-main > .react-page-nav { margin: 0 -32px; padding-left: 32px; padding-right: 32px; }
