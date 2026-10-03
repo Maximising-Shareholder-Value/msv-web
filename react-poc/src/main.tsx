@@ -16,6 +16,8 @@ import { HomePage } from "./components/HomePage";
 import { ExplorePage } from "./components/ExplorePage";
 import { TickerPage } from "./components/TickerPage";
 import { ComparePage } from "./components/ComparePage";
+import { PlaceholderPage } from "./components/PlaceholderPage";
+import { PredictionMarketsPage } from "./components/PredictionMarketsPage";
 import { PageNav } from "./components/PageNav";
 import { AppSidebar } from "./components/AppSidebar";
 
@@ -55,6 +57,8 @@ function CurrentPage() {
   if (page === "learn") return <Framed current="learn"><LearnPage /></Framed>;
   if (page === "home") return <Framed current="home"><HomePage /></Framed>;
   if (page === "explore") return <Framed current="explore"><ExplorePage /></Framed>;
+  if (page === "placeholder") { const key = new URLSearchParams(location.search).get("key") ?? ""; return <Framed current={key}><PlaceholderPage pageKey={key} /></Framed>; }
+  if (page === "prediction-markets") return <Framed current="prediction-markets"><PredictionMarketsPage /></Framed>;
   if (page === "compare") return <Framed current="compare"><ComparePage /></Framed>;
   if (page === "ticker") return <Framed current="ticker"><TickerPage symbol={(new URLSearchParams(location.search).get("symbol") ?? "AAPL").toUpperCase()} /></Framed>;
   return <App />;
