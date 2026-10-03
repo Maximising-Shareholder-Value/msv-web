@@ -111,3 +111,57 @@ export const ETF_CATEGORIES: EtfCategory[] = [
     warn: true,
     items: [["TQQQ", "ProShares 3x Nasdaq-100"], ["SQQQ", "ProShares 3x Inverse Nasdaq-100"], ["UPRO", "ProShares 3x S&P 500"], ["SPXL", "Direxion 3x S&P 500"], ["SPXS", "Direxion 3x Inverse S&P 500"], ["SOXL", "Direxion 3x Semiconductors"], ["SOXS", "Direxion 3x Inverse Semiconductors"], ["TMF", "Direxion 3x 20+ Yr Treasury"], ["TMV", "Direxion 3x Inverse 20+ Yr Treasury"]] },
 ];
+
+// Issuer rules for the By Issuer view. Copied verbatim from ../../etfs.js.
+
+export const ETF_FAMILIES = [
+  { id: "us", label: "US equity" },
+  { id: "sector", label: "Sectors & industries" },
+  { id: "theme", label: "Themes" },
+  { id: "income", label: "Dividends & income" },
+  { id: "global", label: "Global equity" },
+  { id: "bond", label: "Fixed income" },
+  { id: "commodity", label: "Commodities & currency" },
+  { id: "alt", label: "Crypto, volatility & leveraged" },
+];
+
+export const ETF_ISSUER_PREFIXES: [string, string][] = [
+  ["Vanguard", "Vanguard"],
+  ["iShares", "BlackRock (iShares)"],
+  ["SPDR", "State Street Global Advisors (SPDR)"],
+  ["Schwab", "Charles Schwab"],
+  ["Invesco", "Invesco"],
+  ["JPMorgan", "JPMorgan"],
+  ["ARK", "ARK Invest"],
+  ["Global X", "Global X"],
+  ["VanEck", "VanEck"],
+  ["WisdomTree", "WisdomTree"],
+  ["First Trust", "First Trust"],
+  ["Fidelity", "Fidelity"],
+  ["PIMCO", "PIMCO"],
+  ["Direxion", "Direxion"],
+  ["ProShares", "ProShares"],
+];
+
+export const ETF_ISSUER_OVERRIDES = Object.fromEntries(
+  ["XLK", "XLF", "XLE", "XLV", "XLY", "XLP", "XLI", "XLU", "XLB", "XLRE", "XLC"]
+    .map(t => [t, "State Street Global Advisors (SPDR)"])
+);
+
+export const ETF_ISSUER_INFO: Record<string, string> = {
+  "Vanguard": "Investor-owned, so profits go back into lower fees rather than to outside shareholders — still the cheapest option on most of its core index funds. The second-largest ETF issuer by assets.",
+  "BlackRock (iShares)": "The world's largest ETF issuer by assets under management, with the broadest lineup of any provider — a fund for nearly every asset class, country and niche strategy.",
+  "State Street Global Advisors (SPDR)": "Launched SPY in 1993, the first-ever US ETF and still one of the most-traded securities in the world. Dominant in sector investing (the 11 Select Sector SPDRs) and gold (GLD).",
+  "Charles Schwab": "Known for undercutting Vanguard and iShares by a basis point or two on core broad-market and factor funds — the house brand for Schwab's own brokerage, but tradable anywhere.",
+  "Invesco": "Best known for QQQ, tracking the Nasdaq-100 and one of the most-traded ETFs in the world; also runs equal-weight and other smart-beta strategies.",
+  "JPMorgan": "A newer entrant that built its ETF business around actively-managed income strategies — JEPI/JEPQ's covered-call approach became some of the most popular actively managed ETFs ever launched.",
+  "ARK Invest": "Actively-managed, highly concentrated bets on disruptive innovation (genomics, fintech, robotics). Far more volatile than a typical index ETF — famous for huge run-ups and drawdowns alike.",
+  "Global X": "Focused on thematic and income (covered-call) strategies — niches like robotics, uranium and options-income funds that broader issuers often don't cover.",
+  "VanEck": "A specialist in commodities, miners and niche international exposure — gold/junior gold miners, semiconductors, and single-country funds broader issuers skip.",
+  "WisdomTree": "Known for currency-hedged international funds (stripping out the effect of the dollar moving against foreign currencies) and dividend-weighted strategies.",
+  "First Trust": "Runs a mix of thematic (cybersecurity, cloud, internet) and smart-beta strategies, often reweighted on a fixed schedule rather than passively tracking a cap-weighted index.",
+  "Fidelity": "Entered ETFs more recently with very low-cost core and sector funds, leaning on the same scale that makes its mutual funds cheap.",
+  "PIMCO": "A bond specialist — actively-managed fixed-income funds from one of the largest bond managers in the world.",
+  "Direxion": "Leveraged and inverse funds (2x/3x daily) for short-term trading — not built to be held long-term; see the warning on this app's Leveraged & Inverse category.",
+  "ProShares": "The original leveraged/inverse ETF issuer, plus some of the most popular short-volatility and inverse products (SQQQ, VIXY).",
+};

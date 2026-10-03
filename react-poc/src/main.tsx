@@ -7,6 +7,7 @@ import { App } from "./App";
 import { SectorsPage } from "./components/SectorsPage";
 import { IpoPage } from "./components/IpoPage";
 import { NewsPage } from "./components/NewsPage";
+import { EtfsPage } from "./components/EtfsPage";
 import { PageNav } from "./components/PageNav";
 
 // One build, several pages. The page is picked from the query string
@@ -29,6 +30,7 @@ function CurrentPage() {
   if (page === "sectors") return <Framed current="sectors"><SectorsPage /></Framed>;
   if (page === "ipo") return <Framed current="ipo"><IpoPage /></Framed>;
   if (page === "news") return <Framed current="news"><NewsPage /></Framed>;
+  if (page === "etfs") return <Framed current="etfs"><EtfsPage /></Framed>;
   return <App />;
 }
 
