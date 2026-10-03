@@ -15,6 +15,7 @@ import { LearnPage } from "./components/LearnPage";
 import { HomePage } from "./components/HomePage";
 import { ExplorePage } from "./components/ExplorePage";
 import { TickerPage } from "./components/TickerPage";
+import { ComparePage } from "./components/ComparePage";
 import { PageNav } from "./components/PageNav";
 import { AppSidebar } from "./components/AppSidebar";
 
@@ -26,7 +27,7 @@ const page = new URLSearchParams(location.search).get("page");
 
 // Each page gets its own browser-tab title. The Crypto page keeps its own, set in index.html.
 const TITLES: Record<string, string> = {
-  sectors: "Sectors", etfs: "ETFs", screener: "Stock Screener", ipo: "IPO Calendar", news: "Market News", "market-data": "Market Data", "market-intel": "Market Intelligence", learn: "Learn", home: "Markets", explore: "Explore",
+  sectors: "Sectors", etfs: "ETFs", screener: "Stock Screener", ipo: "IPO Calendar", news: "Market News", "market-data": "Market Data", "market-intel": "Market Intelligence", learn: "Learn", home: "Markets", explore: "Explore", compare: "Compare",
 };
 if (page && TITLES[page]) document.title = `$MSV — ${TITLES[page]}`;
 
@@ -54,6 +55,7 @@ function CurrentPage() {
   if (page === "learn") return <Framed current="learn"><LearnPage /></Framed>;
   if (page === "home") return <Framed current="home"><HomePage /></Framed>;
   if (page === "explore") return <Framed current="explore"><ExplorePage /></Framed>;
+  if (page === "compare") return <Framed current="compare"><ComparePage /></Framed>;
   if (page === "ticker") return <Framed current="ticker"><TickerPage symbol={(new URLSearchParams(location.search).get("symbol") ?? "AAPL").toUpperCase()} /></Framed>;
   return <App />;
 }

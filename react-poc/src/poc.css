@@ -285,3 +285,14 @@
 .analysts h5 { margin: 0 0 8px; font-size: 0.9rem; }
 .news-peers { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; }
 .news-peers h5 { margin: 0 0 8px; font-size: 0.9rem; }
+
+/* ---- Compare page (ComparePage.tsx, 2026-10-03) ---- */
+.compare-page { padding: 16px; max-width: 1100px; margin: 0 auto; }
+.compare-form { display: flex; gap: 8px; margin: 8px 0 12px; }
+.compare-form input { flex: 1; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border, #2a3642); background: var(--surface-2, transparent); color: inherit; font: inherit; }
+.compare-table { display: grid; grid-template-columns: 220px repeat(var(--compare-cols), 1fr); border: 1px solid var(--border, #2a3642); border-radius: 8px; overflow: hidden; font-size: 13px; }
+.compare-cell { padding: 8px 10px; border-bottom: 1px solid var(--border, #2a3642); }
+.compare-col-header { color: inherit; text-decoration: none; }
+.compare-col-name { font-weight: 600; }
+.compare-col-ticker { font-size: 11px; color: var(--text-secondary, #9aa6b2); }
+.compare-row-label { color: var(--text-secondary, #9aa6b2); }

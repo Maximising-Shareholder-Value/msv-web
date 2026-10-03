@@ -20,6 +20,7 @@ const REACT_HREF: Record<string, string> = {
   sectors: "/react-crypto/?page=sectors",
   "market-intelligence": "/react-crypto/?page=market-intel",
   etfs: "/react-crypto/?page=etfs",
+  compare: "/react-crypto/?page=compare",
   crypto: "/react-crypto/",
   "bitcoin-cycles": "/react-crypto/?tab=cycles",
   "crypto-news": "/react-crypto/?tab=news",
