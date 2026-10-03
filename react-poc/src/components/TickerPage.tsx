@@ -13,9 +13,10 @@ import { useEffect, useState } from "react";
 import { getQuote, getMetric, getCompanyProfile, metricValue, type Quote, type Metric, type CompanyProfile } from "../lib/finnhub";
 import { fmtPct, fmtPrice, changeClass } from "../lib/format";
 import { IndicatorGrid, type IndicatorSpec } from "./Indicators";
+import { PriceChart } from "./PriceChart";
 
 const STILL_ON_MAIN_SITE = [
-  "Price chart (with indicators)", "Financial statements", "Shares and ownership", "Insider transactions",
+  "MACD and support/resistance on the chart", "Financial statements", "Shares and ownership", "Insider transactions",
   "SEC filings", "Options", "Analyst recommendations and earnings", "News and peers",
 ];
 
@@ -129,6 +130,8 @@ export function TickerPage({ symbol }: { symbol: string }) {
           <span>{fmtPrice(high)}</span>
         </div>
       )}
+
+      {!symbol.includes(":") && <Section title="Price chart"><PriceChart symbol={symbol} /></Section>}
 
       <Section title="Company facts">
         <dl className="ticker-facts">
