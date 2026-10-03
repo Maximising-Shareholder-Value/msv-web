@@ -1,3 +1,4 @@
+import { trackedFetch } from "./apiUsage";
 // lib/coingecko.ts — crypto market data for the homepage's Crypto tab, through
 // the msv-api CoinGecko proxy. One call covers every coin in the list.
 
@@ -51,7 +52,7 @@ export async function getCoinDetail(id: string): Promise<CoinDetail | null> {
       path: `/coins/${id}`, localization: "false", tickers: "false",
       community_data: "false", developer_data: "false", sparkline: "false",
     });
-    const res = await fetch(`${API_BASE}/api/coingecko?${qs}`);
+    const res = await trackedFetch(`${API_BASE}/api/coingecko?${qs}`);
     if (!res.ok) return null;
     const d = await res.json() as { market_cap_rank?: number; market_data?: Record<string, Record<string, number> & { usd?: number }> & Record<string, { usd?: number }> };
     const md = d.market_data;

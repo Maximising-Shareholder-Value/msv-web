@@ -1,3 +1,4 @@
+import { trackedFetch } from "./apiUsage";
 // lib/chart.ts — price history and indicator maths for the ticker page's chart.
 // Bars come from Twelve Data (time_series) through the msv-api proxy; each range
 // maps to an interval chosen to give a sensible number of bars (as chart.js does).
@@ -21,7 +22,7 @@ export async function getBars(symbol: string, range: string): Promise<Bar[] | nu
   if (!cfg) return null;
   try {
     const qs = new URLSearchParams({ path: "/time_series", symbol, interval: cfg.interval, outputsize: String(cfg.outputsize) });
-    const res = await fetch(`${API_BASE}/api/twelvedata?${qs}`);
+    const res = await trackedFetch(`${API_BASE}/api/twelvedata?${qs}`);
     const data = await res.json() as { status?: string; values?: { datetime: string; open: string; high: string; low: string; close: string; volume?: string }[] };
     if (!data || data.status === "error" || !Array.isArray(data.values) || data.values.length < 2) return null;
     return [...data.values].reverse().map(v => ({

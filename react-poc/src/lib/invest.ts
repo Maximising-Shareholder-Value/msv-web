@@ -1,3 +1,4 @@
+import { trackedFetch } from "./apiUsage";
 // lib/invest.ts — the "What if you'd invested?" maths, ported from invest.js.
 // Real daily closes (about ten years, one Twelve Data request), price return only:
 // historical dividends aren't on the free data plan, so none are included.
@@ -16,7 +17,7 @@ const API_BASE = "https://msv-api.jozsua-heng.workers.dev";
 export async function getDailyCloses(symbol: string): Promise<Close[] | null> {
   try {
     const qs = new URLSearchParams({ path: "/time_series", symbol, interval: "1day", outputsize: "2600" });
-    const res = await fetch(`${API_BASE}/api/twelvedata?${qs}`);
+    const res = await trackedFetch(`${API_BASE}/api/twelvedata?${qs}`);
     const data = await res.json() as { status?: string; values?: { datetime: string; close: string }[] };
     if (!data || data.status === "error" || !Array.isArray(data.values) || data.values.length < 30) return null;
     return [...data.values].reverse().map(v => ({ dateMs: Date.parse(`${v.datetime}T00:00:00`), close: parseFloat(v.close) }));

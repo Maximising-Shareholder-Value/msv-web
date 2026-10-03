@@ -2,6 +2,7 @@
 // proxy, and works out each gauge's reading. Mirrors riskDashboard.js.
 
 import { RISK_SERIES, type Level, type RiskSeries } from "../data/risk";
+import { trackedFetch } from "./apiUsage";
 
 const API_BASE = "https://msv-api.jozsua-heng.workers.dev";
 
@@ -22,7 +23,7 @@ export async function fetchSeries(s: RiskSeries): Promise<SeriesData | null> {
     path: "/series/observations", series_id: s.id, file_type: "json", sort_order: "desc",
     observation_start: start, limit: "500", ...(s.extra ?? {}),
   });
-  const res = await fetch(`${API_BASE}/api/fred?${qs}`);
+  const res = await trackedFetch(`${API_BASE}/api/fred?${qs}`);
   if (!res.ok) throw new Error(`FRED request failed (${res.status})`);
   const data = (await res.json()) as { observations?: { date: string; value: string }[] };
   const obs: Obs[] = (data.observations ?? [])

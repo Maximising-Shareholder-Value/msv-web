@@ -6,6 +6,7 @@
 
 import { COUNTRIES } from "../data/countries";
 import { fmtCompact, fmtPct } from "./format";
+import { trackedFetch } from "./apiUsage";
 
 const API_BASE = "https://msv-api.jozsua-heng.workers.dev";
 
@@ -76,7 +77,7 @@ async function retried<T>(fn: () => Promise<T>, tries = 3): Promise<T> {
 
 async function wbFetch(path: string, extra: Record<string, string> = {}): Promise<unknown> {
   const qs = new URLSearchParams({ path, format: "json", per_page: "100", ...extra });
-  const res = await fetch(`${API_BASE}/api/worldbank?${qs}`);
+  const res = await trackedFetch(`${API_BASE}/api/worldbank?${qs}`);
   if (!res.ok) throw new Error(`World Bank request failed (${res.status})`);
   return res.json();
 }

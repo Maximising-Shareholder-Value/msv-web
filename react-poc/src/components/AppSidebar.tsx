@@ -7,7 +7,9 @@
 // visitors around between pages built in React and the pages still on the
 // main site.
 
+import { useEffect, useState } from "react";
 import { SIDEBAR_GROUPS } from "../data/sidebar";
+import { usageNow } from "../lib/apiUsage";
 
 // Items whose React page is built. Anything else opens on the main site.
 const REACT_HREF: Record<string, string> = {
@@ -63,6 +65,27 @@ export function AppSidebar({ current }: { current: string }) {
           </div>
         ))}
       </div>
+      <ApiUsage />
     </aside>
+  );
+}
+
+// The data-usage panel from the main site's sidebar: how many requests this tab has
+// made to each provider, against the free-tier limits. An estimate, per tab.
+function ApiUsage() {
+  const [, tick] = useState(0);
+  useEffect(() => { const id = setInterval(() => tick(n => n + 1), 2000); return () => clearInterval(id); }, []);
+  return (
+    <div className="app-sidebar-footer api-usage-panel">
+      <div className="api-usage-title">API usage <span className="muted">(est., this tab)</span></div>
+      {usageNow().map(row => (
+        <div key={row.key + row.per} className="api-usage-line">
+          <span>{row.label}</span>
+          <span className="muted">{row.limit ? `${row.count.toLocaleString()} / ${row.limit.toLocaleString()} per ${row.per}` : `${row.count} per min · no hard limit`}</span>
+          {row.limit && <span className="api-usage-bar"><i style={{ width: `${Math.min(100, (row.count / row.limit) * 100)}%` }} /></span>}
+        </div>
+      ))}
+      <p className="muted small">Counts only this tab. Free-tier limits are enforced by each provider across all visitors.</p>
+    </div>
   );
 }

@@ -1,3 +1,4 @@
+import { trackedFetch } from "./apiUsage";
 // lib/macro.ts — the Macro page's data: US figures from FRED and every other
 // country from the World Bank, both through the msv-api proxy. Mirrors macro.js.
 
@@ -48,7 +49,7 @@ export const WB_GOVERNANCE = [
 /** The latest real (non-null) value for a World Bank indicator. */
 export async function wbLatest(iso3: string, indicatorId: string): Promise<Reading> {
   const qs = new URLSearchParams({ path: `/country/${iso3}/indicator/${indicatorId}`, format: "json", per_page: "6" });
-  const res = await fetch(`${API_BASE}/api/worldbank?${qs}`);
+  const res = await trackedFetch(`${API_BASE}/api/worldbank?${qs}`);
   if (!res.ok) return { value: null, date: null };
   const data = await res.json();
   const rows = Array.isArray(data) && Array.isArray(data[1]) ? (data[1] as { value: number | null; date: string }[]) : [];
@@ -59,7 +60,7 @@ export async function wbLatest(iso3: string, indicatorId: string): Promise<Readi
 /** The latest value of a US series from FRED (one observation, newest first). */
 export async function fredLatest(seriesId: string, params: Record<string, string>): Promise<Reading> {
   const qs = new URLSearchParams({ path: "/series/observations", series_id: seriesId, file_type: "json", sort_order: "desc", limit: "1", ...params });
-  const res = await fetch(`${API_BASE}/api/fred?${qs}`);
+  const res = await trackedFetch(`${API_BASE}/api/fred?${qs}`);
   if (!res.ok) return { value: null, date: null };
   const data = await res.json() as { observations?: { value: string; date: string }[] };
   const obs = data.observations?.[0];
@@ -72,7 +73,7 @@ export interface WbCountry { iso3: string; name: string }
 /** Every country the World Bank tracks, without the regional and income-group aggregates. */
 export async function wbCountryList(): Promise<WbCountry[]> {
   const qs = new URLSearchParams({ path: "/country", format: "json", per_page: "400" });
-  const res = await fetch(`${API_BASE}/api/worldbank?${qs}`);
+  const res = await trackedFetch(`${API_BASE}/api/worldbank?${qs}`);
   if (!res.ok) return [];
   const data = await res.json();
   const rows = Array.isArray(data) && Array.isArray(data[1]) ? (data[1] as { id: string; name: string; region?: { value?: string } }[]) : [];

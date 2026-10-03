@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { trackedFetch } from "./apiUsage";
 
 // Same backend the live site uses: our own Cloudflare Worker, which holds
 // the real API keys so they never reach the browser.
@@ -9,10 +10,10 @@ const API_BASE = "https://msv-api.jozsua-heng.workers.dev";
 // needed for the public endpoints). So if the proxy refuses, ask CoinGecko directly.
 export async function coingecko<T>(path: string, params: Record<string, string> = {}): Promise<T> {
   const qs = new URLSearchParams({ ...params, path });
-  const res = await fetch(`${API_BASE}/api/coingecko?${qs}`);
+  const res = await trackedFetch(`${API_BASE}/api/coingecko?${qs}`);
   if (res.ok) return res.json() as Promise<T>;
   if (res.status === 403) {
-    const direct = await fetch(`https://api.coingecko.com/api/v3${path}?${new URLSearchParams(params)}`);
+    const direct = await trackedFetch(`https://api.coingecko.com/api/v3${path}?${new URLSearchParams(params)}`);
     if (direct.ok) return direct.json() as Promise<T>;
     if (direct.status === 429) throw new Error("CoinGecko rate limit — try again in a minute");
   }
@@ -21,7 +22,7 @@ export async function coingecko<T>(path: string, params: Record<string, string> 
 
 // DefiLlama and alternative.me are public and allow browser calls directly.
 export async function getJSON<T>(url: string): Promise<T> {
-  const res = await fetch(url);
+  const res = await trackedFetch(url);
   if (!res.ok) throw new Error(`Request failed (${res.status})`);
   return res.json() as Promise<T>;
 }
@@ -85,7 +86,7 @@ export function useLocalStorage<T>(key: string, initial: T) {
 // Finnhub, via the same proxy — real, CORS-open crypto news (same source the
 // live vanilla site's Market News card already uses).
 export async function finnhubNews(category: string): Promise<import("./types").NewsItem[]> {
-  const res = await fetch(`${API_BASE}/api/finnhub?${new URLSearchParams({ path: "/news", category })}`);
+  const res = await trackedFetch(`${API_BASE}/api/finnhub?${new URLSearchParams({ path: "/news", category })}`);
   if (!res.ok) throw new Error(`News request failed (${res.status})`);
   return res.json();
 }

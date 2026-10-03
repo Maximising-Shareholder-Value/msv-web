@@ -334,3 +334,50 @@
   padding: 20px 0 !important;
 }
 .app-main > .react-page-nav { margin: 0 -32px; padding-left: 32px; padding-right: 32px; }
+
+/* ---- Homepage polish after the full-width change (2026-10-03) ---- */
+/* Market strip: a compact grid of chips across the width, not two tall columns. */
+.app-main .index-strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; }
+/* Cards that are links: no underline, normal text colour. */
+.app-main .index-chip, .app-main .earnings-calendar-main, .app-main .econ-calendar-row,
+.app-main .home-news-row, .app-main .sector-heat-tile, .app-main .earnings-calendar-row a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* ---- Links: no blue text on the pages (2026-10-03) ----
+   Ticker symbols and table links were the browser's default blue. They now take the
+   text colour of the page; hover shows the accent colour. */
+.app-main a { color: inherit; text-decoration: none; }
+.app-main a:hover { color: var(--accent, #10b981); }
+.app-main a.cp-btn, .app-main a.placeholder-home-btn { color: var(--accent-contrast, #06120d); }
+
+/* ---- API usage panel in the sidebar footer ---- */
+.api-usage-panel { padding: 10px 14px 12px; border-top: 1px solid var(--border, #2a3642); font-size: 11px; }
+.api-usage-title { font-weight: 600; margin-bottom: 6px; }
+.api-usage-line { display: grid; grid-template-columns: 1fr; gap: 1px; margin-bottom: 5px; }
+.api-usage-bar { display: block; height: 3px; background: var(--border, #2a3642); border-radius: 2px; overflow: hidden; }
+.api-usage-bar i { display: block; height: 100%; background: var(--accent, #10b981); }
+
+/* ---- Homepage: clearer cards and headings (2026-10-03) ---- */
+.home-page .home-layout { gap: 22px; }
+.home-page .home-card, .home-page .home-news, .home-page .home-dyk {
+  background: var(--bg-surface-2, rgba(255,255,255,0.03));
+  border: 1px solid var(--border, #2a3642);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+.home-page .home-card h4, .home-page .home-news h4, .home-page .home-dyk h4 {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary, #9aa6b2);
+  margin: 0 0 10px;
+}
+.home-page .index-strip .index-chip { padding: 10px 12px; border-radius: 8px; }
+.home-page .home-tabs { gap: 8px; }
+.home-page .home-tabs button { font-size: 12.5px; padding: 6px 14px; }
+.home-page .home-news-row { padding: 9px 0; line-height: 1.45; }
+.home-page .home-news-row strong { font-weight: 600; font-size: 13px; }
+.home-page .sector-heat-tile strong { font-size: 13px; }

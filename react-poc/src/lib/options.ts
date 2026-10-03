@@ -1,3 +1,4 @@
+import { trackedFetch } from "./apiUsage";
 // lib/options.ts — the options chain for the ticker page, from Alpaca's snapshot
 // endpoint through the msv-api proxy. One request covers a ±15% strike band and
 // the next 45 days, as on the main site. Option symbols are OCC-style, e.g.
@@ -27,7 +28,7 @@ export async function getOptions(symbol: string, price: number): Promise<OptionR
       expiration_date_gte: day(today), expiration_date_lte: day(max),
       strike_price_gte: (price * 0.85).toFixed(2), strike_price_lte: (price * 1.15).toFixed(2),
     });
-    const res = await fetch(`${API_BASE}/api/alpaca?${qs}`);
+    const res = await trackedFetch(`${API_BASE}/api/alpaca?${qs}`);
     if (!res.ok) return null;
     const data = await res.json() as { snapshots?: Record<string, Snap> };
     return Object.entries(data.snapshots ?? {})

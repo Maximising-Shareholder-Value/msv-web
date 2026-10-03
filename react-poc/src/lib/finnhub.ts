@@ -11,6 +11,7 @@
 // fetchMetricCached, runThrottled). Keep the two in step if one changes.
 
 import type { NewsItem } from "./types";
+import { trackedFetch } from "./apiUsage";
 
 const API_BASE = "https://msv-api.jozsua-heng.workers.dev";
 const QUOTE_TTL_MS = 2 * 60 * 1000;
@@ -50,7 +51,7 @@ async function queued<T>(task: () => Promise<T>): Promise<T> {
 
 async function finnhub<T>(path: string, params: Record<string, string>): Promise<T> {
   const qs = new URLSearchParams({ ...params, path });
-  const res = await fetch(`${API_BASE}/api/finnhub?${qs}`);
+  const res = await trackedFetch(`${API_BASE}/api/finnhub?${qs}`);
   if (res.status === 429) throw new Error("rate limit reached, try again in a minute");
   if (!res.ok) throw new Error(`request failed (${res.status})`);
   return res.json() as Promise<T>;
@@ -278,7 +279,7 @@ const FMP_API = "https://msv-api.jozsua-heng.workers.dev";
 /** Fund name, website, ISIN and description from Financial Modeling Prep (/profile). */
 export function getFundProfile(symbol: string): Promise<FundProfile | null> {
   return cachedOrFetch(fundCache, PROFILE_TTL_MS, symbol, async () => {
-    const res = await fetch(`${FMP_API}/api/fmp?${new URLSearchParams({ path: "/profile", symbol })}`);
+    const res = await trackedFetch(`${FMP_API}/api/fmp?${new URLSearchParams({ path: "/profile", symbol })}`);
     if (!res.ok) return null;
     const data = await res.json();
     const p = Array.isArray(data) ? data[0] : null;
