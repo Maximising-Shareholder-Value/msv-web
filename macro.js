@@ -75,10 +75,10 @@ const WORLD_BANK_ECON_INDICATORS = [
   { id: "FP.CPI.TOTL.ZG", label: "Inflation (CPI, YoY)", unit: "%" },
   { id: "SL.UEM.TOTL.ZS", label: "Unemployment Rate", unit: "%" },
   { id: "BN.CAB.XOKA.GD.ZS", label: "Current Account Balance", unit: "% of GDP" },
-  { id: "NY.GDP.PCAP.CD", label: "GDP per Capita", formatter: formatCompactUsd },
+  { id: "NY.GDP.PCAP.CD", label: "GDP per Capita", formatter: v => formatCompactUsd(v) },
   { id: "NE.RSB.GNFS.ZS", label: "Trade Balance", unit: "% of GDP" },
   { id: "GC.DOD.TOTL.GD.ZS", label: "Government Debt", unit: "% of GDP" },
-  { id: "FI.RES.TOTL.CD", label: "Total Reserves", formatter: formatCompactUsd },
+  { id: "FI.RES.TOTL.CD", label: "Total Reserves", formatter: v => formatCompactUsd(v) },
   { id: "SP.POP.TOTL", label: "Population", formatter: v => v.toLocaleString() },
 ];
 const WORLD_BANK_GOVERNANCE_INDICATORS = [

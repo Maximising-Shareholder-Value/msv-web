@@ -282,15 +282,15 @@ function initHome() {
   renderEconCalendar();
   loadEarningsCalendar();
   loadSectorHeatmap();
-  // Deferred to a timeout, not called directly like the loaders above:
-  // twelveDataUrl() lives in chart.js, which loads AFTER home.js in
-  // index.html's script order (see CLAUDE.md's "script order matters"
-  // note) — calling it synchronously here, before chart.js has even run,
-  // would throw ReferenceError mid-initHome() and silently skip every
-  // call after it (initHomeLayout, the sidebar wiring). A 0ms timeout
-  // runs after the whole synchronous script-loading phase finishes, by
-  // which point chart.js has already executed.
-  setTimeout(loadForexStrip, 0);
+  // Deferred until the window's "load" event, not called directly like the
+  // loaders above: twelveDataUrl() lives in chart.js, which loads AFTER
+  // home.js in index.html's script order (see CLAUDE.md's "script order
+  // matters" note) — calling it synchronously here would throw
+  // ReferenceError mid-initHome() and skip every call after it. A plain
+  // setTimeout(…, 0) is NOT enough: external scripts download in the
+  // background, so a timer can fire before chart.js has arrived. "load"
+  // waits until every script has finished running.
+  window.addEventListener("load", loadForexStrip);
   if (typeof renderMarketIntel === "function") renderMarketIntel();
   initHomeLayout();
 }
