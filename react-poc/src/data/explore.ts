@@ -80,3 +80,16 @@ export const EXPLORE_CATEGORIES: ExploreCategory[] = [
   { title: "Learn & Premium", items: ["learn", "glossary", "premium"] },
 ];
 
+
+// Fallback icons for Explore tiles whose page has no sidebar item (from home.js EXPLORE_ICON_FALLBACKS).
+export const EXPLORE_ICON_FALLBACKS: Record<string, string> = {
+  "stock-ideas": '<circle cx="10" cy="8" r="4.3"/><line x1="8.3" y1="15" x2="11.7" y2="15"/><line x1="8.8" y1="17" x2="11.2" y2="17"/><line x1="10" y1="3.5" x2="10" y2="1.8"/>',
+  "stock-sentiment": '<path d="M3,5 H17 V13 H8 L4.5,16 V13 H3 Z"/>',
+  "analyst-actions": '<line x1="6" y1="16" x2="6" y2="4"/><polyline points="3.5,7 6,4 8.5,7"/><line x1="14" y1="4" x2="14" y2="16"/><polyline points="11.5,13 14,16 16.5,13"/>',
+  "precious-metals": '<ellipse cx="10" cy="6" rx="6" ry="2.3"/><path d="M4,6 V14 C4,15.3 6.7,16.3 10,16.3 C13.3,16.3 16,15.3 16,14 V6"/><path d="M4,10 C4,11.3 6.7,12.3 10,12.3 C13.3,12.3 16,11.3 16,10"/>',
+  "forex": '<line x1="3" y1="7" x2="15" y2="7"/><polyline points="12,4 15,7 12,10"/><line x1="17" y1="13" x2="5" y2="13"/><polyline points="8,10 5,13 8,16"/>',
+  "indexes": '<circle cx="10" cy="10" r="7.3"/><path d="M10,10 L10,3.5 A6.5,6.5 0 0 1 15.7,13.2 Z"/>',
+  "bonds": '<rect x="4" y="3" width="12" height="14" rx="1.2"/><line x1="7" y1="7" x2="13" y2="7"/><line x1="7" y1="10" x2="13" y2="10"/><line x1="7" y1="13" x2="10.5" y2="13"/>',
+  "commodities": '<rect x="4" y="5" width="12" height="10" rx="1.5"/><line x1="4" y1="8.5" x2="16" y2="8.5"/><line x1="4" y1="11.5" x2="16" y2="11.5"/>',
+};
+export const DEFAULT_EXPLORE_ICON = '<circle cx="10" cy="10" r="3"/>';

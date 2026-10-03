@@ -20,7 +20,7 @@ import { IndexStrip, SectorHeatmap, ForexStrip, EconCalendar } from "./HomeWidge
 import { MarketBreadth, EarningsCalendar, CryptoTable } from "./HomeMore";
 import { RecentlyViewed, Watchlist, HowTo } from "./HomeLists";
 import { WorldMap } from "./WorldMap";
-import { hrefFor } from "./ExplorePage";
+import { ExploreTile } from "./ExplorePage";
 
 interface Row { symbol: string; name: string; quote: Quote }
 
@@ -179,20 +179,19 @@ export function HomePage() {
         <ForexStrip />
       </Section>
       <Section id="learn" title="Learn" lead="Plain-English explanations of what you're looking at across the site.">
-        <div className="hp-tiles">
+        <div className="explore-grid">
           {LEARN_CATEGORIES.filter(c => c.topics.length > 0).map(c => (
-            <a key={c.id} className="hp-tile" href="/app/?page=learn"><span className="hp-tile-icon">{c.icon}</span><strong>{c.title}</strong><span className="muted small">{c.blurb}</span></a>
+            <a key={c.id} className="explore-tile" href="/app/?page=learn">
+              <span className="learn-category-icon">{c.icon}</span>
+              <strong>{c.title}</strong>
+              <span className="explore-tile-desc">{c.blurb}</span>
+            </a>
           ))}
         </div>
       </Section>
       <Section id="explore" title="Explore $MSV" lead="Every part of the site.">
-        <div className="hp-tiles">
-          {featured.map(item => (
-            <a key={item.nav} className={`hp-tile${item.live ? "" : " soon"}`} href={item.live ? hrefFor(item) : "#"}>
-              <strong>{item.title}</strong>
-              <span className="muted small">{item.description}</span>
-            </a>
-          ))}
+        <div className="explore-grid">
+          {featured.map(item => <ExploreTile key={item.nav} item={item} />)}
         </div>
         <p className="hp-more"><a href="/app/?page=explore">See every page →</a></p>
       </Section>
