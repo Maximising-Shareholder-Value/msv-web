@@ -716,9 +716,22 @@ React page still has no left sidebar of its own, so navigating to any
 now with only one page migrated, but worth revisiting once a few more
 pages exist and a shared app shell becomes worth building.
 
-**Next up:** Sectors, per the org's TODO.md page-by-page order (ETFs,
-Screener, Market Data, Market Intelligence, Learn, Home, ticker
-deep-dive page, then the sidebar/router shell itself last).
+**Sectors page in React (2026-10-03, built, not deployed):** `?page=sectors`
+on the React build (`react-poc/src/main.tsx` picks the page from the query
+string, not a path, because the live site's SPA fallback would serve the
+main index.html for a path). `components/SectorsPage.tsx` ports
+`sectors.js`; its data is copied verbatim into `src/data/sectors.ts` and
+`src/data/etfCategories.ts` — re-copy from the vanilla files if those
+change. All Finnhub calls go through `src/lib/finnhub.ts`, a queue of one
+request about every 1.1s (free tier is 60/min shared by every visitor).
+Requests are queued in the order they're asked for, so the page fills in
+sector prices → sector performance → industry prices. Not shown: AUM and
+expense ratio (paywalled, see msv-org-github BLOCKERS.md).
+
+**Next up:** the sidebar's Sectors item still points at the vanilla page;
+switch it once the React page has been reviewed in a browser. Then ETFs,
+Screener, Market Data, Market Intelligence, Learn, Home, ticker deep-dive
+page, and the sidebar/router shell last (order per the org's TODO.md).
 
 Grew same-day from a straight rebuild into 8 tabs (Overview, Markets,
 Exchanges, DeFi, Stablecoins, Crypto Cycles, News, Learn) once Jozsua

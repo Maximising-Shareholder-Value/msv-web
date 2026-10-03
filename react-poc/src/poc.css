@@ -79,3 +79,38 @@
 .rainbow-axis { fill: var(--text-secondary); font-size: 10.5px; }
 .rainbow-legend { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
 .rainbow-chip { padding: 3px 10px; border-radius: 999px; font-size: 10.5px; font-weight: 700; color: #fff; }
+
+/* ---- Sectors page (SectorsPage.tsx) ---- */
+.sectors-page { padding: 16px; max-width: 1200px; margin: 0 auto; }
+.sectors-header { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+.sectors-header h2 { margin: 0; font-size: 1.3rem; letter-spacing: 0.04em; text-transform: uppercase; }
+.sectors-summary { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin: 12px 0 6px; font-size: 0.9rem; }
+.sectors-view-toggle { margin-left: auto; display: inline-flex; border: 1px solid var(--border, #2a3642); border-radius: 6px; overflow: hidden; }
+.sectors-view-toggle button { background: none; border: 0; color: var(--text-secondary, #9aa6b2); padding: 6px 12px; cursor: pointer; font: inherit; font-size: 0.8rem; }
+.sectors-view-toggle button.active { background: var(--accent, #10b981); color: var(--accent-contrast, #06120d); }
+.sectors-legend { margin-bottom: 10px; }
+.sectors-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px; }
+.sectors-grid-small { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+.sectors-tile { text-align: left; border: 1px solid transparent; border-radius: 8px; padding: 10px 12px; color: inherit; cursor: pointer; font: inherit; display: flex; flex-direction: column; gap: 6px; min-height: 64px; }
+.sectors-tile.sub { min-height: 56px; }
+.sectors-tile.active { border-color: var(--accent, #10b981); }
+.sectors-tile-name { font-weight: 600; font-size: 0.9rem; }
+.sectors-tile-row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.sectors-detail { margin-top: 16px; border: 1px solid var(--border, #2a3642); border-radius: 10px; padding: 16px; }
+.sectors-detail-head { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.sectors-detail-head h3 { margin: 0 0 4px; }
+.sectors-detail-actions { display: flex; gap: 8px; }
+.sectors-detail-section { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border, #2a3642); }
+.sectors-detail-section h4 { margin: 0 0 8px; font-size: 0.95rem; }
+.sectors-price-row { display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start; }
+.sectors-price strong { font-size: 1.6rem; }
+.sectors-stats { display: flex; gap: 18px; flex-wrap: wrap; margin: 0; }
+.sectors-stats dt { font-size: 0.75rem; color: var(--text-secondary, #9aa6b2); }
+.sectors-stats dd { margin: 0; font-weight: 600; }
+.sectors-perf { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; margin-top: 12px; }
+.sectors-perf-cell { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border-radius: 6px; background: var(--surface-2, #1a2430); }
+.sectors-range { display: flex; align-items: center; gap: 10px; margin-top: 12px; font-size: 0.85rem; }
+.sectors-range-bar { position: relative; flex: 1; height: 4px; background: var(--border, #2a3642); border-radius: 2px; }
+.sectors-range-bar span { position: absolute; top: -4px; width: 4px; height: 12px; background: var(--accent, #10b981); border-radius: 2px; }
+.sectors-facts { display: flex; gap: 24px; flex-wrap: wrap; margin-top: 8px; }
+.sectors-facts div { display: flex; flex-direction: column; gap: 2px; }
