@@ -3,8 +3,7 @@
 // Losers / Most Active rankings, the market-news column and the daily "Did you
 // know" tip.
 //
-// NOT YET PORTED (still on the vanilla homepage): the market breadth strip,
-// the earnings calendar, the crypto tab, the watchlist and recently viewed, the explore
+// NOT YET PORTED (still on the vanilla homepage): the watchlist and recently viewed, the explore
 // page, the how-to walkthrough, and the sidebar/router shell.
 
 import { useEffect, useMemo, useState } from "react";
@@ -15,6 +14,7 @@ import { useQuotes } from "../lib/useQuotes";
 import { fmtPct, fmtPrice, changeClass } from "../lib/format";
 import type { NewsItem } from "../lib/types";
 import { IndexStrip, SectorHeatmap, ForexStrip, EconCalendar } from "./HomeWidgets";
+import { MarketBreadth, EarningsCalendar, CryptoTable } from "./HomeMore";
 
 const RANKING_TABS = [
   { id: "winners", title: "Winners" },
@@ -61,11 +61,13 @@ export function HomePage() {
       </header>
 
       <IndexStrip />
+      <MarketBreadth />
 
       <div className="home-tabs" role="tablist">
         {RANKING_TABS.map(t => (
           <button key={t.id} type="button" role="tab" aria-selected={tab === t.id} className={tab === t.id ? "active" : ""} onClick={() => setTab(t.id)}>{t.title}</button>
         ))}
+        <button type="button" role="tab" aria-selected={tab === "crypto"} className={tab === "crypto" ? "active" : ""} onClick={() => setTab("crypto")}>Crypto</button>
         {BROWSE_CATEGORIES.map(c => (
           <button key={c.id} type="button" role="tab" aria-selected={tab === c.id} className={tab === c.id ? "active" : ""} onClick={() => setTab(c.id)}>{c.title}</button>
         ))}
@@ -73,6 +75,8 @@ export function HomePage() {
 
       <div className="home-layout">
         <div className="home-main">
+          {tab === "crypto" && <CryptoTable />}
+          {tab !== "crypto" && <>
           {tab === "active" && <p className="muted small">Ranked by size of today's price move. Real trading volume isn't available on the free data tier.</p>}
           {!rows.length && <p className="muted small">{loadedCount < pool.length ? `Loading live prices… ${loadedCount} of ${pool.length}` : "No data right now. The free data tier may be rate-limited; try another tab in a moment."}</p>}
           {rows.length > 0 && (
@@ -97,9 +101,11 @@ export function HomePage() {
               </table>
             </div>
           )}
+          </>}
         </div>
 
         <aside className="home-side">
+          <div className="home-card"><h4>Earnings this week</h4><EarningsCalendar /></div>
           <div className="home-card"><h4>Economic calendar</h4><EconCalendar /></div>
           <div className="home-card"><h4>Sectors today</h4><SectorHeatmap /></div>
           <div className="home-card"><h4>Currencies</h4><ForexStrip /></div>

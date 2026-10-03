@@ -141,3 +141,24 @@ export function getProfile(symbol: string): Promise<Profile | null> {
     return p && p.name ? p : null;
   });
 }
+
+export interface EarningsItem {
+  date: string;
+  symbol: string;
+  hour?: string;            // "bmo" | "amc" | ""
+  epsEstimate?: number | null;
+  revenueEstimate?: number | null;
+}
+
+const earningsCache = new Map<string, Cached<EarningsItem[] | null>>();
+
+/** Companies reporting in the next seven days (Finnhub /calendar/earnings, one call). */
+export function getEarnings(): Promise<EarningsItem[] | null> {
+  const from = new Date();
+  const to = new Date(from.getTime() + 7 * 24 * 60 * 60 * 1000);
+  const fmt = (d: Date) => d.toISOString().slice(0, 10);
+  return cachedOrFetch(earningsCache, 60 * 60 * 1000, `earnings:${fmt(from)}`, async () => {
+    const r = await finnhub<{ earningsCalendar?: EarningsItem[] }>("/calendar/earnings", { from: fmt(from), to: fmt(to) });
+    return r.earningsCalendar ?? [];
+  });
+}
