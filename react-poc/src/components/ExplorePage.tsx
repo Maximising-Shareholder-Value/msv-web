@@ -19,7 +19,7 @@ const REACT_PAGES: Record<string, string> = {
   learn: "learn",
 };
 
-function hrefFor(item: ExploreItem): string {
+export function hrefFor(item: ExploreItem): string {
   const page = REACT_PAGES[item.nav];
   if (page) return `/app/?page=${page}`;
   return `/${item.nav}`;
