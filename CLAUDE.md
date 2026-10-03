@@ -830,7 +830,13 @@ bad cache entry at Cloudflare's edge and can't be purged from here.
   page, compare it with `legacy.html` at the same width, copy the old structure and class
   names, and delete the overrides for that page. Start with Explore, then home, then the
   ticker pages.
+- Explore: the icon wrapper (`span.explore-icon-slot`, `display: contents`) is built but
+  not yet deployed or checked in a browser. Descriptions were squeezed before this change.
 - Homepage: one long page; the explore and "your lists" sections still need the visual pass.
+- `index.html` guard sets `document.body` attributes, which throws if it runs before `body`
+  exists. Use `document.documentElement` instead.
+- `home.js` still routes Market Data to `/react-crypto/?page=market-data` (dead path). It
+  should be `/app/?page=market-data`. Low impact: only `legacy.html` loads it.
 - Wording: the React pages use shorter text than the old site; the old introduction and
   section copy is in `legacy.html`.
 - Unverified: figures on Market Data, Macro and the ticker pages haven't been checked line by
