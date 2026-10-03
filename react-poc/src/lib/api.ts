@@ -4,11 +4,19 @@ import { useCallback, useEffect, useRef, useState } from "react";
 // the real API keys so they never reach the browser.
 const API_BASE = "https://msv-api.jozsua-heng.workers.dev";
 
+// The proxy's route to CoinGecko's markets list is refused at the edge (403), while
+// CoinGecko itself answers browser requests directly (CORS is open and no key is
+// needed for the public endpoints). So if the proxy refuses, ask CoinGecko directly.
 export async function coingecko<T>(path: string, params: Record<string, string> = {}): Promise<T> {
   const qs = new URLSearchParams({ ...params, path });
   const res = await fetch(`${API_BASE}/api/coingecko?${qs}`);
-  if (!res.ok) throw new Error(res.status === 429 ? "CoinGecko rate limit — try again in a minute" : `CoinGecko error ${res.status}`);
-  return res.json() as Promise<T>;
+  if (res.ok) return res.json() as Promise<T>;
+  if (res.status === 403) {
+    const direct = await fetch(`https://api.coingecko.com/api/v3${path}?${new URLSearchParams(params)}`);
+    if (direct.ok) return direct.json() as Promise<T>;
+    if (direct.status === 429) throw new Error("CoinGecko rate limit — try again in a minute");
+  }
+  throw new Error(res.status === 429 ? "CoinGecko rate limit — try again in a minute" : `CoinGecko error ${res.status}`);
 }
 
 // DefiLlama and alternative.me are public and allow browser calls directly.
