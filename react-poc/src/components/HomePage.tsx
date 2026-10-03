@@ -65,6 +65,30 @@ export function HomePage() {
         <MarketBreadth />
       </div>
 
+      <div className="home-intro">
+        <div className="home-card home-intro-main">
+          <h2>The full picture, before you decide</h2>
+          <p>$MSV gives you the full picture on any stock, ETF or crypto ticker: valuation, financial health, and a plain-English read on where it stands, so you understand what you're buying, not just its price. Start with the world map, or search a ticker in the sidebar.</p>
+          <a className="home-link-btn" href="#how-to">New here? How to use $MSV</a>
+        </div>
+        <div className="home-card home-signup">
+          <p className="home-signup-label">Create a free account</p>
+          <p className="muted small">Save your watchlist and preferences across visits.</p>
+          <input type="email" placeholder="Enter email address" disabled aria-label="Email address" />
+          <a className="home-link-btn" href="/app/?page=placeholder&key=create-account">Create Free Account</a>
+          <span className="muted small">Coming soon: accounts aren't built yet.</span>
+        </div>
+      </div>
+
+      <a className="learn-banner" href="/app/?page=learn">
+        <span className="learn-banner-icon">🎓</span>
+        <span className="learn-banner-copy">
+          <span className="learn-banner-title">New to investing? Start here</span>
+          <span className="learn-banner-subtitle">Plain-English explanations of everything on this site: stocks, ETFs, valuation, risk, options, and how to put it all together.</span>
+        </span>
+        <span className="learn-banner-arrow">→</span>
+      </a>
+
       <IndexStrip />
 
       <div className="home-block">
@@ -94,7 +118,7 @@ export function HomePage() {
               <table className="crypto-table quotes-table">
                 <thead><tr><th>Symbol</th><th>Price</th><th>Chg $</th><th>Chg %</th><th>Day range</th></tr></thead>
                 <tbody>
-                  {rows.map(r => {
+                  {rows.slice(0, 8).map(r => {
                     const q = r.quote;
                     const pos = q.h !== q.l ? Math.max(0, Math.min(1, (q.c - q.l) / (q.h - q.l))) : 0.5;
                     return (
@@ -115,14 +139,14 @@ export function HomePage() {
         </div>
 
         <aside className="home-side">
-          <TopNews />
+          <div className="home-card"><TopNews /></div>
           <div className="home-card"><RecentlyViewed /><Watchlist /></div>
           <div className="home-card"><h4>Earnings this week</h4><EarningsCalendar /></div>
           <div className="home-card"><h4>Economic calendar</h4><EconCalendar /></div>
           <div className="home-card"><h4>Sectors today</h4><SectorHeatmap /></div>
           <div className="home-card"><h4>Currencies</h4><ForexStrip /></div>
-          <div className="home-card"><h4>How to use $MSV</h4><HowTo /></div>
-          <DidYouKnow />
+          <div className="home-card" id="how-to"><h4>How to use $MSV</h4><HowTo /></div>
+          <div className="home-card"><DidYouKnow /></div>
         </aside>
       </div>
     </section>
