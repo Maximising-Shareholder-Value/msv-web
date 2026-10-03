@@ -9,6 +9,7 @@ const LINKS: { page: string; label: string }[] = [
   { page: "market-data", label: "Market data" },
   { page: "market-intel", label: "Market intelligence" },
   { page: "learn", label: "Learn" },
+  { page: "explore", label: "Explore" },
   { page: "ipo", label: "IPO calendar" },
   { page: "news", label: "Market news" },
 ];

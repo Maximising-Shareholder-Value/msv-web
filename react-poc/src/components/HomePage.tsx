@@ -15,6 +15,7 @@ import { fmtPct, fmtPrice, changeClass } from "../lib/format";
 import type { NewsItem } from "../lib/types";
 import { IndexStrip, SectorHeatmap, ForexStrip, EconCalendar } from "./HomeWidgets";
 import { MarketBreadth, EarningsCalendar, CryptoTable } from "./HomeMore";
+import { RecentlyViewed, Watchlist, HowTo } from "./HomeLists";
 
 const RANKING_TABS = [
   { id: "winners", title: "Winners" },
@@ -105,6 +106,8 @@ export function HomePage() {
         </div>
 
         <aside className="home-side">
+          <div className="home-card"><RecentlyViewed /><Watchlist /></div>
+          <div className="home-card"><h4>How to use $MSV</h4><HowTo /></div>
           <div className="home-card"><h4>Earnings this week</h4><EarningsCalendar /></div>
           <div className="home-card"><h4>Economic calendar</h4><EconCalendar /></div>
           <div className="home-card"><h4>Sectors today</h4><SectorHeatmap /></div>
