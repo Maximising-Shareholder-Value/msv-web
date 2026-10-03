@@ -14,6 +14,7 @@ import { MarketIntelPage } from "./components/MarketIntelPage";
 import { LearnPage } from "./components/LearnPage";
 import { HomePage } from "./components/HomePage";
 import { ExplorePage } from "./components/ExplorePage";
+import { TickerPage } from "./components/TickerPage";
 import { PageNav } from "./components/PageNav";
 import { AppSidebar } from "./components/AppSidebar";
 
@@ -53,6 +54,7 @@ function CurrentPage() {
   if (page === "learn") return <Framed current="learn"><LearnPage /></Framed>;
   if (page === "home") return <Framed current="home"><HomePage /></Framed>;
   if (page === "explore") return <Framed current="explore"><ExplorePage /></Framed>;
+  if (page === "ticker") return <Framed current="ticker"><TickerPage symbol={(new URLSearchParams(location.search).get("symbol") ?? "AAPL").toUpperCase()} /></Framed>;
   return <App />;
 }
 

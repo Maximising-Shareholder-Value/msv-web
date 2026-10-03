@@ -162,3 +162,26 @@ export function getEarnings(): Promise<EarningsItem[] | null> {
     return r.earningsCalendar ?? [];
   });
 }
+
+export interface CompanyProfile {
+  name?: string;
+  ticker?: string;
+  exchange?: string;
+  finnhubIndustry?: string;
+  logo?: string;
+  country?: string;
+  ipo?: string;
+  weburl?: string;
+  marketCapitalization?: number;  // millions
+  shareOutstanding?: number;      // millions
+}
+
+const companyCache = new Map<string, Cached<CompanyProfile | null>>();
+
+/** Full company profile (Finnhub /stock/profile2). Empty for ETFs and crypto. */
+export function getCompanyProfile(symbol: string): Promise<CompanyProfile | null> {
+  return cachedOrFetch(companyCache, PROFILE_TTL_MS, `full:${symbol}`, async () => {
+    const p = await finnhub<CompanyProfile>("/stock/profile2", { symbol });
+    return p && p.name ? p : null;
+  });
+}

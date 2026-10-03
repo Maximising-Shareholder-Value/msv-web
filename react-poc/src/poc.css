@@ -240,3 +240,17 @@
 /* ---- Shared sidebar on React pages (AppSidebar.tsx, 2026-10-03) ---- */
 .app-sidebar a { text-decoration: none; color: inherit; }
 .app-sidebar-logo { display: flex; }
+
+/* ---- Ticker page, first slice (TickerPage.tsx, 2026-10-03) ---- */
+.ticker-page { padding: 16px; max-width: 1100px; margin: 0 auto; }
+.ticker-header { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 14px; }
+.ticker-header h2 { margin: 0; }
+.ticker-logo { width: 44px; height: 44px; object-fit: contain; }
+.ticker-price { margin-left: auto; text-align: right; }
+.ticker-price strong { font-size: 1.8rem; display: block; }
+.ticker-stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; margin-bottom: 12px; }
+.ticker-facts { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin: 0; }
+.ticker-facts dd { margin: 2px 0 0; font-weight: 600; }
+.ticker-valuation { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; margin-bottom: 8px; }
+.ticker-card { display: flex; flex-direction: column; gap: 3px; padding: 10px 12px; border: 1px solid var(--border, #2a3642); border-radius: 8px; }
+.ticker-todo { line-height: 1.8; font-size: 13px; }
