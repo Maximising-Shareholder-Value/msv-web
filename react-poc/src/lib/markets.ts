@@ -6,6 +6,7 @@ import { COUNTRIES, COUNTRY_GROUPS } from "../data/countries";
 
 export interface Country {
   iso2: string;
+  iso3: string;
   name: string;
   flag: string;
   group: string;
@@ -17,6 +18,10 @@ export interface Country {
   close?: string;
   days?: number[]; // 0 = Sunday ... 6 = Saturday; default Mon–Fri
   etf?: string;    // a US-listed country ETF standing in for the index
+  lat: number;
+  lon: number;
+  label?: { dx: number; dy: number; anchor?: string };  // where the city label sits on the map
+  note?: string;
 }
 
 export const COUNTRY_LIST = COUNTRIES as unknown as Country[];

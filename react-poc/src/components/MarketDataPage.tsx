@@ -1,35 +1,49 @@
-// components/MarketDataPage.tsx — the Market Data page, first slice (React).
-// Ports the country directory and profile from marketData.js: pick a country
-// from a dropdown (or the full searchable list), see its market hours and
-// whether it's open, and its live country-ETF price.
+// components/MarketDataPage.tsx — the Market Data page (React). Ports the
+// vanilla page: the world map on top (colour it by a World Bank indicator),
+// and below it the country directory (dropdown or full list) beside the
+// country profile for whichever country is selected.
 //
-// NOT YET PORTED (still on the main site): the world map, the macro indicator
-// charts from the World Bank, and the risk dashboard.
+// The selected country is kept in the URL (?country=JP) so it can be shared.
 
 import { useState } from "react";
-import { COUNTRY_LIST, COUNTRY_GROUPS, GROUP_ORDER, exchangeStatus, localTime, type Country } from "../lib/markets";
-import { useQuotes } from "../lib/useQuotes";
+import { COUNTRY_LIST, COUNTRY_GROUPS, GROUP_ORDER, exchangeStatus, type Country } from "../lib/markets";
+import { useQuotes, type QuoteMap } from "../lib/useQuotes";
+import { useWorldData } from "../lib/useWorldData";
 import { fmtPct, fmtPrice, changeClass } from "../lib/format";
-
-type View = "dropdown" | "list";
+import { WorldMap } from "./WorldMap";
+import { CountryProfile } from "./CountryProfile";
+import { RiskDashboard } from "./RiskDashboard";
 
 const ETF_SYMBOLS = COUNTRY_LIST.filter(c => c.etf).map(c => c.etf as string);
 
 export function MarketDataPage() {
-  const [view, setView] = useState<View>("dropdown");
+  const [view, setView] = useState<"dropdown" | "list">("dropdown");
   const [selected, setSelected] = useState<string | null>(() => new URLSearchParams(location.search).get("country"));
   const [group, setGroup] = useState("all");
   const [query, setQuery] = useState("");
+  const [mode, setMode] = useState("groups");
   const quotes = useQuotes(ETF_SYMBOLS);
+  const wbData = useWorldData();
 
+  const pick = (iso2: string | null) => {
+    setSelected(iso2);
+    const url = new URL(location.href);
+    if (iso2) url.searchParams.set("country", iso2); else url.searchParams.delete("country");
+    history.replaceState(null, "", url);
+  };
   const country = COUNTRY_LIST.find(c => c.iso2 === selected) ?? null;
 
   return (
     <section className="market-page">
       <header className="sectors-header">
         <h2>Market Data</h2>
-        <span className="muted small">{COUNTRY_LIST.length} tracked countries · live country-ETF prices · market hours shown in local time</span>
+        <span className="muted small">{COUNTRY_LIST.length} tracked countries · live country-ETF prices · World Bank data</span>
       </header>
+
+      <div className="market-map-card">
+        <WorldMap selected={selected} onSelect={pick} quotes={quotes} mode={mode} onMode={setMode} wbData={wbData} />
+        <OpenSummary />
+      </div>
 
       <div className="market-layout">
         <aside className="market-directory">
@@ -38,7 +52,7 @@ export function MarketDataPage() {
             <button type="button" className={view === "list" ? "active" : ""} onClick={() => setView("list")}>Full list</button>
           </div>
           {view === "dropdown" ? (
-            <select className="market-select" value={selected ?? ""} onChange={e => setSelected(e.target.value || null)} aria-label="Choose a country">
+            <select className="market-select" value={selected ?? ""} onChange={e => pick(e.target.value || null)} aria-label="Choose a country">
               <option value="">Choose a country…</option>
               {GROUP_ORDER.map(gid => {
                 const g = COUNTRY_GROUPS.find(x => x.id === gid);
@@ -52,22 +66,30 @@ export function MarketDataPage() {
               })}
             </select>
           ) : (
-            <DirectoryList selected={selected} onSelect={setSelected} group={group} setGroup={setGroup} query={query} setQuery={setQuery} quotes={quotes} />
+            <DirectoryList selected={selected} onSelect={pick} group={group} setGroup={setGroup} query={query} setQuery={setQuery} quotes={quotes} />
           )}
         </aside>
 
         <main className="market-profile">
-          {country ? <CountryProfile country={country} quote={country.etf ? quotes[country.etf] : undefined} /> : (
-            <p className="muted">Pick a country to see its market hours, whether it's open right now, and its live index proxy price.</p>
-          )}
+          {country
+            ? <CountryProfile country={country} quote={country.etf ? quotes[country.etf] : undefined} wbData={wbData} onSelect={pick} />
+            : <p className="muted market-hint">Click a country on the map, or pick one from the list, to open its profile: market snapshot, economy, history and governance.</p>}
         </main>
       </div>
 
+      <RiskDashboard wbData={wbData} onSelect={pick} />
+
       <p className="muted small market-foot">
-        Not on this page yet: the world map, the macro indicator charts and the risk dashboard. Those are still on the main site. Prices are live country-ETF quotes, used as stand-ins for each market's index. Not investment advice.
+        Prices are live country-ETF quotes, used as stand-ins for each market's index. Economic figures are annual World Bank data, latest year available (often 1–2 years old). Not investment advice.
       </p>
     </section>
   );
+}
+
+function OpenSummary() {
+  const sessions = COUNTRY_LIST.map(c => exchangeStatus(c)).filter((s): s is { isOpen: boolean; hhmm: string } => s !== null);
+  const open = sessions.filter(s => s.isOpen).length;
+  return <p className="muted small market-summary">{open} of {sessions.length} exchanges currently open · {COUNTRY_LIST.length} countries tracked</p>;
 }
 
 function DirectoryList({ selected, onSelect, group, setGroup, query, setQuery, quotes }: {
@@ -77,7 +99,7 @@ function DirectoryList({ selected, onSelect, group, setGroup, query, setQuery, q
   setGroup: (g: string) => void;
   query: string;
   setQuery: (q: string) => void;
-  quotes: Record<string, { c: number; dp: number | null } | null | undefined>;
+  quotes: QuoteMap;
 }) {
   const q = query.trim().toLowerCase();
   const chips: [string, string][] = [["all", "All"], ["brics", "BRICS"], ["developed", "Developed"], ["emerging", "Emerging"], ["frontier", "Frontier"], ["g7", "G7"], ["open", "Open now"]];
@@ -117,43 +139,7 @@ function DirectoryList({ selected, onSelect, group, setGroup, query, setQuery, q
             </div>
           );
         })}
-        {!COUNTRY_LIST.some(matches) && <p className="muted small">No countries match.</p>}
       </div>
     </>
-  );
-}
-
-function CountryProfile({ country, quote }: { country: Country; quote: { c: number; d: number | null; dp: number | null; h: number; l: number; pc: number } | null | undefined }) {
-  const status = exchangeStatus(country);
-  return (
-    <div className="market-card">
-      <div className="market-card-head">
-        <span className="market-flag">{country.flag}</span>
-        <div>
-          <h3>{country.name}</h3>
-          <p className="muted small">{country.ex || "No exchange tracked"} · {country.city}{country.g7 ? " · G7" : ""}</p>
-        </div>
-      </div>
-
-      <dl className="market-facts">
-        <div><dt>Market status</dt><dd>{status ? (status.isOpen ? <span className="market-open">Open now</span> : "Closed") : "—"}</dd></div>
-        <div><dt>Local time</dt><dd>{country.tz ? localTime(country.tz) : "—"}</dd></div>
-        <div><dt>Trading hours (local)</dt><dd>{country.open && country.close ? `${country.open}–${country.close}` : "—"}</dd></div>
-        <div><dt>Index proxy</dt><dd>{country.etf ? <a href={`/?ticker=${encodeURIComponent(country.etf)}`}>{country.etf} ↗</a> : "None (macro data only)"}</dd></div>
-      </dl>
-
-      <div className="market-quote">
-        {country.etf ? (
-          quote === undefined ? <p className="muted small">Loading {country.etf}…</p>
-          : quote ? (
-            <>
-              <strong className="market-price">{fmtPrice(quote.c)}</strong>{" "}
-              <span className={changeClass(quote.dp)}>{fmtPct(quote.dp)}</span>
-              <p className="muted small">Day range {fmtPrice(quote.l)} – {fmtPrice(quote.h)} · previous close {fmtPrice(quote.pc)}</p>
-            </>
-          ) : <p className="muted small">No live quote for {country.etf} right now.</p>
-        ) : <p className="muted small">This market has no US-listed index ETF, so there's no live price. Macro data is on the main site.</p>}
-      </div>
-    </div>
   );
 }

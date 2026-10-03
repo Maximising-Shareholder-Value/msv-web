@@ -191,3 +191,6 @@
 .market-price { font-size: 1.5rem; }
 .market-foot { margin-top: 14px; line-height: 1.5; }
 @media (max-width: 760px) { .market-layout { grid-template-columns: 1fr; } }
+.score-row { cursor: pointer; }
+.market-risk { margin-top: 24px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
