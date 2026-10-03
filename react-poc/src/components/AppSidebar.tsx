@@ -22,6 +22,8 @@ const REACT_HREF: Record<string, string> = {
   etfs: "/react-crypto/?page=etfs",
   compare: "/react-crypto/?page=compare",
   "prediction-markets": "/react-crypto/?page=prediction-markets",
+  "stock-analysis": "/react-crypto/?page=home",
+  watchlist: "/react-crypto/?page=home",
   macro: "/react-crypto/?page=macro",
   "create-account": "/react-crypto/?page=placeholder&key=create-account",
   login: "/react-crypto/?page=placeholder&key=login",

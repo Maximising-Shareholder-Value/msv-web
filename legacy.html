@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>$MSV</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Ccircle cx='24' cy='24' r='23' fill='%231baf7a'/%3E%3Ctext x='24' y='30' text-anchor='middle' font-family='ui-monospace,monospace' font-weight='800' font-size='17' letter-spacing='-1.2' fill='%2306120d'%3EMSV%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app-shell">
+  <aside id="appSidebar" class="app-sidebar">
+   <div class="app-sidebar-scroll">
+    <div class="app-sidebar-logo">
+      <span class="app-sidebar-badge">$MSV</span>
+      <span class="app-sidebar-fullname"><span>Maximising</span><span>Shareholder</span><span class="app-sidebar-fullname-accent">Value</span></span>
+    </div>
+
+    <nav class="app-nav-group">
+      <button type="button" class="app-nav-item" data-nav="create-account"><span class="app-nav-icon"><svg viewBox="0 0 20 20"><circle cx="8" cy="6.3" r="2.6"/><path d="M3.3,16 C3.3,12.2 5.6,10.5 8,10.5 C8.9,10.5 9.7,10.7 10.4,11.2"/><line x1="16" y1="4" x2="16" y2="9"/><line x1="13.5" y1="6.5" x2="18.5" y2="6.5"/></svg></span><span class="app-nav-label">Create Free Account</span></button>
+      <button type="button" class="app-nav-item" data-nav="login"><span class="app-nav-icon"><svg viewBox="0 0 20 20"><path d="M9,3.3 H5.5 a1,1 0 0 0 -1,1 V15.7 a1,1 0 0 0 1,1 H9"/><line x1="8" y1="10" x2="17" y2="10"/><polyline points="13.3,6.3 17,10 13.3,13.7"/></svg></span><span class="app-nav-label">Log In</span></button>
+      <button type="button" class="app-nav-item" data-nav="explore-products"><span class="app-nav-icon"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="7.3"/><polygon points="12.3,7.7 9.2,9.2 7.7,12.3 10.8,10.8"/></svg></span><span class="app-nav-label">Explore Products</span></button>
+      <button type="button" class="app-nav-item" data-nav="premium"><span class="app-nav-icon"><svg viewBox="0 0 20 20"><polygon points="4,7.5 7,3.5 13,3.5 16,7.5 10,16"/><line x1="4" y1="7.5" x2="16" y2="7.5"/><line x1="7" y1="3.5" x2="10" y2="7.5"/><line x1="13" y1="3.5" x2="10" y2="7.5"/></svg></span><span class="app-nav-label">Premium</span></button>
+    </nav>
+    <hr class="app-nav-divider">
+
+    <nav class="app-nav-group">
+      <button type="button" class="app-nav-item" data-nav="home"><span class="app-nav-icon"><svg viewBox="0 0 20 20"><path d="M3,10 L10,4 L17,10"/><path d="M5,9 V16.5 H15 V9"/></svg></span><span class="app-nav-label">Home</span></button>
+      <button type="button" class="app-nav-item" data-nav="stock-analysis"><span class="app-nav-icon"><svg viewBox="0 0 20 20" stroke-width="2.2"><line x1="5" y1="17" x2="5" y2="11"/><line x1="10" y1="17" x2="10" y2="7"/><line x1="15" y1="17" x2="15" y2="4"/></svg></span><span class="app-nav-label">Stock Analysis</span></button>
+      <button type="button" class="app-nav-item" data-nav="stock-screener"><span class="app-nav-icon"><svg viewBox="0 0 20 20"><path d="M3,4 H17 L12,10.5 V16 L8,14 V10.5 Z"/></svg></span><span class="app-nav-label">Screener</span></button>
+      <button type="button" class="app-nav-item" data-nav="market-data"><span class="app-nav-icon"><svg viewBox="0 0 20 20"><path d="M10,17 C10,17 15,11.3 15,7.5 A5,5 0 0 0 5,7.5 C5,11.3 10,17 10,17 Z"/><circle cx="10" cy="7.5" r="2"/></svg></span><span class="app-nav-label">Market Data</span></button>
+      <button type="button" class="app-nav-item" data-nav="market-news"><span class="app-nav-icon"><svg viewBox="0 0 20 20"><rect x="3" y="5" width="14" height="11" rx="1.2"/><line x1="6" y1="8.2" x2="14" y2="8.2"/><line x1="6" y1="11" x2="14" y2="11"/><line x1="6" y1="13.6" x2="11" y2="13.6"/></svg></span><span class="app-nav-label">Market News</span></button>
+      <button type="button" class="app-nav-item" data-nav="learn"><span class="app-nav-icon"><svg viewBox="0 0 20 20"><path d="M10,4 L18,8 L10,12 L2,8 Z"/><path d="M5.5,9.4 V13.2 C5.5,14.7 7.5,15.7 10,15.7 C12.5,15.7 14.5,14.7 14.5,13.2 V9.4"/></svg></span><span class="app-nav-label">Learn</span></button>
+      <button type="button" class="app-nav-item" data-nav="sectors"><span class="app-nav-icon"><svg viewBox="0 0 20 20"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="11" y="3" width="6" height="6" rx="1"/><rect x="3" y="11" width="6" height="6" rx="1"/><rect x="11" y="11" width="6" height="6" rx="1"/></svg></span><span class="app-nav-label">Sectors</span></button>
+      <button type="button" class="app-nav-item" data-nav="market-intelligence"><span class="app-nav-icon"><svg viewBox="0 0 20 20"><circle cx="5" cy="6" r="2.1"/><circle cx="15" cy="6" r="2.1"/><circle cx="10" cy="15" r="2.1"/><line x1="7" y1="6" x2="12.9" y2="6"/><line x1="6.2" y1="7.7" x2="8.9" y2="13.2"/><line x1="13.8" y1="7.7" x2="11.1" y2="13.2"/></svg></span><span class="app-nav-label">Market Intelligence</span></button>
+      <button type="button" class="app-nav-item" data-nav="etfs"><span class="app-nav-icon"><svg viewBox="0 0 20 20"><path d="M10,3 L17,6.5 V13.5 L10,17 L3,13.5 V6.5 Z"/><path d="M3,6.5 L10,10 L17,6.5"/><line x1="10" y1="10" x2="10" y2="17"/></svg></span><span class="app-nav-label">ETFs</span></button>
+      <button type="button" class="app-nav-item" data-nav="performance"><span class="app-nav-icon"><svg viewBox="0 0 20 20"><polyline points="3,15 8,9 12,12 17,5"/><polyline points="12.3,5 17,5 17,9.7"/></svg></span><span class="app-nav-label">Performance</span></button>
+      <button type="button" class="app-nav-item" data-nav="macro"><span class="app-nav-icon"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="7.3"/><ellipse cx="10" cy="10" rx="3.1" ry="7.3"/><line x1="2.7" y1="10" x2="17.3" y2="10"/></svg></span><span class="app-nav-label">Macro</span></button>
+    </nav>
+    <hr class="app-nav-divider">
+
+    <!-- Crypto section (2026-09-27, Jozsua: group everything crypto-related
+         together between Macro and Portfolio Builder). "Crypto" itself is
+         the live page; the other two are placeholders until the richer
+         React proof-of-concept content (Bitcoin Rainbow/Stock-to-Flow
+         chart, dedicated news+regulation tracker) is ported into this site. -->
+    <nav class="app-nav-group">
+      <button type="button" class="app-nav-item" data-nav="crypto"><span class="app-nav-icon"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="7.3"/><path d="M12.6,7.9 C12.6,6.8 11.5,6.1 10,6.1 C8.4,6.1 7.3,6.9 7.3,7.9 C7.3,10.1 12.6,9.6 12.6,12 C12.6,13.1 11.5,13.9 10,13.9 C8.5,13.9 7.4,13.2 7.4,12.1" /><line x1="10" y1="4.6" x2="10" y2="6.1"/><line x1="10" y1="13.9" x2="10" y2="15.4"/></svg></span><span class="app-nav-label">Crypto</span></button>
+      <button type="button" class="app-nav-item" data-nav="bitcoin-cycles"><span class="app-nav-icon"><svg viewBox="0 0 20 20"><path d="M2.5,15 C2.5,8 6.5,3.3 10,3.3 C13.5,3.3 17.5,8 17.5,15" stroke-width="1.6"/><path d="M4.3,15 C4.3,9 7.5,5.1 10,5.1 C12.5,5.1 15.7,9 15.7,15" stroke-width="1.6"/><path d="M6.1,15 C6.1,10 8.5,6.9 10,6.9 C11.5,6.9 13.9,10 13.9,15" stroke-width="1.6"/></svg></span><span class="app-nav-label">Crypto Cycles</span></button>
+      <button type="button" class="app-nav-item" data-nav="crypto-news"><span class="app-nav-icon"><svg viewBox="0 0 20 20"><rect x="3" y="5" width="14" height="11" rx="1.2"/><line x1="6" y1="8.2" x2="14" y2="8.2"/><line x1="6" y1="11" x2="14" y2="11"/><line x1="6" y1="13.6" x2="11" y2="13.6"/></svg></span><span class="app-nav-label">Crypto News</span></button>
+    </nav>
+    <hr class="app-nav-divider">
+
+    <!-- Prediction Markets (2026-10-01): live Polymarket odds. Its own
+         group since it's a distinct data source, not a sub-tab of
+         anything else already here. -->
+    <nav class="app-nav-group">
+      <button type="button" class="app-nav-item" data-nav="prediction-markets"><span class="app-nav-icon"><svg viewBox="0 0 20 20"><rect x="3" y="4" width="14" height="12" rx="1.5"/><line x1="11.5" y1="4" x2="11.5" y2="16"/></svg></span><span class="app-nav-label">Prediction Markets</span></button>
+    </nav>
+    <hr class="app-nav-divider">
+
+    <nav class="app-nav-group">
+      <button type="button" class="app-nav-item" data-nav="portfolio-builder"><span class="app-nav-icon"><svg viewBox="0 0 20 20"><rect x="4" y="13" width="12" height="3.3" rx="0.6"/><rect x="4" y="8.4" width="12" height="3.3" rx="0.6"/><rect x="4" y="3.8" width="12" height="3.3" rx="0.6"/></svg></span><span class="app-nav-label">Portfolio Builder</span></button>
+      <button type="button" class="app-nav-item" data-nav="watchlist"><span class="app-nav-icon"><svg viewBox="0 0 20 20" class="app-nav-icon-filled"><polygon points="10,3 12.2,7.8 17.5,8.4 13.6,11.9 14.7,17.2 10,14.5 5.3,17.2 6.4,11.9 2.5,8.4 7.8,7.8"/></svg></span><span class="app-nav-label">Watchlist</span></button>
+      <button type="button" class="app-nav-item" data-nav="portfolio-health-check"><span class="app-nav-icon"><svg viewBox="0 0 20 20"><path d="M10,16.3 C10,16.3 3.2,12 3.2,7.6 C3.2,5.2 5.1,3.7 7.1,3.7 C8.5,3.7 9.5,4.5 10,5.4 C10.5,4.5 11.5,3.7 12.9,3.7 C14.9,3.7 16.8,5.2 16.8,7.6 C16.8,12 10,16.3 10,16.3 Z"/><polyline points="5.3,9.5 8,9.5 9,7.2 11,11.8 12,9.5 14.7,9.5"/></svg></span><span class="app-nav-label">Portfolio Health Check</span></button>
+      <button type="button" class="app-nav-item" data-nav="compare"><span class="app-nav-icon"><svg viewBox="0 0 20 20"><line x1="10" y1="3" x2="10" y2="16"/><line x1="4" y1="6.2" x2="16" y2="6.2"/><path d="M4,6.2 L1.6,11 A2.4,2.4 0 0 0 6.4,11 Z"/><path d="M16,6.2 L13.6,11 A2.4,2.4 0 0 0 18.4,11 Z"/><line x1="7" y1="16.6" x2="13" y2="16.6"/></svg></span><span class="app-nav-label">Compare</span></button>
+    </nav>
+
+
+   <div class="app-sidebar-footer">
+    <section class="app-usage" id="apiUsageWidget" title="Approximate — counts requests your browser has sent, not actual hits on each provider (some are served from cache and never reach the API at all). Limits are each provider's published free-tier numbers.">
+      <button type="button" class="app-usage-heading" id="apiUsageToggle" aria-expanded="true">API usage (est.) <span class="app-usage-caret">▾</span></button>
+      <div id="apiUsageList"></div>
+    </section>
+    <p class="app-disclaimer">Educational use only — not financial advice. Free-tier data may be delayed, sampled or incomplete.</p>
+   </div>
+   </div>
+  </aside>
+
+  <div class="app-body">
+
+<header>
+  <div class="header-top">
+    <p class="tagline">Search a ticker to see the numbers, what they mean, and a plain-English read on the stock — all in one place.</p>
+    <div class="header-right">
+      <div class="market-clock" id="marketClock">
+        <div class="clock-time" id="clockTime">--:--:--</div>
+        <div class="clock-meta" id="clockMeta">Detecting timezone...</div>
+        <div class="clock-location hidden" id="clockLocation"></div>
+      </div>
+      <button id="whatsNewTrigger" class="whats-new-trigger" aria-label="What's new" title="What's new in $MSV">
+        🔔<span id="whatsNewBadge" class="whats-new-badge hidden"></span>
+      </button>
+      <button id="themeToggle" class="theme-toggle" aria-label="Toggle light/dark theme" title="Toggle light/dark theme">🌙</button>
+    </div>
+  </div>
+  <div class="search-row">
+    <div class="search-input-wrap">
+      <input type="text" id="tickerInput" placeholder="Search a company or ticker (e.g. Apple, AAPL)" autocomplete="off">
+      <div id="searchSuggestions" class="search-suggestions hidden"></div>
+    </div>
+    <button id="searchBtn">Search</button>
+    <button id="compareLink" class="compare-link">Compare</button>
+  </div>
+</header>
+
+<section id="homeView" class="home-view">
+  <div class="home-decor" aria-hidden="true"></div>
+
+  <div class="card home-hero-card" data-home-section="home-intro">
+    <div class="home-hero-main">
+      <h2 class="home-hero-title">The full picture, before you decide</h2>
+      <p class="home-intro-lead">$MSV gives you the full picture on any stock, ETF, or crypto ticker — valuation, financial health, and a clear, plain-English read on where it stands, so you understand what you're buying, not just its price. Layer in a snapshot of markets worldwide and the economic forces moving them, and you've got real context to work with. (Bonds and commodities are in here too, via the ETFs that track them.)</p>
+      <button type="button" class="home-how-to-trigger" id="howToTrigger">👋 New here? How to use $MSV</button>
+    </div>
+    <div class="home-hero-cta">
+      <p class="home-hero-cta-label">Create a free account</p>
+      <p class="home-hero-cta-sub">Save your watchlist and preferences across visits.</p>
+      <input type="email" class="home-hero-cta-input" placeholder="Enter email address" id="heroCtaEmail">
+      <button type="button" class="home-hero-cta-primary" id="heroCtaCreateBtn">Create Free Account</button>
+      <span class="home-hero-cta-soon">Coming soon — accounts aren't built yet</span>
+    </div>
+  </div>
+
+  <button type="button" id="learnBanner" class="learn-banner" data-home-section="home-intro">
+    <span class="learn-banner-icon">🎓</span>
+    <span class="learn-banner-copy">
+      <span class="learn-banner-title">New to investing? Start here</span>
+      <span class="learn-banner-subtitle">Plain-English explanations of everything on this site — stocks, ETFs, valuation, risk, options, and how to put it all together. No jargon left unexplained.</span>
+    </span>
+    <span class="learn-banner-arrow">→</span>
+  </button>
+
+  <div class="card world-markets-card" id="worldMarketsCard" data-home-section="world-markets market-data">
+    <h3>Global Markets <span class="card-subtitle" id="worldMarketsSummary"></span> <span class="sample-data-badge" title="Illustrative sample prices, not live data — kept static so loading this page never uses any of the free-tier API budget. The Market Data page uses live prices.">Sample prices</span></h3>
+    <div class="map-color-toggle" id="mapColorToggle"></div>
+    <div class="map-legend" id="mapLegend"></div>
+    <div class="world-markets-layout">
+      <div id="worldMarketsMap" class="world-markets-map"></div>
+      <div class="world-markets-side">
+        <div id="indexStrip" class="index-strip"></div>
+        <div id="countryDirectory" class="country-directory"></div>
+      </div>
+    </div>
+    <div id="marketBreadth" class="market-breadth"></div>
+    <p class="muted small map-hover-hint">Hover a country for a snapshot · click it (or a country in the list) for its full profile.</p>
+  </div>
+
+  <div id="mapHoverPopup" class="map-hover-popup hidden"></div>
+
+  <div class="card country-panel-card" id="countryPanelCard" data-home-section="market-data" data-page-only="true">
+    <div id="countryPanel"></div>
+  </div>
+
+  <div class="card risk-dashboard-card" id="riskDashboardCard" data-home-section="market-data" data-page-only="true">
+    <h3>Global risk dashboard <span class="card-subtitle">volatility, rates, inflation, credit and country risk — free public data</span></h3>
+    <div id="riskDashboard"></div>
+  </div>
+
+  <div class="home-grid">
+    <div class="card home-grid-item" id="recentlyViewedCard" data-home-section="recently-viewed">
+      <h3>Recently Viewed</h3>
+      <div id="recentlyViewedRow" class="recently-viewed-row hidden"></div>
+      <p id="recentlyViewedEmptyNote" class="sidebar-empty-note">Tickers you look up will show up here.</p>
+    </div>
+
+    <div class="card home-grid-item" id="didYouKnowCard" data-home-section="home-grid-misc">
+      <h3>Did You Know? <span class="card-subtitle">from the Learn hub</span></h3>
+      <div id="didYouKnowContent"></div>
+    </div>
+
+    <div class="card home-grid-item" id="econCalendarCard" data-home-section="econ-calendar">
+      <h3>Economic Calendar</h3>
+      <div id="econCalendarContent"><p class="muted">Loading...</p></div>
+    </div>
+
+    <div class="card home-grid-item" id="earningsCalendarCard" data-home-section="earnings-calendar">
+      <h3>Earnings This Week</h3>
+      <div id="earningsCalendarContent"><p class="muted">Loading...</p></div>
+    </div>
+
+    <div class="card home-grid-item home-grid-wide" id="sectorHeatmapCard" data-home-section="sector-heatmap">
+      <h3>Sector Performance <span class="card-subtitle">today</span></h3>
+      <div id="sectorHeatmapContent"><p class="muted">Loading...</p></div>
+    </div>
+
+    <div class="card home-grid-item" id="forexStripCard" data-home-section="forex-strip">
+      <h3>Currency <span class="card-subtitle">major FX pairs</span></h3>
+      <div id="forexStripContent"><p class="muted">Loading...</p></div>
+    </div>
+  </div>
+
+  <div class="card" id="watchlistCard" data-home-section="watchlist">
+    <h3>Watchlist</h3>
+    <div id="watchlistRow" class="recently-viewed-row hidden"></div>
+    <p id="watchlistEmptyNote" class="sidebar-empty-note">Tap the ☆ on any ticker page to track it here.</p>
+  </div>
+
+  <div class="home-controls" id="homeControlsCard" data-home-section="home-tabs">
+    <div id="homeTabs" class="home-tabs"></div>
+  </div>
+
+  <div class="card home-tab-card" data-home-section="home-tabs">
+    <div id="homeContent" class="home-content"><p class="muted">Loading...</p></div>
+  </div>
+
+  <div class="card mi-card" id="marketIntelCard" data-home-section="market-intelligence">
+    <h3>Market Intelligence <span class="card-subtitle">who depends on whom — the AI infrastructure supply chain</span></h3>
+    <div id="marketIntelContent"><p class="muted">Loading...</p></div>
+  </div>
+
+  <div class="card sectors-page-card" id="sectorsPageCard" data-home-section="sectors" data-page-only="true">
+    <h3>Sector performance <span class="card-subtitle">11 sectors, dozens of industries and themes — live, via tracking ETFs</span></h3>
+    <div id="sectorsRoot"></div>
+  </div>
+  <div class="card" id="secTableCard" data-home-section="sectors" data-page-only="true">
+    <div id="secTableRoot"></div>
+  </div>
+  <div class="card sector-detail-card hidden" id="sectorDetailCard" data-home-section="sectors" data-page-only="true" hidden>
+    <div id="sectorDetail"></div>
+  </div>
+
+  <div class="card etfs-page-card" id="etfsPageCard" data-home-section="etfs" data-page-only="true">
+    <h3>ETFs <span class="card-subtitle">every category, from US baskets to mining to crypto — pick a category to see live prices</span></h3>
+    <div id="etfsRoot"></div>
+  </div>
+
+  <div class="card" id="predictionMarketsPageCard" data-home-section="prediction-markets" data-page-only="true">
+    <h3>Prediction Markets <span class="card-subtitle">live odds from Polymarket — real money, not a poll</span></h3>
+    <div id="predictionMarketsRoot"></div>
+  </div>
+
+  <div class="card screener-page-card" id="screenerPageCard" data-home-section="stock-screener" data-page-only="true">
+    <h3>Stock Screener</h3>
+    <div class="chart-source-toggle" id="screenerSourceToggle">
+      <button type="button" id="screenerSourceMsvBtn" class="active">MSV Screener <span class="card-subtitle">MVP, ~94 curated stocks</span></button>
+      <button type="button" id="screenerSourceTvBtn">TradingView <span class="card-subtitle">free widget, full market</span></button>
+    </div>
+
+    <div id="screenerMsvArea">
+      <p class="muted small">Free-tier data source (Finnhub), same as the rest of this app — not a whole-market screener. Switch to the TradingView tab above for real whole-market screening.</p>
+      <div id="screenerFilterRoot"></div>
+      <div id="screenerTableRoot"><p class="muted">Loading...</p></div>
+    </div>
+
+    <div id="screenerTvArea" class="hidden">
+      <div id="screenerTvContainer" class="tv-screener-container"></div>
+      <p class="muted small">TradingView's own Screener, embedded via their free widget — real whole-market coverage, not limited to this app's curated list. Data and filters come straight from TradingView, not this app's Finnhub/Twelve Data proxy. Free to embed on a non-commercial site like this one; see CLAUDE.md for the licensing note if $MSV ever becomes commercial.</p>
+    </div>
+  </div>
+
+  <div class="card" id="marketNewsCard" data-home-section="market-news">
+    <h3>Market News</h3>
+    <div id="homeNewsList"><p class="muted">Loading...</p></div>
+  </div>
+</section>
+
+<section id="compareView" class="compare-view hidden">
+  <div class="card">
+    <h3>Compare Stocks <span class="card-subtitle">(up to 4 at once)</span></h3>
+    <div class="compare-input-row" id="compareInputRow">
+      <input type="text" class="compare-ticker-input" placeholder="Ticker (e.g. AAPL)">
+      <input type="text" class="compare-ticker-input" placeholder="Ticker (e.g. MSFT)">
+    </div>
+    <div class="compare-actions">
+      <button id="compareAddBtn" class="compare-add-btn" type="button">+ Add another</button>
+      <button id="compareRunBtn" type="button">Compare</button>
+    </div>
+    <p id="compareStatus" class="muted small"></p>
+  </div>
+  <div class="card hidden" id="compareResultsCard">
+    <h3>Comparison</h3>
+    <div id="compareResults" class="compare-results"></div>
+  </div>
+</section>
+
+<main id="dashboard" class="dashboard-grid hidden">
+
+  <div class="dashboard-left">
+
+    <section class="card overview">
+      <div class="overview-top">
+        <img id="logo" src="" alt="" class="logo hidden">
+        <div class="overview-title-block">
+          <h2 id="companyName">--</h2>
+          <div class="overview-meta">
+            <span id="ticker" class="ticker-badge">--</span>
+            <span id="exchange" class="meta-badge">--</span>
+            <span id="industry" class="meta-badge">--</span>
+          </div>
+        </div>
+        <button type="button" id="watchlistToggleBtn" class="watchlist-toggle-btn" aria-label="Add to watchlist" title="Add to watchlist">☆</button>
+      </div>
+      <div class="price-row">
+        <span id="price" class="price">--</span>
+        <span id="change" class="change">--</span>
+      </div>
+      <div class="mini-stats">
+        <div class="mini-stat"><span class="mini-stat-label">Open</span><span id="openVal">--</span></div>
+        <div class="mini-stat"><span class="mini-stat-label">Day High</span><span id="highVal">--</span></div>
+        <div class="mini-stat"><span class="mini-stat-label">Day Low</span><span id="lowVal">--</span></div>
+        <div class="mini-stat"><span class="mini-stat-label">Prev Close</span><span id="prevCloseVal">--</span></div>
+        <div class="mini-stat mini-stat-placeholder" title="Neither free data source used here returns a real after-hours price — this is a placeholder, not live data.">
+          <span class="mini-stat-label">After-Hours <span class="mini-stat-flag">sample</span></span>
+          <span id="afterHoursVal">--</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>About the Company</h3>
+      <div class="company-facts" id="companyFacts"></div>
+      <p id="descriptionContent" class="description-text">--</p>
+      <div id="upcomingEvents" class="upcoming-events"></div>
+      <div id="companyHeadlines" class="company-headlines"></div>
+    </section>
+
+    <section class="card">
+      <h3>Price Chart</h3>
+      <div class="chart-source-toggle" id="chartSourceToggle">
+        <button type="button" id="chartSourceCustomBtn" class="active">MSV Chart <span class="card-subtitle">(via Twelve Data)</span></button>
+        <button type="button" id="chartSourceTvBtn">TradingView <span class="card-subtitle">(free widget)</span></button>
+      </div>
+
+      <div id="customChartArea">
+        <div class="chart-range-row" id="chartRangeRow">
+          <button data-range="1H">1H</button>
+          <button data-range="4H">4H</button>
+          <button data-range="1D">1D</button>
+          <button data-range="1W">1W</button>
+          <button data-range="3M">3M</button>
+          <button data-range="6M" class="active">6M</button>
+          <button data-range="1Y">1Y</button>
+          <button data-range="5Y">5Y</button>
+        </div>
+        <div class="chart-overlay-row" id="chartOverlayRow">
+          <button data-overlay="sma20">SMA 20</button>
+          <button data-overlay="sma50">SMA 50</button>
+          <button data-overlay="ema20">EMA 20</button>
+          <button data-chart-type="candles" id="candleToggleBtn">Candlesticks</button>
+        </div>
+        <p class="muted small session-legend">1H/4H/1D show regular trading hours only — Twelve Data's free plan doesn't return pre/post-market prices.</p>
+        <div class="chart-wrap" id="chartWrap">
+          <canvas id="priceChart" data-css-height="460" height="460"></canvas>
+          <div id="chartTooltip" class="chart-tooltip hidden"></div>
+          <button id="resetZoomBtn" class="reset-zoom-btn hidden" title="Back to the full range">⤢ Reset zoom</button>
+        </div>
+        <p class="muted small zoom-hint">Scroll to zoom, drag to pan once zoomed in.</p>
+        <p id="chartNote" class="muted hidden"></p>
+
+        <div class="chart-subpanel">
+          <div class="chart-subpanel-label">Volume</div>
+          <canvas id="volumeChart" data-css-height="80" height="80"></canvas>
+        </div>
+        <div class="chart-subpanel">
+          <div class="chart-subpanel-label">RSI (14) <button class="help-btn" id="rsiHelpBtn">?</button></div>
+          <canvas id="rsiChart" data-css-height="90" height="90"></canvas>
+        </div>
+        <div class="chart-subpanel">
+          <div class="chart-subpanel-label">MACD (12, 26, 9) <button class="help-btn" id="macdHelpBtn">?</button></div>
+          <canvas id="macdChart" data-css-height="90" height="90"></canvas>
+        </div>
+        <p id="srNote" class="muted small"></p>
+      </div>
+
+      <div id="tvChartArea" class="hidden">
+        <div id="tvChartContainer" class="tv-chart-container"></div>
+        <p class="muted small">Full TradingView charting engine, embedded via their free widget — real-time-ish data comes straight from TradingView, not this app's own Finnhub/Twelve Data proxy, so small differences from the MSV Chart are expected. Free to embed on a non-commercial site like this one; a paid TradingView agreement would be needed if $MSV ever becomes a commercial (revenue-generating) product — see CLAUDE.md.</p>
+      </div>
+    </section>
+
+    <section class="card" id="valuationSection">
+      <h3 id="valuationTitle">Valuation</h3>
+      <div class="grid" id="valuationGrid"></div>
+      <div id="valuationExample" class="real-life-example"></div>
+    </section>
+
+    <section class="card" id="growthSection">
+      <h3>Growth</h3>
+      <div class="grid" id="growthGrid"></div>
+      <div id="growthExample" class="real-life-example"></div>
+    </section>
+
+    <section class="card" id="profitabilitySection">
+      <h3>Profitability</h3>
+      <div class="grid" id="profitabilityGrid"></div>
+      <div id="profitabilityExample" class="real-life-example"></div>
+    </section>
+
+    <section class="card" id="efficiencySection">
+      <h3>Efficiency</h3>
+      <div class="grid" id="efficiencyGrid"></div>
+      <div id="efficiencyExample" class="real-life-example"></div>
+    </section>
+
+    <section class="card" id="healthSection">
+      <h3 id="healthTitle">Financial Health</h3>
+      <div class="grid" id="healthGrid"></div>
+      <div id="healthExample" class="real-life-example"></div>
+    </section>
+
+    <section class="card" id="riskSection">
+      <h3>Risk</h3>
+      <div class="grid" id="riskGrid"></div>
+      <div id="riskExample" class="real-life-example"></div>
+    </section>
+
+    <section class="card" id="dividendsSection">
+      <h3>Dividends</h3>
+      <div class="grid" id="dividendsGrid"></div>
+      <div id="dividendsExample" class="real-life-example"></div>
+    </section>
+
+    <section class="card" id="momentumSection">
+      <h3>Momentum</h3>
+      <div class="grid" id="momentumGrid"></div>
+      <div id="momentumExample" class="real-life-example"></div>
+    </section>
+
+    <section class="card">
+      <h3 id="rangeTitle">52-Week Range
+        <button id="rangeHelpBtn" class="help-btn">?</button>
+      </h3>
+      <div class="range-gauge-wrap hidden" id="rangeGaugeWrap">
+        <div class="range-gauge">
+          <div class="range-gauge-marker" id="rangeGaugeMarker"></div>
+        </div>
+        <div class="range-gauge-labels">
+          <span id="rangeLowLabel">--</span>
+          <span id="rangeHighLabel">--</span>
+        </div>
+      </div>
+      <div class="grid" id="rangeGrid"></div>
+    </section>
+
+    <section class="card hidden" id="optionsSection">
+      <h3>Options
+        <button id="optionsHelpBtn" class="help-btn">?</button>
+        <span class="card-subtitle">(more strikes/expirations available — no Greeks/IV on the free data feed)</span>
+      </h3>
+      <div id="optionsContent"></div>
+    </section>
+
+    <section class="card">
+      <h3>What If You'd Invested? <span class="card-subtitle">(historical price return — not a forecast)</span></h3>
+      <div id="investContent">
+        <p class="muted">Loading price history...</p>
+      </div>
+    </section>
+
+    <section class="card" id="earningsSection">
+      <h3>Recent Earnings</h3>
+      <div id="earningsContent"></div>
+    </section>
+
+    <section class="card" id="financialsSection">
+      <h3>Financial Statements <span class="card-subtitle">(from SEC-filed reports, via Finnhub)</span></h3>
+      <div id="financialsContent"></div>
+    </section>
+
+    <section class="card" id="sharesSection">
+      <h3>Shares Breakdown
+        <button id="sharesHelpBtn" class="help-btn">?</button>
+      </h3>
+      <div id="sharesContent"></div>
+    </section>
+
+    <section class="card">
+      <h3>Who Holds This Stock</h3>
+      <div id="ownershipContent"></div>
+    </section>
+
+    <section class="card" id="filingsSection">
+      <h3>SEC Filings <span class="card-subtitle">(direct links to EDGAR)</span></h3>
+      <div id="filingsContent"></div>
+    </section>
+
+    <section class="card" id="insiderSection">
+      <h3>Insider Transactions
+        <button id="insiderHelpBtn" class="help-btn">?</button>
+      </h3>
+      <div id="insiderContent"></div>
+    </section>
+
+    <section class="card" id="peersSection">
+      <h3>Similar Stocks</h3>
+      <div id="peersContent"></div>
+    </section>
+
+    <section class="card">
+      <h3>Latest News</h3>
+      <div id="newsContent"></div>
+    </section>
+
+  </div>
+
+  <div class="dashboard-right">
+
+    <section class="card hidden" id="homeMarketCard">
+      <h3>Home Market <span class="card-subtitle">(real-time, no API cost)</span></h3>
+      <div id="homeMarketContent"></div>
+    </section>
+
+    <section class="card" id="recommendationSection">
+      <h3>Analyst Recommendations
+        <button id="recommendationHelpBtn" class="help-btn">?</button>
+      </h3>
+      <div id="recommendationContent"></div>
+    </section>
+
+    <section class="card">
+      <h3>Price Reference Points <span class="card-subtitle">(historical, not a forecast)</span></h3>
+      <div id="scenarioContent"></div>
+    </section>
+
+    <section class="card outlook-card">
+      <h3>Outlook <span class="card-subtitle">(rule-based — not financial advice)</span></h3>
+      <p id="outlookHeadline" class="outlook-headline">--</p>
+      <ul id="outlookBullets" class="outlook-bullets"></ul>
+      <p id="outlookCaveat" class="muted small"></p>
+    </section>
+
+  </div>
+
+</main>
+
+<section id="placeholderView" class="placeholder-view hidden"></section>
+
+  </div>
+</div>
+
+<div id="status" class="status"></div>
+
+<div id="tooltipOverlay" class="tooltip-overlay hidden"></div>
+<div id="tooltipPopup" class="tooltip-popup hidden">
+  <div class="tooltip-header">
+    <strong id="tooltipTerm"></strong>
+    <button id="tooltipClose">&times;</button>
+  </div>
+  <p id="tooltipWhat" class="tooltip-what"></p>
+  <p id="tooltipFormula" class="tooltip-formula"></p>
+  <p class="tooltip-line"><span class="tooltip-tag tag-high">High usually means</span></p>
+  <p id="tooltipHigh" class="tooltip-detail"></p>
+  <p class="tooltip-line"><span class="tooltip-tag tag-low">Low usually means</span></p>
+  <p id="tooltipLow" class="tooltip-detail"></p>
+  <p id="tooltipSectorDynamic" class="tooltip-dynamic hidden"></p>
+  <p class="tooltip-line"><span class="tooltip-tag tag-sector">In this sector, generally</span></p>
+  <p id="tooltipSector" class="tooltip-detail"></p>
+</div>
+
+<div id="howToModalOverlay" class="tooltip-overlay hidden"></div>
+<div id="howToModal" class="how-to-modal hidden" role="dialog" aria-modal="true" aria-labelledby="howToSlides">
+  <button type="button" id="howToModalClose" class="how-to-modal-close" aria-label="Close">&times;</button>
+  <div id="howToSlides" class="how-to-slides"></div>
+  <div class="how-to-modal-nav">
+    <button type="button" id="howToPrev" class="how-to-nav-btn">‹ Back</button>
+    <div id="howToDots" class="how-to-dots"></div>
+    <button type="button" id="howToNext" class="how-to-nav-btn how-to-nav-btn-primary">Next ›</button>
+  </div>
+</div>
+
+<div id="whatsNewOverlay" class="tooltip-overlay hidden"></div>
+<div id="whatsNewModal" class="whats-new-modal hidden" role="dialog" aria-modal="true" aria-labelledby="whatsNewTitle">
+  <div class="whats-new-header">
+    <h3 id="whatsNewTitle">🔔 What's new in $MSV</h3>
+    <button type="button" id="whatsNewClose" class="how-to-modal-close" aria-label="Close">&times;</button>
+  </div>
+  <div id="whatsNewList" class="whats-new-list"></div>
+</div>
+
+<script>
+  // config.js holds real API keys for local development only and never
+  // exists on the deployed site on purpose (see CLAUDE.md's "Config /
+  // secrets" — the deployed site calls msv-api instead, which holds the
+  // real keys). Loading it unconditionally used to be a harmless silent
+  // 404. It no longer is: the single-page-app fallback added 2026-09-24
+  // (wrangler.jsonc's not_found_handling) answers ANY missing path with
+  // the full HTML page instead of a real 404 — and a <script> tag fed
+  // HTML instead of JS throws a real "Unexpected token '<'" parse error
+  // in the console (found 2026-09-27). Fix: only request the file where
+  // it can actually exist. Keep this hostname list in sync with
+  // IS_LOCAL_DEV in script.js.
+  if (["localhost", "127.0.0.1", ""].includes(location.hostname)) {
+    document.write('<script src="config.js"><\/script>');
+  }
+</script>
+<script src="definitions.js"></script>
+<script src="changelog.js"></script>
+<script src="sectorRules.js"></script>
+<script src="analysis.js"></script>
+<script src="clock.js"></script>
+<script src="script.js"></script>
+<script src="dataUtils.js"></script>
+<script src="apiUsage.js"></script>
+<script src="countries.js"></script>
+<script src="worldMarkets.js"></script>
+<script src="macro.js"></script>
+<script src="marketData.js"></script>
+<script src="riskDashboard.js"></script>
+<script src="supplyChain.js"></script>
+<script src="sectors.js"></script>
+<script src="etfs.js"></script>
+<script src="predictionMarkets.js"></script>
+<script src="home.js"></script>
+<script src="screener.js"></script>
+<script src="learn.js"></script>
+<script src="chart.js"></script>
+<script src="tradingview.js"></script>
+<script src="invest.js"></script>
+<script src="autocomplete.js"></script>
+<script src="compare.js"></script>
+</body>
+</html>
