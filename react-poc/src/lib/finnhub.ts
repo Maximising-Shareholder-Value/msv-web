@@ -128,6 +128,7 @@ export function getIpoCalendar(from: string, to: string): Promise<IpoRow[] | nul
 export interface Profile {
   name?: string;
   marketCapitalization?: number;  // in millions of USD
+  logo?: string;                  // company logo image URL
 }
 
 const profileCache = new Map<string, Cached<Profile | null>>();

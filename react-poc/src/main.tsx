@@ -10,6 +10,9 @@ import { NewsPage } from "./components/NewsPage";
 import { EtfsPage } from "./components/EtfsPage";
 import { ScreenerPage } from "./components/ScreenerPage";
 import { MarketDataPage } from "./components/MarketDataPage";
+import { MarketIntelPage } from "./components/MarketIntelPage";
+import { LearnPage } from "./components/LearnPage";
+import { HomePage } from "./components/HomePage";
 import { PageNav } from "./components/PageNav";
 
 // One build, several pages. The page is picked from the query string
@@ -20,7 +23,7 @@ const page = new URLSearchParams(location.search).get("page");
 
 // Each page gets its own browser-tab title. The Crypto page keeps its own, set in index.html.
 const TITLES: Record<string, string> = {
-  sectors: "Sectors", etfs: "ETFs", screener: "Stock Screener", ipo: "IPO Calendar", news: "Market News", "market-data": "Market Data",
+  sectors: "Sectors", etfs: "ETFs", screener: "Stock Screener", ipo: "IPO Calendar", news: "Market News", "market-data": "Market Data", "market-intel": "Market Intelligence", learn: "Learn", home: "Markets",
 };
 if (page && TITLES[page]) document.title = `$MSV — ${TITLES[page]}`;
 
@@ -41,6 +44,9 @@ function CurrentPage() {
   if (page === "etfs") return <Framed current="etfs"><EtfsPage /></Framed>;
   if (page === "screener") return <Framed current="screener"><ScreenerPage /></Framed>;
   if (page === "market-data") return <Framed current="market-data"><MarketDataPage /></Framed>;
+  if (page === "market-intel") return <Framed current="market-intel"><MarketIntelPage /></Framed>;
+  if (page === "learn") return <Framed current="learn"><LearnPage /></Framed>;
+  if (page === "home") return <Framed current="home"><HomePage /></Framed>;
   return <App />;
 }
 
