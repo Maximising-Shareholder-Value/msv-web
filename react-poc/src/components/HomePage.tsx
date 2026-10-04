@@ -7,30 +7,47 @@
 // 6. Currencies, the learn topics, the explore pages, and your lists
 // Every section is in the page flow, so it reads like a front page.
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useMemo, useRef, useState, type ReactNode } from "react";
 import { BROWSE_CATEGORIES, RANKING_STOCK_SYMBOLS } from "../data/home";
 import { LEARN_CATEGORIES } from "../data/learn";
-import { EXPLORE_DIRECTORY } from "../data/explore";
-import { COUNTRY_LIST, exchangeStatus, localTime, type Country } from "../lib/markets";
-import { getNews, type Quote } from "../lib/finnhub";
+import { EXPLORE_DIRECTORY, EXPLORE_CATEGORIES } from "../data/explore";
+import type { Quote } from "../lib/finnhub";
 import { useQuotes } from "../lib/useQuotes";
 import { fmtPct, fmtPrice, changeClass } from "../lib/format";
-import type { NewsItem } from "../lib/types";
-import { IndexStrip, SectorHeatmap, ForexStrip, EconCalendar } from "./HomeWidgets";
+import { IndexStrip, ForexStrip, EconCalendar } from "./HomeWidgets";
+import { HomeNews } from "./HomeNews";
+import { HomeGlance, MarketsTodayNote } from "./HomeGlance";
+import { HomeSectors } from "./HomeSectors";
 import { MarketBreadth, EarningsCalendar, CryptoTable } from "./HomeMore";
-import { RecentlyViewed, Watchlist, HowTo } from "./HomeLists";
+import { RecentlyViewed, Watchlist } from "./HomeLists";
 import { WorldMap } from "./WorldMap";
-import { ExploreTile } from "./ExplorePage";
+import { CountryExplorer } from "./CountryExplorer";
+import { HomeRibbon } from "./HomeRibbon";
+import { HomeSearch } from "./HomeSearch";
+import { HomeMarketIntel } from "./HomeMarketIntel";
+import { HomeHowTo } from "./HomeHowTo";
+import { SiteFooter } from "./SiteFooter";
+import { hrefFor as exploreHrefFor } from "./ExplorePage";
 
 interface Row { symbol: string; name: string; quote: Quote }
 
-const FEATURED = ["sectors", "etfs", "stock-screener", "market-data", "market-intelligence", "macro", "prediction-markets", "compare", "market-news", "ipo", "explore-products"];
-
-const timeAgo = (unixSeconds: number) => {
-  const mins = Math.max(0, Math.round((Date.now() - unixSeconds * 1000) / 60000));
-  if (mins < 60) return `${mins}m ago`;
-  if (mins < 1440) return `${Math.round(mins / 60)}h ago`;
-  return `${Math.round(mins / 1440)}d ago`;
+// One simple line icon per Explore category, so each group reads as its own block.
+const ICON_OPEN = `<svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">`;
+const EXPLORE_COLORS: Record<string, string> = {
+  "Get Started": "#0ea5e9",
+  "Stock Analysis": "#10b981",
+  "Market Outlook": "#6366f1",
+  "Market Intelligence": "#f59e0b",
+  "Portfolio Tools": "#ec4899",
+  "Learn & Premium": "#8b5cf6",
+};
+const EXPLORE_ICONS: Record<string, string> = {
+  "Get Started": `${ICON_OPEN}<path d="M5 17V3"/><path d="M5 4h9l-2 3 2 3H5"/></svg>`,
+  "Stock Analysis": `${ICON_OPEN}<line x1="5" y1="17" x2="5" y2="11"/><line x1="10" y1="17" x2="10" y2="7"/><line x1="15" y1="17" x2="15" y2="4"/></svg>`,
+  "Market Outlook": `${ICON_OPEN}<circle cx="10" cy="10" r="7"/><ellipse cx="10" cy="10" rx="3" ry="7"/><line x1="3" y1="10" x2="17" y2="10"/></svg>`,
+  "Market Intelligence": `${ICON_OPEN}<circle cx="5" cy="10" r="2"/><circle cx="15" cy="5" r="2"/><circle cx="15" cy="15" r="2"/><line x1="7" y1="9" x2="13" y2="6"/><line x1="7" y1="11" x2="13" y2="14"/></svg>`,
+  "Portfolio Tools": `${ICON_OPEN}<rect x="3" y="6" width="14" height="10" rx="1.5"/><path d="M7 6V4.5h6V6"/></svg>`,
+  "Learn & Premium": `${ICON_OPEN}<path d="M3 4h5a2 2 0 0 1 2 2v11a2 1.5 0 0 0-2-1.5H3z"/><path d="M17 4h-5a2 2 0 0 0-2 2v11a2 1.5 0 0 1 2-1.5h5z"/></svg>`,
 };
 
 /** One section of the page: a heading, a one-line explanation, then its content. */
@@ -81,6 +98,13 @@ function QuoteTable({ rows, empty }: { rows: Row[]; empty: string }) {
 
 export function HomePage() {
   const [cat, setCat] = useState("trending-tech");
+  // The country shown in the panel below the map. A map click also scrolls down to that panel.
+  const [iso2, setIso2] = useState("US");
+  const countryRef = useRef<HTMLDivElement>(null);
+  const pickFromMap = (code: string) => {
+    setIso2(code);
+    countryRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
   const category = BROWSE_CATEGORIES.find(c => c.id === cat) ?? BROWSE_CATEGORIES[0];
   const rankingQuotes = useQuotes(RANKING_STOCK_SYMBOLS.map(([s]) => s));
   const browseQuotes = useQuotes(category.items.map(([s]) => s));
@@ -100,41 +124,56 @@ export function HomePage() {
     .map(([symbol, name]) => ({ symbol, name, quote: browseQuotes[symbol] }))
     .filter((r): r is Row => !!r.quote);
 
-  const featured = FEATURED
-    .map(nav => EXPLORE_DIRECTORY.find(e => e.nav === nav))
-    .filter((e): e is NonNullable<typeof e> => !!e);
-
   return (
     <div className="hp">
-      {/* 1. What $MSV is */}
-      <Section id="about" title="Markets today" lead={new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric", year: "numeric" })}>
+      <HomeRibbon />
+      <HomeSearch />
+
+      {/* 1. What $MSV is. The sign-up box runs the same height as the intro text. */}
+      <section className="hp-section hp-about-section" id="about">
         <div className="hp-about">
           <div className="hp-about-text">
+            <header className="hp-section-head">
+              <h2>Markets today</h2>
+              <p className="muted">{new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric", year: "numeric" })}</p>
+            </header>
             <p className="hp-lede">$MSV is a plain-English market dashboard. It gives you the full picture on any stock, ETF or crypto ticker: the numbers, what they mean, and where the company stands against its sector.</p>
+            <MarketsTodayNote />
             <p>Use it to see what's moving around the world, dig into a single company, compare names side by side, browse ETFs and sectors, follow the economic calendar, and learn the terms as you go. Nothing here is investment advice.</p>
-            <div className="hp-about-links">
-              <a className="hp-btn" href="#global">Global markets</a>
-              <a className="hp-btn hp-btn-ghost" href="#how-to">How to use $MSV</a>
-              <a className="hp-btn hp-btn-ghost" href="/app/?page=learn">New to investing? Start here</a>
-            </div>
           </div>
-          <div className="hp-about-side">
-            <MarketBreadth />
-            <div className="hp-signup">
-              <p className="hp-signup-label">Create a free account</p>
-              <p className="muted small">Save your watchlist and preferences across visits.</p>
-              <a className="hp-btn" href="/app/?page=placeholder&key=create-account">Create Free Account</a>
-              <span className="muted small">Coming soon: accounts aren't built yet.</span>
+          <div className="hp-signup">
+            <span className="hp-signup-badge">Free · coming soon</span>
+            <p className="hp-signup-label">Create a free account</p>
+            <p className="muted small">Accounts are being built. Once they're live, your data follows you from visit to visit.</p>
+            <ul className="hp-signup-list">
+              <li>A watchlist and your recently viewed tickers, kept between visits</li>
+              <li>Price and news alerts for the tickers you follow</li>
+              <li>Your theme and default country, on every page</li>
+            </ul>
+            <div className="hp-signup-social">
+              <button type="button" className="hp-social" disabled>Continue with Google</button>
+              <button type="button" className="hp-social" disabled>Continue with Apple</button>
             </div>
+            <a className="hp-btn" href="/app/?page=placeholder&key=create-account">Create Free Account</a>
           </div>
         </div>
-        <div className="hp-strip"><IndexStrip /></div>
+        <HomeGlance />
+      </section>
+
+      {/* Market news, with pictures, between the intro and the map */}
+      <Section id="news" title="Market news" lead="The latest headlines from the Finnhub news wire.">
+        <HomeNews />
       </Section>
 
-      {/* 2. Global markets */}
+      {/* 2. Global markets: country bubbles, the map, the breadth bar, then the country panel */}
       <Section id="global" title="Global markets" lead="Click a country on the map, or pick one below, for its market hours, live index price and economy.">
-        <WorldMap selected={null} onSelect={iso2 => { location.href = `/app/?page=market-data&country=${iso2}`; }} quotes={{}} mode="groups" onMode={() => {}} wbData={{}} showModes={false} />
-        <CountryPicker />
+        <div className="hp-strip"><IndexStrip /></div>
+        <p className="hp-map-hint">Hover a country to highlight it, then click to select it. Its details open below the map.</p>
+        <WorldMap selected={iso2} onSelect={pickFromMap} quotes={{}} mode="groups" onMode={() => {}} wbData={{}} showModes={false} />
+        <div className="hp-breadth"><MarketBreadth /></div>
+        <div ref={countryRef} className="hp-country-anchor">
+          <CountryExplorer iso2={iso2} onPick={setIso2} />
+        </div>
       </Section>
 
       {/* 3. Gainers and losers */}
@@ -159,8 +198,8 @@ export function HomePage() {
       </Section>
 
       {/* 5. Sectors, earnings, calendar, news */}
-      <Section id="sectors" title="Sectors today" lead="The eleven US sectors, coloured by today's move in their tracking ETF. Click through on the Sectors page.">
-        <SectorHeatmap />
+      <Section id="sectors" title="Sectors today" lead="Each tile is a sector's tracking ETF. The bar shows how far it moved today. Switch to industries and themes for the finer detail, or click a tile for its page.">
+        <HomeSectors />
       </Section>
       <div className="hp-two">
         <Section id="earnings" title="Earnings this week" lead="Companies reporting in the next seven days.">
@@ -170,115 +209,108 @@ export function HomePage() {
           <EconCalendar />
         </Section>
       </div>
-      <Section id="news" title="Market news" lead="The latest headlines from the Finnhub news wire.">
-        <TopNews />
+      {/* 5b. Market intelligence: a small view of the AI supply chain */}
+      <Section id="intel" title="Market intelligence" lead="How the AI supply chain fits together, from the chips to the apps. The full map has the sourced links and the inferred ones, labelled.">
+        <HomeMarketIntel />
       </Section>
 
       {/* 6. Currencies, learn, explore, your lists */}
       <Section id="currencies" title="Currencies" lead="Major pairs, from Twelve Data.">
         <ForexStrip />
       </Section>
-      <Section id="learn" title="Learn" lead="Plain-English explanations of what you're looking at across the site.">
-        <div className="explore-grid">
-          {LEARN_CATEGORIES.filter(c => c.topics.length > 0).map(c => (
-            <a key={c.id} className="explore-tile" href="/app/?page=learn">
-              <span className="learn-category-icon">{c.icon}</span>
+      <Section id="learn" title="Learn" lead="Short, plain-English lessons on the terms you'll meet across the site.">
+        <div className="hp-learn-grid">
+          {LEARN_CATEGORIES.filter(c => c.topics.length > 0).map((c, i) => (
+            <a key={c.id} className="hp-learn-card" href="/app/?page=learn">
+              <span className="hp-learn-index">{String(i + 1).padStart(2, "0")}</span>
               <strong>{c.title}</strong>
-              <span className="explore-tile-desc">{c.blurb}</span>
+              <span className="muted small">{c.blurb}</span>
+              <span className="hp-learn-meta">{c.topics.length} lessons · {c.topics.slice(0, 2).map(t => t.title).join(" · ")}</span>
             </a>
           ))}
         </div>
       </Section>
-      <Section id="explore" title="Explore $MSV" lead="Every part of the site.">
-        <div className="explore-grid">
-          {featured.map(item => <ExploreTile key={item.nav} item={item} />)}
+      <Section id="explore" title="Explore $MSV" lead="Every page on the site, grouped by what it's for.">
+        <p className="hp-explore-count">
+          {EXPLORE_DIRECTORY.filter(e => e.live).length} pages are live, and {EXPLORE_DIRECTORY.filter(e => !e.live).length} are on the roadmap. They're grouped below by what they're for.
+        </p>
+        <div className="hp-explore-cols">
+          {EXPLORE_CATEGORIES.map(cat => (
+            <div key={cat.title} className="hp-explore-col">
+              <h4>
+                <span
+                  className="hp-explore-icon"
+                  style={{ color: EXPLORE_COLORS[cat.title], background: `color-mix(in srgb, ${EXPLORE_COLORS[cat.title]} 16%, transparent)` }}
+                  dangerouslySetInnerHTML={{ __html: EXPLORE_ICONS[cat.title] ?? "" }}
+                />
+                {cat.title}
+              </h4>
+              <ul>
+                {cat.items.map(nav => {
+                  const item = EXPLORE_DIRECTORY.find(e => e.nav === nav);
+                  if (!item) return null;
+                  return (
+                    <li key={nav}>
+                      {item.live
+                        ? <a href={exploreHrefFor(item)}>{item.title}</a>
+                        : <span className="muted">{item.title} <em>soon</em></span>}
+                      <span className="hp-explore-desc">{item.description}</span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ))}
         </div>
         <p className="hp-more"><a href="/app/?page=explore">See every page →</a></p>
       </Section>
-      <div className="hp-two">
-        <Section id="lists" title="Your lists" lead="Recently viewed tickers and your watchlist.">
-          <RecentlyViewed />
-          <Watchlist />
+
+      {/* 7. Your lists, a fact to learn from, and the walkthrough */}
+      <div className="hp-trio">
+        <Section id="lists" title="Your lists" lead="Recently viewed tickers and your watchlist. Star a ticker's page to add it to the watchlist.">
+          <div className="hp-lists">
+            <RecentlyViewed />
+            <Watchlist />
+            <div className="hp-suggest">
+              <span className="hp-suggest-label">Start with one of these</span>
+              <div className="hp-suggest-chips">
+                {["AAPL", "NVDA", "MSFT", "SPY", "TLT"].map(s => (
+                  <a key={s} href={`/app/?page=ticker&symbol=${s}`}>{s}</a>
+                ))}
+              </div>
+            </div>
+          </div>
         </Section>
-        <Section id="dyk" title="Did you know">
+        <Section id="dyk" title="Did you know" lead="A lesson from Learn, picked for today.">
           <DidYouKnow />
         </Section>
       </div>
-      <Section id="how-to" title="How to use $MSV" lead="A short walkthrough.">
-        <HowTo />
+      <Section id="how-to" title="How to use $MSV" lead="Five steps to get the most out of the site.">
+        <HomeHowTo />
       </Section>
+      <SiteFooter />
     </div>
   );
 }
 
-/** Pick a country: its market status, local time, hours, and the live price of its index proxy. */
-function CountryPicker() {
-  const [iso2, setIso2] = useState("US");
-  const country: Country | undefined = COUNTRY_LIST.find(c => c.iso2 === iso2);
-  const quote = useQuotes(country?.etf ? [country.etf] : [])[country?.etf ?? ""];
-  const status = country ? exchangeStatus(country) : null;
-  return (
-    <div className="hp-country">
-      <label className="hp-country-pick">
-        <span className="muted small">Country</span>
-        <select value={iso2} onChange={e => setIso2(e.target.value)}>
-          {COUNTRY_LIST.map(c => <option key={c.iso2} value={c.iso2}>{c.flag} {c.name}</option>)}
-        </select>
-      </label>
-      {country && (
-        <div className="hp-country-card">
-          <div>
-            <strong>{country.flag} {country.name}</strong>
-            <p className="muted small">{country.ex || "No exchange tracked"} · {country.city}</p>
-          </div>
-          <div>
-            <span className="muted small">Market</span>
-            <strong className={status?.isOpen ? "positive" : ""}>{status ? (status.isOpen ? "Open now" : "Closed") : "—"}</strong>
-            {country.tz && <p className="muted small">Local time {localTime(country.tz)}{country.open && country.close ? ` · hours ${country.open}–${country.close}` : ""}</p>}
-          </div>
-          <div>
-            <span className="muted small">{country.etf ? `${country.etf} (index proxy)` : "No index ETF"}</span>
-            <strong>{country.etf ? (quote ? `${fmtPrice(quote.c)} ${fmtPct(quote.dp)}` : "Loading…") : "Macro data only"}</strong>
-          </div>
-          <a className="hp-btn" href={`/app/?page=market-data&country=${country.iso2}`}>Open the {country.name} profile</a>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function TopNews() {
-  const [items, setItems] = useState<NewsItem[] | null | undefined>(undefined);
-  useEffect(() => {
-    let live = true;
-    getNews("general").then(n => { if (live) setItems(n); });
-    return () => { live = false; };
-  }, []);
-  if (items === undefined) return <p className="muted small">Loading…</p>;
-  if (items === null) return <p className="muted small">Couldn't load market news right now.</p>;
-  return (
-    <div className="hp-news-grid">
-      {items.slice(0, 12).map((n, i) => (
-        <a key={`${n.url}-${i}`} className="hp-news-row" href={n.url} target="_blank" rel="noopener noreferrer">
-          <strong>{n.headline}</strong>
-          <span className="muted small">{n.source} · {timeAgo(n.datetime)}</span>
-        </a>
-      ))}
-    </div>
-  );
-}
-
+/** One lesson from Learn, the same for everyone on a given day: its idea, a worked example, and a tip. */
 function DidYouKnow() {
   const all = LEARN_CATEGORIES.flatMap(cat => cat.topics.map(topic => ({ cat, topic })));
   if (!all.length) return null;
   const dayNum = Number(new Date().toISOString().slice(0, 10).replaceAll("-", ""));
   const { cat, topic } = all[dayNum % all.length];
   return (
-    <>
-      <p><strong>{topic.title}:</strong> {topic.oneLiner}</p>
+    <div className="hp-dyk">
+      <span className="hp-dyk-cat">{cat.title}</span>
+      <strong className="hp-dyk-title">{topic.title}</strong>
+      <p className="hp-dyk-idea">{topic.oneLiner}</p>
       <p className="muted small" dangerouslySetInnerHTML={{ __html: topic.body[0] }} />
-      <a href="/app/?page=learn" className="hp-link">Read more in {cat.title} →</a>
-    </>
+      <div className="hp-dyk-example">
+        <span className="hp-dyk-label">Example</span>
+        <p dangerouslySetInnerHTML={{ __html: topic.example }} />
+      </div>
+      <a href="/app/?page=learn" className="hp-link">Read the full lesson →</a>
+    </div>
   );
 }
 

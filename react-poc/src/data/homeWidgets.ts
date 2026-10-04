@@ -69,6 +69,9 @@ export const SECTOR_ETFS = [
 export const FOREX_PAIRS = [
   ["EUR/USD", "Euro"], ["GBP/USD", "British Pound"], ["USD/JPY", "Japanese Yen"],
   ["USD/SGD", "Singapore Dollar"], ["USD/AUD", "Australian Dollar"], ["USD/CHF", "Swiss Franc"],
+  // Added 2026-10-04, each checked live against the Twelve Data proxy the same day.
+  ["USD/CAD", "Canadian Dollar"], ["USD/CNH", "Chinese Yuan (offshore)"], ["USD/INR", "Indian Rupee"],
+  ["USD/BRL", "Brazilian Real"], ["USD/KRW", "South Korean Won"], ["USD/MXN", "Mexican Peso"],
 ];
 
 // Hand-maintained on purpose (2026-09-19 roadmap note: "dates are known

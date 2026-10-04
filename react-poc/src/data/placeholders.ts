@@ -1,9 +1,22 @@
 // data/placeholders.ts — the "Coming soon" pages: icon, title and the plain-English
 // description of what each one will be. Copied from ../../home.js (PLACEHOLDER_INFO).
 
-export interface PlaceholderInfo { icon: string; title: string; description: string }
+export interface PlaceholderInfo { icon: string; title: string; description: string; includes?: string[] }
 
 export const PLACEHOLDER_INFO: Record<string, PlaceholderInfo> = {
+  // Working name "Ask $MSV AI Anaiyst". The spelling is intentional. The icon is a small inline SVG logo, not an emoji.
+  "ai": {
+    icon: "<svg viewBox=\"0 0 48 48\" width=\"64\" height=\"64\" aria-hidden=\"true\"><rect x=\"2\" y=\"2\" width=\"44\" height=\"44\" rx=\"12\" style=\"fill:var(--accent,#10b981)\"/><path d=\"M13.5,34 L24,12.5 L34.5,34\" fill=\"none\" stroke=\"#ffffff\" stroke-width=\"4.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><line x1=\"18.4\" y1=\"26.4\" x2=\"29.6\" y2=\"26.4\" stroke=\"#ffffff\" stroke-width=\"3.4\" stroke-linecap=\"round\"/><polyline points=\"30,15.6 35.4,10.2 35.4,16.6\" fill=\"none\" stroke=\"#ffffff\" stroke-width=\"2.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>",
+    title: "Ask $MSV AI Anaiyst",
+    description: "The native AI analyst for $MSV. Ask it questions in plain English about stocks, ETFs, sectors and the markets, the way you'd ask Claude. Not built yet.",
+    includes: [
+      "Plain-English answers about any ticker on $MSV, using its live numbers",
+      "Sector and market questions, such as \"why did energy fall today?\"",
+      "Every answer shows the data it used and when it was fetched",
+      "Clear limits: no buy or sell advice, and it says when data isn't available",
+      "Follow-up questions within one conversation",
+    ],
+  },
   "create-account": { icon: "🆕", title: "Create Free Account", description: "User accounts aren't built yet — this needs real authentication and a backend to store anything per-user. On the roadmap, not started." },
   "login": { icon: "🔑", title: "Log In", description: "Depends on accounts existing first — see Create Free Account." },
   "performance": { icon: "📈", title: "Performance", description: "A planned asset-class performance comparison — stocks vs. bonds vs. commodities vs. crypto returns over time. Distinct from the Sectors heatmap. Not built yet." },

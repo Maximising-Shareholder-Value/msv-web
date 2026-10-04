@@ -8,7 +8,7 @@ import { MARKET_TICKERS, MARKET_TICKERS_SAMPLE } from "../data/homeWidgets";
 import { COUNTRY_LIST, type Country } from "../lib/markets";
 import { RANKING_STOCK_SYMBOLS, BROWSE_CATEGORIES } from "../data/home";
 import { getEarnings, type EarningsItem } from "../lib/finnhub";
-import { getCoinMarkets, type CoinMarket } from "../lib/coingecko";
+import { getCoinMarkets, CRYPTO_COINS, type CoinMarket } from "../lib/coingecko";
 import { fmtCompact, fmtPrice } from "../lib/format";
 
 // The thirteen exchanges the vanilla breadth line considers (ORIGINAL_13 in worldMarkets.js).
@@ -87,9 +87,9 @@ export function EarningsCalendar() {
   if (items === null) return <p className="muted">Couldn't load the earnings calendar right now.</p>;
 
   const list = items
-    .filter(i => KNOWN_NAMES[i.symbol] || (typeof i.revenueEstimate === "number" && i.revenueEstimate >= 5e9))
+    .filter(i => KNOWN_NAMES[i.symbol] || (typeof i.revenueEstimate === "number" && i.revenueEstimate >= 1e9))
     .sort((a, b) => a.date.localeCompare(b.date) || (b.revenueEstimate ?? 0) - (a.revenueEstimate ?? 0))
-    .slice(0, 40);
+    .slice(0, 80);
   if (!list.length) return <p className="muted">No well-known companies reporting in the next 7 days.</p>;
 
   return (
@@ -136,22 +136,28 @@ export function CryptoTable() {
     <>
       <div className="crypto-table-scroll">
         <table className="crypto-table">
-          <thead><tr><th>Coin</th><th>Price</th><th>24h</th><th>Market cap</th><th>24h volume</th><th>Circulating supply</th><th>From all-time high</th></tr></thead>
+          <thead><tr><th>#</th><th>Coin</th><th className="num">Price</th><th className="num">24h</th><th className="num">7d</th><th className="num">30d</th><th className="num">Market cap</th><th className="num">24h volume</th><th>Circulating supply</th><th className="num">From all-time high</th></tr></thead>
           <tbody>
             {order.map(c => {
               const dp = c.price_change_percentage_24h ?? 0;
               const ath = c.ath_change_percentage;
               const supplyPct = c.circulating_supply && c.max_supply ? (c.circulating_supply / c.max_supply) * 100 : null;
-              const display = (CRYPTO_NAME[c.id] ?? c.id);
+              const display = CRYPTO_COINS.find(x => x.id === c.id)?.name ?? c.id;
+              const change = (v: number | null) => (
+                <td className={`num ${v === null ? "" : v >= 0 ? "positive" : "negative"}`}>{v === null ? "—" : `${v >= 0 ? "+" : ""}${v.toFixed(1)}%`}</td>
+              );
               return (
                 <tr key={c.id} className="crypto-table-row">
+                  <td className="muted">{c.market_cap_rank ?? "—"}</td>
                   <td><strong>{display}</strong> <span className="muted small">{c.symbol.toUpperCase()}</span></td>
-                  <td>{fmtPrice(c.current_price)}</td>
-                  <td className={dp >= 0 ? "positive" : "negative"}>{dp >= 0 ? "+" : ""}{dp.toFixed(2)}%</td>
-                  <td>{c.market_cap ? `$${fmtCompact(c.market_cap)}` : "—"}{c.market_cap_rank ? <span className="muted small"> #{c.market_cap_rank}</span> : null}</td>
-                  <td>{c.total_volume ? `$${fmtCompact(c.total_volume)}` : "—"}</td>
+                  <td className="num">{fmtPrice(c.current_price)}</td>
+                  {change(dp)}
+                  {change(c.price_change_percentage_7d)}
+                  {change(c.price_change_percentage_30d)}
+                  <td className="num">{c.market_cap ? `$${fmtCompact(c.market_cap)}` : "—"}</td>
+                  <td className="num">{c.total_volume ? `$${fmtCompact(c.total_volume)}` : "—"}</td>
                   <td>{c.circulating_supply ? fmtCompact(c.circulating_supply) : "—"}{supplyPct !== null ? <span className="muted small"> ({supplyPct.toFixed(0)}% of max)</span> : null}</td>
-                  <td className={ath !== null && ath >= -1 ? "positive" : ""}>{ath !== null ? `${ath.toFixed(1)}%` : "N/A"}</td>
+                  <td className={`num ${ath !== null && ath >= -1 ? "positive" : ""}`}>{ath !== null ? `${ath.toFixed(1)}%` : "N/A"}</td>
                 </tr>
               );
             })}
@@ -163,4 +169,3 @@ export function CryptoTable() {
   );
 }
 
-const CRYPTO_NAME: Record<string, string> = { bitcoin: "Bitcoin", ethereum: "Ethereum", solana: "Solana", ripple: "XRP", dogecoin: "Dogecoin", cardano: "Cardano" };

@@ -30,6 +30,7 @@ const REACT_HREF: Record<string, string> = {
   "create-account": "/app/?page=placeholder&key=create-account",
   login: "/app/?page=placeholder&key=login",
   premium: "/app/?page=placeholder&key=premium",
+  ai: "/app/?page=placeholder&key=ai",
   performance: "/app/?page=placeholder&key=performance",
   "portfolio-builder": "/app/?page=placeholder&key=portfolio-builder",
   "portfolio-health-check": "/app/?page=placeholder&key=portfolio-health-check",

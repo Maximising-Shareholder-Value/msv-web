@@ -75,7 +75,7 @@ export const EXPLORE_CATEGORIES: ExploreCategory[] = [
   { title: "Get Started", items: ["home", "create-account", "login", "compare", "how-to", "whats-new"] },
   { title: "Stock Analysis", items: ["stock-analysis", "winners", "losers", "most-active", "trending-tech", "blue-chip", "dividend-payers", "growth-stocks", "earnings-calendar", "stock-ideas", "stock-sentiment", "analyst-actions", "stock-screener", "insider-activity", "short-interest"] },
   { title: "Market Outlook", items: ["macro", "us-economy", "global-economy", "governance", "economic-calendar", "indexes", "etfs", "bonds", "commodities", "precious-metals", "energy-markets", "forex", "crypto", "options-explorer", "prediction-markets"] },
-  { title: "Market Intelligence & Data", items: ["market-intelligence", "energy-theme", "ev-theme", "defense-theme", "market-data", "sectors", "market-news"] },
+  { title: "Market Intelligence", items: ["market-intelligence", "energy-theme", "ev-theme", "defense-theme", "market-data", "sectors", "market-news"] },
   { title: "Portfolio Tools", items: ["watchlist", "recently-viewed", "portfolio-builder", "portfolio-health-check", "performance", "price-alerts", "dividend-tracker"] },
   { title: "Learn & Premium", items: ["learn", "glossary", "premium"] },
 ];

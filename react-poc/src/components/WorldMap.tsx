@@ -182,7 +182,9 @@ export function WorldMap({ selected, onSelect, quotes, mode, onMode, wbData, sho
     const el = target as Element | null;
     const dotG = el?.closest?.("[data-iso2]");
     if (dotG) return dotG.getAttribute("data-iso2");
-    const classes = (el?.getAttribute?.("class") ?? "").split(/\s+/);
+    // A country's outline is often a plain path inside a group that carries the country class, so look at the nearest group too.
+    const holder = el?.closest?.(".land") ?? el;
+    const classes = (holder?.getAttribute?.("class") ?? "").split(/\s+/);
     for (const cls of classes) { const iso2 = ISO2_BY_CLASS.get(cls); if (iso2) return iso2; }
     return null;
   };
@@ -201,7 +203,7 @@ export function WorldMap({ selected, onSelect, quotes, mode, onMode, wbData, sho
       <div
         className="world-markets-map"
         ref={containerRef}
-        onMouseMove={e => { const iso2 = countryAt(e.target); setHover(iso2 ? { iso2, x: e.nativeEvent.offsetX, y: e.nativeEvent.offsetY } : null); }}
+        onMouseMove={e => { const iso2 = countryAt(e.target); setHover(iso2 ? { iso2, x: e.clientX, y: e.clientY } : null); }}
         onMouseLeave={() => setHover(null)}
         onClick={e => { const iso2 = countryAt(e.target); if (iso2) onSelect(iso2); }}
         role="img"
@@ -217,7 +219,7 @@ export function WorldMap({ selected, onSelect, quotes, mode, onMode, wbData, sho
 function HoverCard({ country, x, y, quote }: { country: Country; x: number; y: number; quote: Quote | null | undefined }) {
   const status = exchangeStatus(country);
   return (
-    <div className="map-hover-popup" style={{ left: x + 14, top: y + 14 }}>
+    <div className="map-hover-popup" style={{ left: x + 316 > window.innerWidth ? x - 306 : x + 12, top: y + 12 }}>
       <strong>{country.flag} {country.name}</strong>
       <div className="muted small">{country.ex || country.city}</div>
       {status && <div className="small">{status.isOpen ? <span className="status-open">● Open</span> : <span className="status-closed">● Closed</span>} · {country.open}–{country.close} local</div>}

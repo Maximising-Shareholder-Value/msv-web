@@ -12,6 +12,15 @@ export const CRYPTO_COINS: { symbol: string; id: string; name: string }[] = [
   { symbol: "BINANCE:XRPUSDT", id: "ripple", name: "XRP" },
   { symbol: "BINANCE:DOGEUSDT", id: "dogecoin", name: "Dogecoin" },
   { symbol: "BINANCE:ADAUSDT", id: "cardano", name: "Cardano" },
+  // Added 2026-10-04: each coin id was checked live against the CoinGecko proxy the same day.
+  { symbol: "BINANCE:BNBUSDT", id: "binancecoin", name: "BNB" },
+  { symbol: "BINANCE:USDTUSDT", id: "tether", name: "Tether" },
+  { symbol: "BINANCE:USDCUSDT", id: "usd-coin", name: "USDC" },
+  { symbol: "BINANCE:TRXUSDT", id: "tron", name: "TRON" },
+  { symbol: "BINANCE:AVAXUSDT", id: "avalanche-2", name: "Avalanche" },
+  { symbol: "BINANCE:LINKUSDT", id: "chainlink", name: "Chainlink" },
+  { symbol: "BINANCE:LTCUSDT", id: "litecoin", name: "Litecoin" },
+  { symbol: "BINANCE:DOTUSDT", id: "polkadot", name: "Polkadot" },
 ];
 
 export interface CoinMarket {
@@ -19,6 +28,8 @@ export interface CoinMarket {
   symbol: string;
   current_price: number;
   price_change_percentage_24h: number | null;
+  price_change_percentage_7d: number | null;
+  price_change_percentage_30d: number | null;
   market_cap: number | null;
   market_cap_rank: number | null;
   total_volume: number | null;
@@ -88,7 +99,8 @@ export async function getCoinMarkets(): Promise<CoinMarket[] | null> {
     if (!d) return;
     rows.push({
       id: c.id, symbol: c.id, current_price: d.current_price ?? 0,
-      price_change_percentage_24h: d.price_change_percentage_24h, market_cap: d.market_cap,
+      price_change_percentage_24h: d.price_change_percentage_24h, price_change_percentage_7d: d.price_change_percentage_7d,
+      price_change_percentage_30d: d.price_change_percentage_30d, market_cap: d.market_cap,
       market_cap_rank: d.market_cap_rank, total_volume: d.total_volume,
       circulating_supply: d.circulating_supply, max_supply: d.max_supply, ath_change_percentage: d.ath_change_percentage,
     });

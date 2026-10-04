@@ -63,29 +63,63 @@ export function SectorHeatmap() {
   );
 }
 
+// Twelve Data's free plan allows 8 lookups a minute, and each pair counts as one.
+// So the pairs go in two batches a minute apart, and a batch that's refused is retried.
+const FX_BATCH_SIZE = 8;
+const FX_GAP_MS = 65_000;
+const FX_RETRIES = 3;
+
 export function ForexStrip() {
-  const [data, setData] = useState<Record<string, ForexQuote> | null | undefined>(undefined);
+  const [data, setData] = useState<Record<string, ForexQuote>>({});
+  const [refused, setRefused] = useState(false);
   useEffect(() => {
     let live = true;
-    getForexQuotes(FOREX_PAIRS.map(([s]) => s)).then(d => { if (live) setData(d); });
-    return () => { live = false; };
+    const timers: number[] = [];
+    const symbols = FOREX_PAIRS.map(([s]) => s);
+    const load = (batch: string[], attempt: number) => {
+      getForexQuotes(batch).then(d => {
+        if (!live) return;
+        if (d && !("status" in d)) {
+          setRefused(false);
+          setData(prev => ({ ...prev, ...d }));
+        } else if (attempt < FX_RETRIES) {
+          setRefused(true);
+          timers.push(window.setTimeout(() => load(batch, attempt + 1), FX_GAP_MS));
+        } else {
+          setRefused(true);
+        }
+      });
+    };
+    load(symbols.slice(0, FX_BATCH_SIZE), 0);
+    timers.push(window.setTimeout(() => load(symbols.slice(FX_BATCH_SIZE), 0), FX_GAP_MS));
+    return () => { live = false; timers.forEach(t => window.clearTimeout(t)); };
   }, []);
+  const loaded = Object.keys(data).length;
   return (
-    <div className="index-strip">
-      {FOREX_PAIRS.map(([symbol, name]) => {
-        const q = data?.[symbol];
-        const close = q ? Number(q.close) : NaN;
-        const pct = q ? Number(q.percent_change) : NaN;
-        const text = Number.isFinite(close) ? close.toFixed(close < 10 ? 4 : 2) : null;
-        const v = chipValue(text, Number.isFinite(pct) ? pct : null);
-        return (
-          <div key={symbol} className="index-chip">
-            <span className="index-chip-name">{name}</span>
-            <span className={`index-chip-value ${v.cls}`}>{data === undefined ? "···" : v.value}</span>
-          </div>
-        );
-      })}
-    </div>
+    <>
+      <div className="index-strip">
+        {FOREX_PAIRS.map(([symbol, name]) => {
+          const q = data[symbol];
+          const close = q ? Number(q.close) : NaN;
+          const pct = q ? Number(q.percent_change) : NaN;
+          const text = Number.isFinite(close) ? close.toFixed(close < 10 ? 4 : 2) : null;
+          const v = chipValue(text, Number.isFinite(pct) ? pct : null);
+          return (
+            <div key={symbol} className="index-chip">
+              <span className="index-chip-name">{name}</span>
+              <span className={`index-chip-value ${v.cls}`}>{q ? v.value : "···"}</span>
+            </div>
+          );
+        })}
+      </div>
+      <p className="muted small home-note">
+        {loaded < FOREX_PAIRS.length
+          ? refused
+            ? `Waiting for the free data limit to reset (${loaded} of ${FOREX_PAIRS.length} loaded). It retries by itself.`
+            : `Loading ${loaded} of ${FOREX_PAIRS.length}. The free data plan allows 8 lookups a minute, so the pairs load in two batches.`
+          : `All ${FOREX_PAIRS.length} pairs loaded. Twelve Data's free plan allows 8 lookups a minute.`}
+      </p>
+    </>
   );
 }
 

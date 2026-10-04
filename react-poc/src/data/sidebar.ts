@@ -12,6 +12,9 @@ export const SIDEBAR_GROUPS: SidebarItem[][] = [
     { nav: "premium", label: "Premium", icon: "<span class=\"app-nav-icon\"><svg viewBox=\"0 0 20 20\"><polygon points=\"4,7.5 7,3.5 13,3.5 16,7.5 10,16\"/><line x1=\"4\" y1=\"7.5\" x2=\"16\" y2=\"7.5\"/><line x1=\"7\" y1=\"3.5\" x2=\"10\" y2=\"7.5\"/><line x1=\"13\" y1=\"3.5\" x2=\"10\" y2=\"7.5\"/></svg></span>" },
   ],
   [
+    { nav: "ai", label: "Ask $MSV AI Anaiyst", icon: "<span class=\"app-nav-icon\"><svg viewBox=\"0 0 20 20\"><path d=\"M2.6,16.6 L9.6,3.8 L16.6,16.6\"/><line x1=\"5.5\" y1=\"12\" x2=\"13.7\" y2=\"12\"/><polyline points=\"12.6,5.6 16.4,3.6 15.9,7.6\"/></svg></span>" },
+  ],
+  [
     { nav: "home", label: "Home", icon: "<span class=\"app-nav-icon\"><svg viewBox=\"0 0 20 20\"><path d=\"M3,10 L10,4 L17,10\"/><path d=\"M5,9 V16.5 H15 V9\"/></svg></span>" },
     { nav: "stock-analysis", label: "Stock Analysis", icon: "<span class=\"app-nav-icon\"><svg viewBox=\"0 0 20 20\" stroke-width=\"2.2\"><line x1=\"5\" y1=\"17\" x2=\"5\" y2=\"11\"/><line x1=\"10\" y1=\"17\" x2=\"10\" y2=\"7\"/><line x1=\"15\" y1=\"17\" x2=\"15\" y2=\"4\"/></svg></span>" },
     { nav: "stock-screener", label: "Screener", icon: "<span class=\"app-nav-icon\"><svg viewBox=\"0 0 20 20\"><path d=\"M3,4 H17 L12,10.5 V16 L8,14 V10.5 Z\"/></svg></span>" },

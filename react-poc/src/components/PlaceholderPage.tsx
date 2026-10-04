@@ -10,10 +10,19 @@ export function PlaceholderPage({ pageKey }: { pageKey: string }) {
   return (
     <section className="placeholder-page">
       <div className="card placeholder-card">
-        <span className="placeholder-icon">{info.icon}</span>
+        {/* Icons are static strings from data/placeholders.ts: an emoji or a small inline SVG. */}
+        <span className="placeholder-icon" dangerouslySetInnerHTML={{ __html: info.icon }} />
         <span className="placeholder-badge">Coming soon</span>
         <h2>{info.title}</h2>
         <p>{info.description}</p>
+        {info.includes && (
+          <>
+            <h3 className="placeholder-includes-title">What it will include</h3>
+            <ul className="placeholder-includes">
+              {info.includes.map(item => <li key={item}>{item}</li>)}
+            </ul>
+          </>
+        )}
         <a className="placeholder-home-btn" href="/app/?page=home">← Back to Home</a>
       </div>
     </section>

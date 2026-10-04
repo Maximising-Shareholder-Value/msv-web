@@ -21,6 +21,8 @@ import { PredictionMarketsPage } from "./components/PredictionMarketsPage";
 import { MacroPage } from "./components/MacroPage";
 import { PageNav } from "./components/PageNav";
 import { AppSidebar } from "./components/AppSidebar";
+import { SiteHeader } from "./components/SiteHeader";
+import { SiteFooter } from "./components/SiteFooter";
 
 // One build, several pages. The page is picked from the query string
 // (?page=sectors, ?page=ipo, ?page=news); anything else shows the Crypto page.
@@ -50,8 +52,10 @@ function Framed({ current, children }: { current: string; children: ReactNode })
     <div className="app-shell">
       <AppSidebar current={current} />
       <div className="app-main">
+        <SiteHeader />
         <PageNav current={current} />
         {children}
+        <SiteFooter />
       </div>
     </div>
   );
@@ -76,7 +80,7 @@ function CurrentPage() {
   if (page === "explore") return (
     <div className="app-shell">
       <AppSidebar current="explore-products" />
-      <div className="app-main"><PageNav current="explore" /><ExplorePage /></div>
+      <div className="app-main"><SiteHeader /><PageNav current="explore" /><ExplorePage /><SiteFooter /></div>
     </div>
   );
   if (page === "placeholder") { const key = new URLSearchParams(location.search).get("key") ?? ""; return <Framed current={key}><PlaceholderPage pageKey={key} /></Framed>; }

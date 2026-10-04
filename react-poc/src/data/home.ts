@@ -15,6 +15,13 @@ export const BROWSE_CATEGORIES: BrowseCategory[] = [
   // which didn't make sense once that strip became countries-only (see
   // MARKET_TICKERS below). All commodity exposure lives here now instead.
   { id: "commodities", title: "Commodities", accent: "#d97706", items: [["GLD", "Gold"], ["SLV", "Silver"], ["PPLT", "Platinum"], ["PALL", "Palladium"], ["USO", "Oil (WTI Crude)"], ["BNO", "Oil (Brent Crude)"], ["UNG", "Natural Gas"], ["DBA", "Agriculture"], ["CORN", "Corn"], ["WEAT", "Wheat"], ["SOYB", "Soybeans"], ["CANE", "Sugar"], ["JO", "Coffee"], ["CPER", "Copper"], ["URA", "Uranium Miners"], ["DBC", "Broad Commodities"], ["GSG", "Broad Commodities (GSCI)"], ["PDBC", "Broad Commodities (Diversified)"], ["SGOL", "Gold (abrdn)"], ["COPX", "Copper Miners"], ["DBB", "Base Metals"], ["WOOD", "Timber & Forestry"]] },
+  // Added 2026-10-04: sector-level categories. Every ticker was live-checked against the msv-api Finnhub proxy the same day (non-zero price).
+  { id: "semiconductors", title: "Semiconductors", accent: "#0891b2", items: [["NVDA", "NVIDIA"], ["TSM", "TSMC"], ["AVGO", "Broadcom"], ["AMD", "AMD"], ["ASML", "ASML"], ["MU", "Micron"], ["INTC", "Intel"], ["QCOM", "Qualcomm"]] },
+  { id: "healthcare", title: "Healthcare", accent: "#16a34a", items: [["LLY", "Eli Lilly"], ["JNJ", "Johnson & Johnson"], ["UNH", "UnitedHealth"], ["ABBV", "AbbVie"], ["MRK", "Merck"], ["TMO", "Thermo Fisher"]] },
+  { id: "financials", title: "Financials", accent: "#2563eb", items: [["JPM", "JPMorgan"], ["BAC", "Bank of America"], ["WFC", "Wells Fargo"], ["GS", "Goldman Sachs"], ["MS", "Morgan Stanley"], ["BLK", "BlackRock"]] },
+  { id: "energy", title: "Energy", accent: "#b45309", items: [["XOM", "ExxonMobil"], ["CVX", "Chevron"], ["COP", "ConocoPhillips"], ["SLB", "SLB"], ["EOG", "EOG Resources"]] },
+  { id: "staples", title: "Consumer Staples", accent: "#65a30d", items: [["PG", "Procter & Gamble"], ["KO", "Coca-Cola"], ["PEP", "PepsiCo"], ["WMT", "Walmart"], ["COST", "Costco"]] },
+  { id: "industrials", title: "Industrials", accent: "#64748b", items: [["GE", "GE Aerospace"], ["CAT", "Caterpillar"], ["HON", "Honeywell"], ["UNP", "Union Pacific"], ["RTX", "RTX"]] },
 ];
 
 // Small, curated universe used ONLY to rank Winners/Losers/Most Active —
