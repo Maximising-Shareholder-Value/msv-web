@@ -51,7 +51,8 @@
   var q = new URLSearchParams(location.search);
   var key = location.pathname.replace(/^\/+|\/+$/g, "");
   // Never bounce a React address: if one ever gets this page, stop instead of looping.
-  if (location.pathname.indexOf("/app") === 0) { document.body.setAttribute("data-stopped", "1"); return; }
+  // (documentElement, not body: this script runs in <head>, before <body> exists, so touching body threw an error.)
+  if (location.pathname.indexOf("/app") === 0) { document.documentElement.setAttribute("data-stopped", "1"); return; }
   var target = routes[key] || "/app/?page=home";
   if (q.get("ticker")) target = "/app/?page=ticker&symbol=" + encodeURIComponent(q.get("ticker").toUpperCase());
   if (key === "" && q.get("ticker") === null && q.get("country")) target = "/app/?page=market-data&country=" + encodeURIComponent(q.get("country"));
