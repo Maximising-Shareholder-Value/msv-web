@@ -41,6 +41,14 @@ jobs:
         run: npm ci
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
+      # The main site at /app/ is the React build, which is gitignored
+      # (app/ is generated, not committed), so CI has to build it first or
+      # /app/ would 404 and the smoke test would have nothing to check.
+      - name: Build the React main site (app/)
+        run: |
+          cd react-poc
+          npm ci
+          npm run build
       # config.js is gitignored (holds real API keys locally) and isn't
       # fetched at all when deployed, so it doesn't exist here either.
       # The app needs *some* value in it to proceed past its

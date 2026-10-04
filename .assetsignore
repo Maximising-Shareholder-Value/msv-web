@@ -8,3 +8,4 @@ config.js
 wrangler.jsonc
 .assetsignore
 react-poc
+tests
