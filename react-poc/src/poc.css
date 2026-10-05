@@ -191,6 +191,32 @@
 .market-price { font-size: 1.5rem; }
 .market-foot { margin-top: 14px; line-height: 1.5; }
 @media (max-width: 760px) { .market-layout { grid-template-columns: 1fr; } }
+
+/* ---- Market Data page (2026-10-05): one column, the full width of the footer, a card per block ----
+   Each block (map, country picker, country profile, risk dashboard) is its own white card,
+   with the same grey gap between them. Padding is generous so text never touches a border. */
+/* The generic "every other page" rule (further down) would add a 24px side margin here, so this one wins. */
+.app-main:not(.home-main-frame) > .market-page:not(.site-header):not(.react-page-nav):not(.ft) { display: flex; flex-direction: column; gap: 18px; max-width: none; margin: 0 !important; padding: 0 !important; background: none !important; border: 0 !important; box-shadow: none !important; }
+.market-page > .sectors-header { margin: 0 2px; }
+.market-page > .market-map-card, .market-page > .market-picker, .market-page > .market-profile, .market-page > .market-risk {
+  background: var(--bg-surface); border: 1px solid var(--border, #2a3642); border-radius: 16px; box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  padding: 26px 30px; margin: 0; min-width: 0;
+}
+.market-page .market-summary { margin: 12px 0 0; }
+.market-page .market-hint { margin: 0; }
+.market-page .market-foot { margin: 0; padding: 0 4px; line-height: 1.6; }
+/* The picker keeps the homepage's look: chips, then the pill row. */
+.market-picker .hp-chips { margin-bottom: 16px; }
+.market-picker .hp-country-row { gap: 8px; }
+.market-picker .hp-country-row button { padding: 8px 14px; font-size: 13px; }
+/* The profile is already inside its own card, so its inner card drops the second border. */
+.market-profile .market-card { border: 0; box-shadow: none; padding: 0; background: none; }
+/* Tables and lists on this page: room between the rules and the words, especially at the edges. */
+.market-page table th, .market-page table td { padding: 12px 16px; }
+.market-page table th:first-child, .market-page table td:first-child { padding-left: 4px; }
+.market-page table th:last-child, .market-page table td:last-child { padding-right: 4px; }
+.market-page li { padding-top: 5px; padding-bottom: 5px; }
+@media (max-width: 760px) { .market-page > .market-map-card, .market-page > .market-picker, .market-page > .market-profile, .market-page > .market-risk { padding: 20px 18px; } }
 .score-row { cursor: pointer; }
 .market-risk { margin-top: 24px; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
@@ -799,8 +825,26 @@
   .ft-sitemap { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .ft-legal { flex-direction: column; align-items: flex-start; }
   .hp-bell-panel { right: 0; width: min(280px, 86vw); }
-  .app-main:not(.home-main-frame) > *:not(.site-header):not(.react-page-nav):not(.ft) { margin: 0 12px 13px !important; padding: 16px !important; }
-  .react-page-nav { overflow-x: auto; white-space: nowrap; }
+  /* Phones: the page column keeps a 12px gutter (the desktop 32px wasted a third of a 390px screen). */
+  .app-main { padding: 0 12px 28px; }
+  .app-main:not(.home-main-frame) > *:not(.site-header):not(.react-page-nav):not(.ft) { margin: 0 0 12px !important; padding: 16px !important; }
+  /* The page links become one swipeable row instead of wrapping onto three lines. */
+  .react-page-nav, .app-main > .react-page-nav { flex-wrap: nowrap; overflow-x: auto; white-space: nowrap; gap: 16px; margin: 0 -12px; padding: 10px 12px; scrollbar-width: none; }
+  .react-page-nav::-webkit-scrollbar { display: none; }
+  .react-page-nav a { flex: none; }
+}
+
+/* Phones: the sticky ribbon is ONE row (market picker + buttons). The local-time pill is hidden
+   here to make room; the market pill still shows its own clock. */
+@media (max-width: 760px) {
+  .hp-ribbon { flex-wrap: nowrap; gap: 6px; padding: 6px 0; }
+  .hp-ribbon .tb-pills { flex: 1 1 auto; min-width: 0; width: auto; }
+  .hp-ribbon .tb-pill:not(.tb-market) { display: none; }
+  .hp-ribbon .tb-market { flex: 1 1 auto; min-width: 0; flex-wrap: nowrap; gap: 6px; padding: 3px 8px 3px 10px; }
+  .hp-ribbon .tb-market .tb-pill-label, .hp-ribbon .tb-market > .muted { display: none; }
+  .hp-ribbon .tb-market .tb-select { flex: 1 1 auto; min-width: 0; max-width: none; }
+  .hp-ribbon .tb-right { width: auto; flex: none; flex-wrap: nowrap; gap: 6px; }
+  .hp-ribbon .tb-login { padding: 5px 9px; font-size: 12px; }
 }
 
 /* Small phones */

@@ -45,15 +45,17 @@ function CountryMacro({ iso3 }: { iso3: string }) {
   );
 }
 
-export function CountryExplorer({ iso2, onPick }: Props) {
+/**
+ * The country picker used on the homepage and on Market Data: filter chips above
+ * a wrapping row of country pills. The selected country is filled in.
+ * Both pages use this one component so the picker looks and behaves the same.
+ */
+export function CountryPicker({ iso2, onPick }: { iso2: string | null; onPick: (iso2: string) => void }) {
   const [filter, setFilter] = useState("all");
   const shown = COUNTRY_LIST.filter(c => filter === "all" || c.group === filter);
-  const country: Country | undefined = COUNTRY_LIST.find(c => c.iso2 === iso2);
-  const quote = useQuotes(country?.etf ? [country.etf] : [])[country?.etf ?? ""];
-  const status = country ? exchangeStatus(country) : null;
 
   return (
-    <div className="hp-country">
+    <div className="hp-country-picker">
       <div className="hp-chips" role="tablist" aria-label="Filter countries">
         <button type="button" role="tab" aria-selected={filter === "all"} className={filter === "all" ? "active" : ""} onClick={() => setFilter("all")}>
           All ({COUNTRY_LIST.length})
@@ -73,6 +75,18 @@ export function CountryExplorer({ iso2, onPick }: Props) {
           </li>
         ))}
       </ul>
+    </div>
+  );
+}
+
+export function CountryExplorer({ iso2, onPick }: Props) {
+  const country: Country | undefined = COUNTRY_LIST.find(c => c.iso2 === iso2);
+  const quote = useQuotes(country?.etf ? [country.etf] : [])[country?.etf ?? ""];
+  const status = country ? exchangeStatus(country) : null;
+
+  return (
+    <div className="hp-country">
+      <CountryPicker iso2={iso2} onPick={onPick} />
       {country && (
           <div className="hp-country-card">
             <div>
