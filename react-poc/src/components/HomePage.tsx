@@ -7,13 +7,9 @@
 // 6. Currencies, the learn topics, the explore pages, and your lists
 // Every section is in the page flow, so it reads like a front page.
 
-import { useMemo, useRef, useState, type ReactNode } from "react";
-import { BROWSE_CATEGORIES, RANKING_STOCK_SYMBOLS } from "../data/home";
+import { useRef, useState } from "react";
 import { LEARN_CATEGORIES } from "../data/learn";
 import { EXPLORE_DIRECTORY, EXPLORE_CATEGORIES } from "../data/explore";
-import type { Quote } from "../lib/finnhub";
-import { useQuotes } from "../lib/useQuotes";
-import { fmtPct, fmtPrice, changeClass } from "../lib/format";
 import { IndexStrip, ForexStrip, EconCalendar } from "./HomeWidgets";
 import { HomeNews } from "./HomeNews";
 import { HomeGlance, MarketsTodayNote } from "./HomeGlance";
@@ -28,8 +24,7 @@ import { HomeMarketIntel } from "./HomeMarketIntel";
 import { HomeHowTo } from "./HomeHowTo";
 import { SiteFooter } from "./SiteFooter";
 import { hrefFor as exploreHrefFor } from "./ExplorePage";
-
-interface Row { symbol: string; name: string; quote: Quote }
+import { Section, MoversAndBrowse } from "./StockTables";
 
 // One simple line icon per Explore category, so each group reads as its own block.
 const ICON_OPEN = `<svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">`;
@@ -50,54 +45,7 @@ const EXPLORE_ICONS: Record<string, string> = {
   "Learn & Premium": `${ICON_OPEN}<path d="M3 4h5a2 2 0 0 1 2 2v11a2 1.5 0 0 0-2-1.5H3z"/><path d="M17 4h-5a2 2 0 0 0-2 2v11a2 1.5 0 0 1 2-1.5h5z"/></svg>`,
 };
 
-/** One section of the page: a heading, a one-line explanation, then its content. */
-function Section({ id, title, lead, children }: { id: string; title: string; lead?: string; children: ReactNode }) {
-  return (
-    <section className="hp-section" id={id}>
-      <header className="hp-section-head">
-        <h2>{title}</h2>
-        {lead && <p className="muted">{lead}</p>}
-      </header>
-      {children}
-    </section>
-  );
-}
-
-/** A full table of quotes, with the columns the ticker pages use. */
-function QuoteTable({ rows, empty }: { rows: Row[]; empty: string }) {
-  if (!rows.length) return <p className="muted small">{empty}</p>;
-  return (
-    <div className="hp-table-scroll">
-      <table className="hp-table">
-        <thead>
-          <tr><th>Symbol</th><th>Name</th><th className="num">Price</th><th className="num">Change</th><th className="num">Change %</th><th className="num">Prev close</th><th className="num">Day high</th><th className="num">Day low</th><th>Day range</th></tr>
-        </thead>
-        <tbody>
-          {rows.map(r => {
-            const q = r.quote;
-            const pos = q.h !== q.l ? Math.max(0, Math.min(100, ((q.c - q.l) / (q.h - q.l)) * 100)) : 50;
-            return (
-              <tr key={r.symbol}>
-                <td><a href={`/app/?page=ticker&symbol=${encodeURIComponent(r.symbol)}`}><strong>{r.symbol}</strong></a></td>
-                <td className="muted">{r.name}</td>
-                <td className="num">{fmtPrice(q.c)}</td>
-                <td className={`num ${changeClass(q.d)}`}>{q.d === null ? "—" : `${q.d >= 0 ? "+" : ""}${q.d.toFixed(2)}`}</td>
-                <td className={`num ${changeClass(q.dp)}`}>{fmtPct(q.dp)}</td>
-                <td className="num">{fmtPrice(q.pc)}</td>
-                <td className="num">{fmtPrice(q.h)}</td>
-                <td className="num">{fmtPrice(q.l)}</td>
-                <td><span className="hp-range"><i style={{ left: `${pos}%` }} /></span></td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
 export function HomePage() {
-  const [cat, setCat] = useState("trending-tech");
   // The country shown in the panel below the map. A map click also scrolls down to that panel.
   const [iso2, setIso2] = useState("US");
   const countryRef = useRef<HTMLDivElement>(null);
@@ -105,24 +53,6 @@ export function HomePage() {
     setIso2(code);
     countryRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
-  const category = BROWSE_CATEGORIES.find(c => c.id === cat) ?? BROWSE_CATEGORIES[0];
-  const rankingQuotes = useQuotes(RANKING_STOCK_SYMBOLS.map(([s]) => s));
-  const browseQuotes = useQuotes(category.items.map(([s]) => s));
-
-  const { gainers, losers } = useMemo(() => {
-    const all: Row[] = RANKING_STOCK_SYMBOLS
-      .map(([symbol, name]) => ({ symbol, name, quote: rankingQuotes[symbol] }))
-      .filter((r): r is Row => !!r.quote);
-    const byMove = [...all].sort((a, b) => (b.quote.dp ?? 0) - (a.quote.dp ?? 0));
-    return {
-      gainers: byMove.filter(r => (r.quote.dp ?? 0) > 0).slice(0, 10),
-      losers: [...byMove].reverse().filter(r => (r.quote.dp ?? 0) < 0).slice(0, 10),
-    };
-  }, [rankingQuotes]);
-
-  const browseRows: Row[] = category.items
-    .map(([symbol, name]) => ({ symbol, name, quote: browseQuotes[symbol] }))
-    .filter((r): r is Row => !!r.quote);
 
   return (
     <div className="hp">
@@ -176,23 +106,8 @@ export function HomePage() {
         </div>
       </Section>
 
-      {/* 3. Gainers and losers */}
-      <Section id="movers" title="Top gainers" lead="The biggest rises among the most-followed US stocks and ETFs today.">
-        <QuoteTable rows={gainers} empty="Loading live prices…" />
-      </Section>
-      <Section id="losers" title="Top losers" lead="The biggest falls among the same names today.">
-        <QuoteTable rows={losers} empty="Loading live prices…" />
-      </Section>
-
-      {/* 4. Browse */}
-      <Section id="browse" title="Browse by category" lead="Pick a category to see its live prices.">
-        <div className="hp-chips" role="tablist">
-          {BROWSE_CATEGORIES.map(c => (
-            <button key={c.id} type="button" role="tab" aria-selected={c.id === cat} className={c.id === cat ? "active" : ""} onClick={() => setCat(c.id)}>{c.title}</button>
-          ))}
-        </div>
-        <QuoteTable rows={browseRows} empty="Loading live prices…" />
-      </Section>
+      {/* 3. Gainers, losers and browse, shared with the Stock Analysis page */}
+      <MoversAndBrowse />
       <Section id="crypto" title="Crypto" lead="The largest coins, with market size and distance from their all-time highs.">
         <CryptoTable />
       </Section>

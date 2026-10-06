@@ -217,6 +217,22 @@
 .market-page table th:last-child, .market-page table td:last-child { padding-right: 4px; }
 .market-page li { padding-top: 5px; padding-bottom: 5px; }
 @media (max-width: 760px) { .market-page > .market-map-card, .market-page > .market-picker, .market-page > .market-profile, .market-page > .market-risk { padding: 20px 18px; } }
+
+/* Breathing room: the title sits clear of the bar above it. */
+.market-page > .sectors-header { padding-top: 18px; }
+/* Profile sections are cards of their own: text keeps a clear inset from every border. */
+.market-profile .cp-section { padding: 18px 22px; margin-top: 16px; border-top: 1px solid var(--border, #2a3642); }
+.market-profile .cp-section + .cp-section { margin-top: 16px; }
+.market-profile .cp-section h4 { margin-bottom: 12px; }
+/* Risk badges: dark text on the lighter fills, so they read in dark mode too. */
+.market-page .risk-badge { color: #06120d; border: 1px solid rgba(0,0,0,0.15); padding: 3px 10px; }
+.market-page .risk-badge.level-high { color: #fff; }
+.market-page .risk-strip i { box-shadow: inset 0 0 0 1px rgba(0,0,0,0.2); }
+/* Scoreboard filters: one row of selects under the column titles. */
+.market-page .score-controls { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 12px 0 6px; }
+.market-page .score-filter-row th { padding: 6px 8px; font-weight: 400; text-transform: none; letter-spacing: 0; }
+.market-page .score-filter-row select { width: 100%; min-width: 110px; padding: 5px 8px; border-radius: 6px; border: 1px solid var(--border, #2a3642); background: var(--bg-surface-2, transparent); color: inherit; font: inherit; font-size: 12px; }
+.market-page .score-filter-row .news-search { width: 100%; min-width: 140px; font-size: 12px; padding: 5px 8px; }
 .score-row { cursor: pointer; }
 .market-risk { margin-top: 24px; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

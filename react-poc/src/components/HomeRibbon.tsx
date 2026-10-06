@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 import { COUNTRY_LIST, exchangeStatus, localTime } from "../lib/markets";
 
 const RECOMMENDED = [
-  { label: "Stock Analysis", href: "/app/?page=home" },
+  { label: "Stock Analysis", href: "/app/?page=stock-analysis" },
   { label: "Market Data", href: "/app/?page=market-data" },
   { label: "Learn", href: "/app/?page=learn" },
   { label: "Market Intelligence", href: "/app/?page=market-intel" },

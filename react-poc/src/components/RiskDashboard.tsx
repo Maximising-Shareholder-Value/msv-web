@@ -115,6 +115,9 @@ const SCORE_COLS: { key: string; label: string }[] = [
 
 function Scoreboard({ wbData, onSelect }: { wbData: Record<string, WbStore | undefined>; onSelect: (iso2: string) => void }) {
   const [sort, setSort] = useState<{ key: string; dir: 1 | -1 }>({ key: "infl", dir: -1 });
+  // Per-column filters, plus a country search. Keys are column keys; "any" (or no entry) means no filter.
+  const [filters, setFilters] = useState<Record<string, string>>({});
+  const [nameQuery, setNameQuery] = useState("");
 
   const rows = useMemo(() => COUNTRY_LIST.filter(c => c.iso3 !== "TWN").map(c => {
     const vals: Record<string, number | null> = {};
@@ -136,6 +139,29 @@ function Scoreboard({ wbData, onSelect }: { wbData: Record<string, WbStore | und
     if (typeof av === "string" && typeof bv === "string") return sort.dir * av.localeCompare(bv);
     return sort.dir * ((av as number) - (bv as number));
   }), [rows, sort]);
+
+  // The 10 highest and 10 lowest countries for each column (only countries with a value can rank).
+  const extremes = Object.fromEntries(SCORE_COLS.map(col => {
+    const withVal = rows.filter(r => r.vals[col.key] !== null).sort((a, b) => (a.vals[col.key] as number) - (b.vals[col.key] as number));
+    return [col.key, { top: new Set(withVal.slice(-10).map(r => r.c.iso3)), bottom: new Set(withVal.slice(0, 10).map(r => r.c.iso3)) }];
+  })) as Record<string, { top: Set<string>; bottom: Set<string> }>;
+
+  const passes = (r: (typeof rows)[number], key: string, f: string): boolean => {
+    if (!f || f === "any") return true;
+    if (key === "flags") return r.flags >= Number(f);
+    if (f === "top") return extremes[key].top.has(r.c.iso3);
+    if (f === "bottom") return extremes[key].bottom.has(r.c.iso3);
+    const v = r.vals[key];
+    if (v === null) return false;
+    const risk = WB_BY_KEY[key].risk;
+    const inRed = !!risk && risk(v) === "bad";
+    return f === "red" ? inRed : !inRed;
+  };
+
+  const visible = sorted.filter(r =>
+    (!nameQuery.trim() || `${r.c.name} ${r.c.iso2}`.toLowerCase().includes(nameQuery.trim().toLowerCase())) &&
+    Object.entries(filters).every(([key, f]) => passes(r, key, f)));
+  const filtersOn = nameQuery.trim() !== "" || Object.values(filters).some(f => f && f !== "any");
 
   const top = (key: string, dir: 1 | -1) => rows
     .filter(r => r.vals[key] !== null)
@@ -168,6 +194,10 @@ function Scoreboard({ wbData, onSelect }: { wbData: Record<string, WbStore | und
           </div>
         ))}
       </div>
+      <div className="score-controls">
+        <span className="muted small">Showing {visible.length} of {sorted.length} countries</span>
+        {filtersOn && <button type="button" className="cp-btn cp-btn-ghost" onClick={() => { setFilters({}); setNameQuery(""); }}>Clear filters</button>}
+      </div>
       <div className="crypto-table-scroll">
         <table className="crypto-table quotes-table score-table">
           <thead>
@@ -176,9 +206,33 @@ function Scoreboard({ wbData, onSelect }: { wbData: Record<string, WbStore | und
               {SCORE_COLS.map(col => <th key={col.key} className="sortable-th" onClick={() => clickSort(col.key)}>{col.label}</th>)}
               <th className="sortable-th" onClick={() => clickSort("flags")} title="Number of indicators in the red zone (rule of thumb)">Red flags</th>
             </tr>
+            <tr className="score-filter-row">
+              <th>
+                <input type="search" className="news-search" placeholder="Search country…" value={nameQuery} onChange={e => setNameQuery(e.target.value)} aria-label="Search countries" />
+              </th>
+              {SCORE_COLS.map(col => (
+                <th key={col.key}>
+                  <select aria-label={`Filter ${col.label}`} value={filters[col.key] ?? "any"} onChange={e => setFilters(f => ({ ...f, [col.key]: e.target.value }))}>
+                    <option value="any">Any</option>
+                    <option value="top">Highest 10</option>
+                    <option value="bottom">Lowest 10</option>
+                    <option value="red">In red zone</option>
+                    <option value="notred">Not in red zone</option>
+                  </select>
+                </th>
+              ))}
+              <th>
+                <select aria-label="Filter red flags" value={filters.flags ?? "any"} onChange={e => setFilters(f => ({ ...f, flags: e.target.value }))}>
+                  <option value="any">Any</option>
+                  <option value="1">1 or more</option>
+                  <option value="2">2 or more</option>
+                  <option value="3">3 or more</option>
+                </select>
+              </th>
+            </tr>
           </thead>
           <tbody>
-            {sorted.map(r => (
+            {visible.map(r => (
               <tr key={r.c.iso2} className="score-row" onClick={() => onSelect(r.c.iso2)}>
                 <td>{r.c.flag} <strong>{r.c.name}</strong></td>
                 {SCORE_COLS.map(col => {

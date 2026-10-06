@@ -7,7 +7,7 @@ import { SIDEBAR_GROUPS } from "../data/sidebar";
 
 // Pages that have a React version, and the ?page= value each one uses.
 const REACT_PAGES: Record<string, string> = {
-  home: "home", sectors: "sectors", etfs: "etfs", "stock-screener": "screener",
+  home: "home", "stock-analysis": "stock-analysis", winners: "stock-analysis", losers: "stock-analysis", "most-active": "stock-analysis", sectors: "sectors", etfs: "etfs", "stock-screener": "screener",
   "market-news": "news", "market-data": "market-data", "market-intelligence": "market-intel",
   learn: "learn", macro: "macro", "prediction-markets": "prediction-markets", compare: "compare",
   ipo: "ipo", "explore-products": "explore",

@@ -24,7 +24,7 @@ const REACT_HREF: Record<string, string> = {
   etfs: "/app/?page=etfs",
   compare: "/app/?page=compare",
   "prediction-markets": "/app/?page=prediction-markets",
-  "stock-analysis": "/app/?page=home",
+  "stock-analysis": "/app/?page=stock-analysis",
   watchlist: "/app/?page=home",
   macro: "/app/?page=macro",
   "create-account": "/app/?page=placeholder&key=create-account",
