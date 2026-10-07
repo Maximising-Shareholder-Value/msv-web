@@ -305,14 +305,18 @@
 
 /* ---- Price chart (PriceChart.tsx, 2026-10-03) ---- */
 .price-chart { margin-bottom: 8px; }
-.chart-controls { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 6px; }
+.chart-controls { display: flex; gap: 8px 14px; flex-wrap: wrap; align-items: center; margin-bottom: 8px; }
+.chart-plot { position: relative; }
 .chart-svg { width: 100%; height: auto; display: block; }
 .chart-grid { stroke: var(--border, #2a3642); stroke-width: 0.6; }
-.chart-axis { fill: var(--text-secondary, #9aa6b2); font-size: 11px; }
+.chart-axis { fill: var(--text-secondary, #9aa6b2); font-size: 10.5px; font-variant-numeric: tabular-nums; }
 .chart-cursor { stroke: var(--text-secondary, #9aa6b2); stroke-dasharray: 3 3; }
 .chart-vol-up { fill: rgba(16,185,129,0.45); }
 .chart-vol-down { fill: rgba(239,68,68,0.45); }
-.chart-readout { margin-bottom: 4px; }
+/* A floating OHLC legend over the top-left corner of the chart, TradingView-style,
+   instead of a separate line taking its own row above the chart. */
+.chart-legend { position: absolute; top: 2px; left: 60px; right: 4px; z-index: 2; padding: 2px 8px; border-radius: 6px; background: color-mix(in srgb, var(--bg-surface, #111820) 78%, transparent); line-height: 1.5; pointer-events: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 760px) { .chart-legend { left: 6px; font-size: 11px; white-space: normal; text-overflow: clip; } }
 .analysts { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; }
 .analysts h5 { margin: 0 0 8px; font-size: 0.9rem; }
 .news-peers { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; }
