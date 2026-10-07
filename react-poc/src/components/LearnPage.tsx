@@ -6,13 +6,25 @@
 // The topic text and visuals are written by the app's author (see
 // data/learn.ts), so they're rendered as HTML, as the vanilla page does.
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { LEARN_CATEGORIES } from "../data/learn";
 
+// A topic search (HomeSearch.tsx) links here as ?topic=<id>. Find which category
+// holds it, so that category opens pre-selected with the topic already expanded.
+const topicParam = new URLSearchParams(location.search).get("topic");
+const topicCategory = topicParam ? LEARN_CATEGORIES.find(c => c.topics.some(t => t.id === topicParam))?.id : undefined;
+
 export function LearnPage() {
-  const [category, setCategory] = useState("the-basics");
-  const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
+  const [category, setCategory] = useState(topicCategory ?? "the-basics");
+  const [expanded, setExpanded] = useState<Set<string>>(() => new Set(topicParam ? [topicParam] : []));
   const active = LEARN_CATEGORIES.find(c => c.id === category && c.topics.length > 0);
+
+  // Scroll the linked topic into view once its category has rendered.
+  useEffect(() => {
+    if (!topicParam) return;
+    const el = document.getElementById(`learn-topic-${topicParam}`);
+    el?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, []);
 
   const toggle = (id: string) => setExpanded(prev => {
     const next = new Set(prev);

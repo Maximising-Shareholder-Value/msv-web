@@ -572,6 +572,12 @@
 .hp-search-examples { display: flex; align-items: center; gap: 8px; }
 .hp-search-examples a { color: var(--accent, #10b981) !important; text-decoration: none; }
 .hp-search-error { color: var(--negative, #ef4444); }
+/* Topic/page search results: a dropdown card under the search bar. */
+.hp-search-wrap { position: relative; }
+.hp-search-results { position: absolute; z-index: 30; top: 100%; left: 0; margin: 6px 0 0; width: min(820px, 100%); max-height: 340px; overflow-y: auto; list-style: none; padding: 6px; background: var(--bg-surface); border: 1px solid var(--border, #2a3642); border-radius: 12px; box-shadow: 0 12px 30px rgba(0,0,0,0.22); }
+.hp-search-results li { margin: 0; }
+.hp-search-results a { display: flex; flex-direction: column; gap: 2px; padding: 9px 12px; border-radius: 8px; color: inherit !important; text-decoration: none; }
+.hp-search-results a:hover, .hp-search-results a.active { background: var(--bg-surface-2, rgba(255,255,255,0.06)); }
 .hp-about-section { padding-bottom: 18px; }
 .hp-about .hp-signup { align-self: stretch; }
 /* The intro column fills the row, and its last paragraph sits on the same bottom edge as the sign-up box. */
