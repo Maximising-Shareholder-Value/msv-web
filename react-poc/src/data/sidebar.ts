@@ -34,7 +34,7 @@ export const SIDEBAR_GROUPS: SidebarItem[][] = [
   ],
   [
     { nav: "prediction-markets", label: "Prediction Markets", icon: "<span class=\"app-nav-icon\"><svg viewBox=\"0 0 20 20\"><rect x=\"3\" y=\"4\" width=\"14\" height=\"12\" rx=\"1.5\"/><line x1=\"11.5\" y1=\"4\" x2=\"11.5\" y2=\"16\"/></svg></span>" },
-    { nav: "trading-insider", label: "Trading Insider", icon: "<span class=\"app-nav-icon\"><svg viewBox=\"0 0 20 20\"><path d=\"M5.5,9 V6.3 C5.5,4.2 7.5,2.6 10,2.6 C12.1,2.6 13.9,3.7 14.4,5.3\" stroke-linecap=\"round\"/><rect x=\"4\" y=\"9\" width=\"12\" height=\"8.4\" rx=\"1.8\"/><path d=\"M10,11.2 V15.6 M11.6,12.1 C11.6,11.3 10.9,11 10,11 C9.1,11 8.4,11.4 8.4,12.1 C8.4,13.8 11.6,13 11.6,14.7 C11.6,15.4 10.9,15.8 10,15.8 C9.1,15.8 8.4,15.5 8.4,14.7\" stroke-width=\"1.3\"/></svg></span>" },
+    { nav: "trading-insider", label: "Trading Insider", icon: "<span class=\"app-nav-icon\"><svg viewBox=\"0 0 20 20\"><path d=\"M3,14.3 L3,8.6 L6.6,11.3 L10,5.4 L13.4,11.3 L17,8.6 L17,14.3 Z\"/></svg></span>" },
   ],
   [
     { nav: "portfolio-builder", label: "Portfolio Builder", icon: "<span class=\"app-nav-icon\"><svg viewBox=\"0 0 20 20\"><rect x=\"4\" y=\"13\" width=\"12\" height=\"3.3\" rx=\"0.6\"/><rect x=\"4\" y=\"8.4\" width=\"12\" height=\"3.3\" rx=\"0.6\"/><rect x=\"4\" y=\"3.8\" width=\"12\" height=\"3.3\" rx=\"0.6\"/></svg></span>" },
