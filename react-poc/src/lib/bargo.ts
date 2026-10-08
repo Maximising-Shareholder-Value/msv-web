@@ -72,6 +72,33 @@ async function get<T>(path: string, params?: Record<string, string | number | un
   return res.json();
 }
 
+/**
+ * A real network result, or — only when the live call fails (most likely the free tier's
+ * daily limit) — the last successful response this browser got for the exact same request,
+ * read back from localStorage. Never invented data: `stale` is only true when `data` came
+ * from a genuine earlier fetch, and the UI is expected to say so rather than pass it off as
+ * current.
+ */
+export interface Cached<T> { data: T; stale: boolean; cachedAt: string | null }
+
+async function getCached<T>(path: string, params?: Record<string, string | number | undefined>): Promise<Cached<T>> {
+  const key = `bargo-cache:${path}:${JSON.stringify(params ?? {})}`;
+  try {
+    const data = await get<T>(path, params);
+    try { localStorage.setItem(key, JSON.stringify({ data, at: new Date().toISOString() })); } catch { /* storage blocked: no cache, but the live call still succeeded */ }
+    return { data, stale: false, cachedAt: null };
+  } catch (err) {
+    try {
+      const raw = localStorage.getItem(key);
+      if (raw) {
+        const cached = JSON.parse(raw) as { data: T; at: string };
+        return { data: cached.data, stale: true, cachedAt: cached.at };
+      }
+    } catch { /* storage blocked or corrupt: nothing to fall back to */ }
+    throw err;
+  }
+}
+
 export interface TradesFilter {
   limit?: number;
   page?: number;
@@ -81,18 +108,18 @@ export interface TradesFilter {
   type?: string;
 }
 
-export function fetchTrades(filter: TradesFilter): Promise<{ trades: CongressTrade[]; page: number; limit: number; count: number }> {
-  return get("/trades", filter as Record<string, string | number | undefined>);
+export function fetchTrades(filter: TradesFilter): Promise<Cached<{ trades: CongressTrade[]; page: number; limit: number; count: number }>> {
+  return getCached("/trades", filter as Record<string, string | number | undefined>);
 }
 
-export function fetchMembers(limit = 10): Promise<{ members: CongressMemberSummary[] }> {
-  return get("/members", { limit });
+export function fetchMembers(limit = 10): Promise<Cached<{ members: CongressMemberSummary[] }>> {
+  return getCached("/members", { limit });
 }
 
-export function fetchMember(slug: string): Promise<CongressMemberDetail> {
-  return get(`/members/${encodeURIComponent(slug)}`);
+export function fetchMember(slug: string): Promise<Cached<CongressMemberDetail>> {
+  return getCached(`/members/${encodeURIComponent(slug)}`);
 }
 
-export function fetchStats(): Promise<CongressStats> {
-  return get("/stats");
+export function fetchStats(): Promise<Cached<CongressStats>> {
+  return getCached("/stats");
 }
