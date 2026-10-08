@@ -1,17 +1,25 @@
 // lib/bargo.ts — congressional stock trades, from Bargo's free Congress Trades API
-// (www.bargo.ai/free-apis/congress). Real CORS support confirmed live, 2026-10-08 — called
-// directly from the browser, no msv-api proxy needed, same tier as Polymarket.
+// (www.bargo.ai/free-apis/congress), via the msv-api proxy (`/api/bargo`).
 //
-// Free-tier limits (per Bargo's own docs, confirmed live): keyless, 30 requests/day and 100
-// rows/day, counted per visitor's own IP (not shared across this site's visitors, since every
-// call happens client-side). Kept economical on purpose: one /stats call, one /trades call per
-// filter change (not auto-refreshed), and member detail only fetched when a member is opened.
+// This used to call Bargo directly from the browser — fine on the free, keyless tier (no
+// secret involved, real CORS support confirmed live 2026-10-08). Moved behind the proxy the
+// same day once Jozsua got a free API key: a key can't go in client-side code like this file
+// (it ships straight to every visitor's browser, readable in the page's own JS), so it lives
+// as a Cloudflare secret on msv-api instead, the same as every other keyed source this app
+// uses (Finnhub, Twelve Data, FRED, FMP). msv-api also caches responses at the edge, so many
+// visitors' page loads can share one real Bargo request instead of each spending their own —
+// real rate limits confirmed live: 30 requests/day & 100 rows/day keyless (shared per visitor
+// IP, since that tier is called with no key); 100 requests/day & 1,000 rows/day with the free
+// key msv-api now holds (the "1,000 requests/day" figure in Bargo's own docs page didn't match
+// what the live response headers actually showed for this key — the header is what's trusted).
 //
 // Underlying source: the House Clerk's and Senate's own STOCK Act disclosure filings — real
 // transactions, but disclosed up to ~45 days after the trade. Never "live" in the sense of
 // today's trading.
 
-const BASE = "https://www.bargo.ai/free-apis/congress/v1";
+import { trackedFetch } from "./apiUsage";
+
+const API_BASE = "https://msv-api.jozsua-heng.workers.dev";
 
 export interface CongressTrade {
   member: string;
@@ -63,11 +71,11 @@ export interface CongressStats {
 }
 
 async function get<T>(path: string, params?: Record<string, string | number | undefined>): Promise<T> {
-  const url = new URL(`${BASE}${path}`);
+  const search = new URLSearchParams({ path });
   for (const [k, v] of Object.entries(params ?? {})) {
-    if (v !== undefined && v !== "") url.searchParams.set(k, String(v));
+    if (v !== undefined && v !== "") search.set(k, String(v));
   }
-  const res = await fetch(url.toString());
+  const res = await trackedFetch(`${API_BASE}/api/bargo?${search.toString()}`);
   if (!res.ok) throw new Error(`Bargo returned ${res.status}`);
   return res.json();
 }

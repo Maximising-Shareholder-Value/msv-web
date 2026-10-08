@@ -15,6 +15,7 @@ export const USAGE_ROWS: { key: string; label: string; limit: number | null; per
   { key: "alpaca", label: "Alpaca", limit: 1000, per: "min" },
   { key: "worldbank", label: "World Bank", limit: null, per: "min" },
   { key: "fmp", label: "FMP", limit: 250, per: "day" },
+  { key: "bargo", label: "Bargo", limit: 100, per: "day" },
 ];
 
 const dayKey = (name: string) => `msv-api-daily-${name}`;
@@ -37,7 +38,7 @@ function dailyCount(name: string): number {
 
 export function logCall(name: string) {
   (recent[name] ??= []).push(Date.now());
-  if (name === "twelvedata" || name === "fmp") bumpDaily(name);
+  if (name === "twelvedata" || name === "fmp" || name === "bargo") bumpDaily(name);
 }
 
 /** Which provider a request URL belongs to, or null if it isn't one of ours. */
@@ -49,6 +50,7 @@ function providerFor(url: string): string | null {
   if (url.includes("/api/worldbank")) return "worldbank";
   if (url.includes("/api/alpaca")) return "alpaca";
   if (url.includes("/api/fmp") || url.includes("financialmodelingprep")) return "fmp";
+  if (url.includes("/api/bargo") || url.includes("bargo.ai")) return "bargo";
   return null;
 }
 
