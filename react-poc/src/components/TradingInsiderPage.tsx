@@ -1,13 +1,21 @@
 // components/TradingInsiderPage.tsx — what members of Congress are buying and selling, from
-// their official STOCK Act disclosures (Bargo's free Congress Trades API — see lib/bargo.ts
-// for the source and rate-limit notes). First of the "notable figures" tiers researched
-// 2026-10-08 (see msv-org-github's API_RESEARCH.md); tech-leader insider trades (SEC Form 4)
-// and 13F institutional holdings are the next two, and need a new msv-api proxy route each.
+// their official STOCK Act disclosures (Bargo's free Congress Trades API, via the msv-api
+// proxy — see lib/bargo.ts for the source and rate-limit notes). First of the "notable
+// figures" tiers researched 2026-10-08 (see msv-org-github's API_RESEARCH.md); tech-leader
+// insider trades (SEC Form 4) and 13F institutional holdings are the next two, and need a new
+// msv-api proxy route each.
 //
 // Disclosures lag the real trade by up to ~45 days — this is never "live," and every date
 // shown is labelled transaction vs. disclosure so that's clear. Not investment advice.
+//
+// The per-member view (2026-10-08 rework) is a real overview, not just the same flat trade
+// list filtered to one name: a buy/sell balance bar, the tickers that member trades most, and
+// how long they typically take to disclose — all computed client-side from the trades Bargo
+// already returns for that member, no extra request. The full trade list is still there
+// underneath, capped by default (a member with 100+ disclosed trades used to render as a
+// single unbroken wall of rows) with a "show all" toggle.
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   fetchTrades, fetchMembers, fetchMember, fetchStats,
   type CongressTrade, type CongressMemberSummary, type CongressMemberDetail, type CongressStats,
@@ -21,6 +29,16 @@ const TYPES: { id: string; label: string }[] = [
   { id: "", label: "All" }, { id: "purchase", label: "Buys" }, { id: "sale", label: "Sales" },
 ];
 const LIMIT = 25;
+const MEMBER_TRADES_COLLAPSED = 10;
+
+// The STOCK Act's disclosed-amount brackets run from "$1,001 or less" up to "Over $50,000,000"
+// — a trade's real size spans that whole range, so a plain bar needs a log scale to be useful
+// (a linear one would make everything under $1M look identically tiny).
+const AMOUNT_SCALE = [1_000, 50_000_000] as const;
+function sizePct(high: number): number {
+  const v = Math.max(AMOUNT_SCALE[0], Math.min(AMOUNT_SCALE[1], high));
+  return Math.round(((Math.log10(v) - Math.log10(AMOUNT_SCALE[0])) / (Math.log10(AMOUNT_SCALE[1]) - Math.log10(AMOUNT_SCALE[0]))) * 100);
+}
 
 function perfClass(v: number | null): string {
   if (v === null) return "";
@@ -55,6 +73,7 @@ export function TradingInsiderPage() {
   const [selected, setSelected] = useState<string | null>(null);
   const [memberDetail, setMemberDetail] = useState<CongressMemberDetail | null | undefined>(undefined);
   const [memberDetailCachedAt, setMemberDetailCachedAt] = useState<string | null>(null);
+  const [showAllMemberTrades, setShowAllMemberTrades] = useState(false);
 
   useEffect(() => {
     fetchStats().then(r => { setStats(r.data); setStatsCachedAt(r.cachedAt); }).catch(() => setStats(null));
@@ -80,6 +99,7 @@ export function TradingInsiderPage() {
     if (!selected) { setMemberDetail(undefined); return; }
     let live = true;
     setMemberDetail(undefined);
+    setShowAllMemberTrades(false);
     fetchMember(selected)
       .then(r => { if (live) { setMemberDetail(r.data); setMemberDetailCachedAt(r.cachedAt); } })
       .catch(() => { if (live) setMemberDetail(null); });
@@ -115,19 +135,23 @@ export function TradingInsiderPage() {
               <div><strong>{fmtCompact(stats.totals.trades)}</strong><span className="muted small">disclosed trades</span></div>
               <div><strong>{stats.totals.members}</strong><span className="muted small">members tracked</span></div>
               <div><strong>{fmtCompact(stats.totals.tickers)}</strong><span className="muted small">tickers</span></div>
-              <div><strong>{stats.totals.buys}</strong><span className="muted small">buys</span></div>
-              <div><strong>{stats.totals.sells}</strong><span className="muted small">sells</span></div>
+              <div><strong className="positive">{stats.totals.buys}</strong><span className="muted small">buys</span></div>
+              <div><strong className="negative">{stats.totals.sells}</strong><span className="muted small">sells</span></div>
             </div>
             <p className="muted small">Latest disclosure: {stats.latest_disclosure} (for a trade made {stats.latest_transaction}). Disclosures can lag the real trade by up to ~45 days under the STOCK Act — these are never same-day.</p>
             {stats.most_traded_90d.length > 0 && (
               <>
                 <p className="muted small" style={{ margin: "10px 0 6px" }}>Most traded, last 90 days — click to filter the table below</p>
-                <div className="hp-chips">
-                  {stats.most_traded_90d.slice(0, 10).map(t => (
-                    <button key={t.ticker} type="button" className={ticker.toUpperCase() === t.ticker ? "active" : ""} onClick={() => setFilter(() => setTicker(t.ticker))}>
-                      {t.ticker} <span className="muted small">({t.trades})</span>
-                    </button>
-                  ))}
+                <div className="trades-chip-grid">
+                  {stats.most_traded_90d.slice(0, 10).map(t => {
+                    const buyPct = t.trades ? Math.round((t.buys / t.trades) * 100) : 50;
+                    return (
+                      <button key={t.ticker} type="button" className={`trades-chip${ticker.toUpperCase() === t.ticker ? " active" : ""}`} onClick={() => setFilter(() => setTicker(t.ticker))}>
+                        <span className="trades-chip-top"><strong>{t.ticker}</strong><span className="muted small">{t.trades}</span></span>
+                        <span className="trades-balance-bar small"><i className="buys" style={{ width: `${buyPct}%` }} /><i className="sells" style={{ width: `${100 - buyPct}%` }} /></span>
+                      </button>
+                    );
+                  })}
                 </div>
               </>
             )}
@@ -139,13 +163,17 @@ export function TradingInsiderPage() {
         <div className="card">
           <h3 style={{ margin: "0 0 10px" }}>Most active members</h3>
           <div className="trades-member-row">
-            {topMembers.map(m => (
-              <button key={m.member_slug} type="button" className="trades-member-chip" onClick={() => setSelected(m.member_slug)}>
-                <strong>{m.member}</strong>
-                <span className="muted small">{m.chamber === "house" ? "House" : "Senate"} · {m.state}</span>
-                <span className="muted small">{m.trades} trades · {m.buys} buys / {m.sells} sells</span>
-              </button>
-            ))}
+            {topMembers.map(m => {
+              const buyPct = m.trades ? Math.round((m.buys / m.trades) * 100) : 50;
+              return (
+                <button key={m.member_slug} type="button" className={`trades-member-chip${selected === m.member_slug ? " active" : ""}`} onClick={() => setSelected(m.member_slug)}>
+                  <strong>{m.member}</strong>
+                  <span className="muted small">{m.chamber === "house" ? "House" : "Senate"} · {m.state} · {m.trades} trades</span>
+                  <span className="trades-balance-bar small"><i className="buys" style={{ width: `${buyPct}%` }} /><i className="sells" style={{ width: `${100 - buyPct}%` }} /></span>
+                  <span className="trades-chip-legend muted small"><span className="positive">{m.buys} buys</span> / <span className="negative">{m.sells} sells</span></span>
+                </button>
+              );
+            })}
           </div>
         </div>
       )}
@@ -161,12 +189,9 @@ export function TradingInsiderPage() {
           ) : (
             <>
               <CachedNote at={memberDetailCachedAt} />
-              <p className="muted small">
-                {memberDetail.chamber === "house" ? "House" : "Senate"} · {memberDetail.state} · {memberDetail.stats.trades} disclosed trades
-                ({memberDetail.stats.buys} buys, {memberDetail.stats.sells} sells)
-                {memberDetail.stats.avg_buy_perf_pct !== null && <> · average gain on buys since trade: <span className={perfClass(memberDetail.stats.avg_buy_perf_pct)}>{fmtPct(memberDetail.stats.avg_buy_perf_pct)}</span></>}
-              </p>
-              <TradesTable trades={memberDetail.trades ?? []} />
+              <p className="muted small">{memberDetail.chamber === "house" ? "House" : "Senate"} · {memberDetail.state}</p>
+              <MemberOverview detail={memberDetail} />
+              <MemberTradeList detail={memberDetail} showAll={showAllMemberTrades} onShowAll={() => setShowAllMemberTrades(true)} />
             </>
           )}
         </div>
@@ -207,26 +232,110 @@ export function TradingInsiderPage() {
   );
 }
 
-function TradesTable({ trades, onSelectMember }: { trades: CongressTrade[]; onSelectMember?: (slug: string) => void }) {
+/** A real overview of one member, not just their trades filtered down: how their disclosed
+ * buys and sells balance out, the tickers they trade most, and how long they typically take
+ * to disclose a trade — every number here is computed from the trades already fetched for
+ * this member, not a separate request. */
+function MemberOverview({ detail }: { detail: CongressMemberDetail }) {
+  const trades = detail.trades ?? [];
+
+  const topTickers = useMemo(() => {
+    const map = new Map<string, { ticker: string; count: number; buys: number; sells: number }>();
+    for (const t of trades) {
+      const cur = map.get(t.ticker) ?? { ticker: t.ticker, count: 0, buys: 0, sells: 0 };
+      cur.count++;
+      if (t.type === "purchase") cur.buys++; else if (t.type === "sale") cur.sells++;
+      map.set(t.ticker, cur);
+    }
+    return [...map.values()].sort((a, b) => b.count - a.count).slice(0, 8);
+  }, [trades]);
+  const maxTickerCount = topTickers[0]?.count ?? 1;
+
+  const avgDisclosureDays = useMemo(() => {
+    const diffs = trades
+      .map(t => (new Date(t.disclosure_date).getTime() - new Date(t.transaction_date).getTime()) / 86_400_000)
+      .filter(d => Number.isFinite(d) && d >= 0);
+    return diffs.length ? diffs.reduce((s, d) => s + d, 0) / diffs.length : null;
+  }, [trades]);
+
+  const total = detail.stats.buys + detail.stats.sells;
+  const buyPct = total ? Math.round((detail.stats.buys / total) * 100) : 50;
+
+  return (
+    <div className="trades-overview">
+      <div className="trades-overview-col">
+        <span className="muted small">Buys vs. sells</span>
+        <div className="trades-balance-bar"><i className="buys" style={{ width: `${buyPct}%` }} /><i className="sells" style={{ width: `${100 - buyPct}%` }} /></div>
+        <span className="small"><span className="positive">{detail.stats.buys} buys</span> · <span className="negative">{detail.stats.sells} sells</span></span>
+      </div>
+      <div className="trades-overview-col">
+        <span className="muted small">Average time to disclose</span>
+        <strong>{avgDisclosureDays === null ? "—" : `${Math.round(avgDisclosureDays)} days`}</strong>
+        <span className="muted small">STOCK Act allows up to ~45</span>
+      </div>
+      <div className="trades-overview-col">
+        <span className="muted small">Average gain on buys, since trade</span>
+        <strong className={perfClass(detail.stats.avg_buy_perf_pct)}>{detail.stats.avg_buy_perf_pct === null ? "—" : fmtPct(detail.stats.avg_buy_perf_pct)}</strong>
+      </div>
+      {topTickers.length > 0 && (
+        <div className="trades-overview-col trades-overview-tickers">
+          <span className="muted small">Most-traded tickers</span>
+          {topTickers.map(t => (
+            <div key={t.ticker} className="trades-ticker-row">
+              <a href={`/app/?page=ticker&symbol=${encodeURIComponent(t.ticker)}`} className="trades-ticker-name"><strong>{t.ticker}</strong></a>
+              <div className="trades-ticker-bar"><i style={{ width: `${Math.round((t.count / maxTickerCount) * 100)}%` }} /></div>
+              <span className="muted small">{t.count}×</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MemberTradeList({ detail, showAll, onShowAll }: { detail: CongressMemberDetail; showAll: boolean; onShowAll: () => void }) {
+  const trades = detail.trades ?? [];
+  const shown = showAll ? trades : trades.slice(0, MEMBER_TRADES_COLLAPSED);
+  return (
+    <>
+      <h4 className="trades-subhead">Trade history ({trades.length})</h4>
+      <TradesTable trades={shown} hideMember />
+      {!showAll && trades.length > MEMBER_TRADES_COLLAPSED && (
+        <button type="button" className="cp-btn cp-btn-ghost trades-show-all" onClick={onShowAll}>Show all {trades.length} trades</button>
+      )}
+    </>
+  );
+}
+
+function TradesTable({ trades, onSelectMember, hideMember }: { trades: CongressTrade[]; onSelectMember?: (slug: string) => void; hideMember?: boolean }) {
   return (
     <div className="crypto-table-scroll">
       <table className="crypto-table quotes-table">
         <thead>
           <tr>
-            <th>Member</th><th>Chamber</th><th>Ticker</th><th>Type</th><th>Amount</th>
+            {!hideMember && <th>Member</th>}
+            <th>Chamber</th><th>Ticker</th><th>Type</th><th>Amount</th>
             <th>Traded</th><th>Disclosed</th><th className="num">Since trade</th><th>Source</th>
           </tr>
         </thead>
         <tbody>
           {trades.map((t, i) => (
             <tr key={`${t.member_slug}-${t.ticker}-${t.transaction_date}-${i}`} className="crypto-table-row">
-              <td>
-                {onSelectMember ? <button type="button" className="trades-member-link" onClick={() => onSelectMember(t.member_slug)}><strong>{t.member}</strong></button> : <strong>{t.member}</strong>}
-              </td>
+              {!hideMember && (
+                <td>
+                  {onSelectMember ? <button type="button" className="trades-member-link" onClick={() => onSelectMember(t.member_slug)}><strong>{t.member}</strong></button> : <strong>{t.member}</strong>}
+                </td>
+              )}
               <td className="muted small">{t.chamber === "house" ? "House" : "Senate"} · {t.state}</td>
               <td><a href={`/app/?page=ticker&symbol=${encodeURIComponent(t.ticker)}`}><strong>{t.ticker}</strong></a></td>
-              <td><span className={t.type === "purchase" ? "positive" : t.type === "sale" ? "negative" : ""}>{t.type}</span></td>
-              <td className="muted small">{t.amount_range}</td>
+              <td>
+                <span className={t.type === "purchase" ? "positive" : t.type === "sale" ? "negative" : ""}>{t.type}</span>
+                {t.outcome && <span className="trades-outcome-badge" title="Outcome, as reported by the source">{t.outcome.replace(/_/g, " ")}</span>}
+              </td>
+              <td className="muted small">
+                {t.amount_range}
+                <span className="trades-size-bar" title={`Disclosed range: ${t.amount_range}`}><i style={{ width: `${sizePct(t.amount_high)}%` }} /></span>
+              </td>
               <td className="muted small">{t.transaction_date}</td>
               <td className="muted small">{t.disclosure_date}</td>
               <td className={`num ${perfClass(t.perf_pct)}`}>{t.perf_pct === null ? "—" : fmtPct(t.perf_pct)}</td>
