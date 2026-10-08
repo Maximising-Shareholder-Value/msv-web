@@ -353,6 +353,57 @@
 .trades-pager { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 12px; }
 .trades-cached-note { margin: 0 0 10px; padding: 7px 11px; border-radius: 8px; background: color-mix(in srgb, #f59e0b 14%, transparent); color: #f59e0b; }
 
+/* Table alignment: this page's columns are mostly names/dates/categories, not numbers, so the
+   site's default "everything but the first column is right-aligned" (built for dense price
+   tables) read as inconsistent here. Left by default; `.num` opts a genuinely numeric column
+   (the one percentage column) back into right-alignment. */
+.trades-page .crypto-table th, .trades-page .crypto-table td { text-align: left; }
+.trades-page .crypto-table th.num, .trades-page .crypto-table td.num { text-align: right; }
+
+/* A stacked buy/sell bar — one glance instead of reading two numbers and doing the ratio in
+   your head. Reused at three sizes: the stats-card ticker chips, the member chips, and the
+   member overview panel. */
+.trades-balance-bar { display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: var(--border, #2a3642); margin: 4px 0; }
+.trades-balance-bar.small { height: 5px; margin: 6px 0 0; }
+.trades-balance-bar i { display: block; height: 100%; }
+.trades-balance-bar i.buys { background: var(--positive, #10b981); }
+.trades-balance-bar i.sells { background: var(--negative, #ef4444); }
+
+/* Most-traded chips: ticker + count on top, a balance bar underneath instead of a bare number. */
+.trades-chip-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; }
+.trades-chip { display: flex; flex-direction: column; padding: 8px 11px; border: 1px solid var(--border, #2a3642); border-radius: 10px; background: none; color: inherit; font: inherit; cursor: pointer; text-align: left; }
+.trades-chip:hover { border-color: var(--accent, #10b981); }
+.trades-chip.active { border-color: var(--accent, #10b981); background: color-mix(in srgb, var(--accent, #10b981) 10%, transparent); }
+.trades-chip-top { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; }
+
+/* Member chips: name/chamber as before, now with a balance bar + the buy/sell split spelled
+   out underneath instead of just a trade count. */
+.trades-member-chip.active { border-color: var(--accent, #10b981); background: color-mix(in srgb, var(--accent, #10b981) 8%, transparent); }
+.trades-chip-legend { margin-top: 2px; }
+
+/* The per-member overview: a row of stat columns, the last one widening into a small ranked
+   list of that member's most-traded tickers with their own mini bars. */
+.trades-overview { display: flex; flex-wrap: wrap; gap: 20px 32px; margin: 10px 0 16px; padding: 14px 16px; border: 1px solid var(--border, #2a3642); border-radius: 10px; background: var(--bg-surface-2, rgba(255,255,255,0.02)); }
+.trades-overview-col { display: flex; flex-direction: column; gap: 4px; min-width: 130px; }
+.trades-overview-col strong { font-size: 16px; }
+.trades-overview-tickers { flex: 1 1 260px; gap: 6px; }
+.trades-ticker-row { display: grid; grid-template-columns: 52px 1fr 28px; align-items: center; gap: 8px; }
+.trades-ticker-name { color: inherit !important; text-decoration: none; }
+.trades-ticker-name:hover strong { color: var(--accent, #10b981); }
+.trades-ticker-bar { height: 6px; border-radius: 3px; background: var(--border, #2a3642); overflow: hidden; }
+.trades-ticker-bar i { display: block; height: 100%; background: var(--accent, #10b981); }
+
+.trades-subhead { margin: 4px 0 8px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-secondary, #9aa6b2); }
+.trades-show-all { margin-top: 10px; }
+
+/* A log-scale size bar under the disclosed amount range — the STOCK Act's brackets run from
+   ~$1,000 to "over $50,000,000", so a linear bar would make everything under $1M look the same
+   tiny sliver. Purely visual context for the text next to it, not a replacement for it. */
+.trades-size-bar { display: block; width: 90px; height: 4px; border-radius: 2px; background: var(--border, #2a3642); overflow: hidden; margin-top: 4px; }
+.trades-size-bar i { display: block; height: 100%; background: var(--accent, #10b981); opacity: 0.75; }
+
+.trades-outcome-badge { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 999px; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.03em; background: var(--bg-surface-2, rgba(255,255,255,0.06)); color: var(--text-secondary, #9aa6b2); }
+
 .poly-page { padding: 16px; max-width: 1100px; margin: 0 auto; }
 .poly-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; margin: 12px 0; }
 .poly-card { display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 1px solid var(--border, #2a3642); border-radius: 8px; color: inherit; text-decoration: none; }
