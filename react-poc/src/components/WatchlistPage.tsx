@@ -1,10 +1,15 @@
 // components/WatchlistPage.tsx — the Watchlist page (React). Lists the tickers you
 // starred (☆ on a ticker page) with their live price, and lets you remove them.
 // Recently viewed sits underneath. Both read the same browser-stored lists as the
-// rest of the site (lib/storage.ts), so a change here shows up everywhere.
+// rest of the site (lib/storage.ts), so a change here shows up everywhere. Ribbon,
+// search and footer match the homepage (added 2026-10-08 — they were missing
+// before, unlike every other page).
 
 import { useState } from "react";
 import { AppSidebar } from "./AppSidebar";
+import { HomeRibbon } from "./HomeRibbon";
+import { HomeSearch } from "./HomeSearch";
+import { SiteFooter } from "./SiteFooter";
 import { Section } from "./StockTables";
 import { useQuotes } from "../lib/useQuotes";
 import { fmtPct, fmtPrice, changeClass } from "../lib/format";
@@ -26,6 +31,8 @@ export function WatchlistPage() {
       <AppSidebar current="watchlist" />
       <div className="app-main home-main-frame">
         <div className="hp">
+          <HomeRibbon />
+          <HomeSearch />
           <section className="hp-section hp-about-section">
             <header className="hp-section-head">
               <h2>Watchlist</h2>
@@ -66,6 +73,7 @@ export function WatchlistPage() {
           <Section id="recent" title="Recently viewed" lead="Tickers you've opened lately.">
             <RecentlyViewed />
           </Section>
+          <SiteFooter />
         </div>
       </div>
     </div>

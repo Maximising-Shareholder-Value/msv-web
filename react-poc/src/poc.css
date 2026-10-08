@@ -860,6 +860,29 @@
   .react-page-nav a { flex: none; }
 }
 
+/* Tablets, 761–900px (found 2026-10-08): style.css's own inherited rule stacks the sidebar
+   above the page content in this range — a second, older mobile design, different from the
+   drawer above — but the hamburger button that opens the drawer only exists at 760px and
+   below (see .tb-menu above). That left a dead zone: the sidebar's full nav list rendered as
+   a tall block above the content, pushing the ribbon and everything else below the fold, with
+   no way to open or close it. Keep the normal side-by-side desktop layout through 900px
+   instead, matching the values style.css itself uses outside any media query; the drawer still
+   takes over at 760px as designed. */
+@media (min-width: 761px) and (max-width: 900px) {
+  .app-shell { flex-direction: row !important; }
+  .app-sidebar {
+    position: sticky !important; top: 0 !important;
+    height: calc(100vh / var(--page-zoom)) !important; height: calc(100dvh / var(--page-zoom)) !important;
+    flex-direction: column !important; flex-wrap: nowrap !important;
+    overflow: hidden !important; overflow-x: visible !important;
+    padding: 0 !important; gap: 0 !important;
+    border-right: 1px solid var(--border, #2a3642) !important; border-bottom: none !important;
+  }
+  .app-sidebar-logo, .app-sidebar-footer { display: flex !important; }
+  .app-sidebar-scroll { display: flex !important; flex-direction: column !important; overflow-y: auto !important; padding: 20px 12px 8px !important; }
+  .app-nav-group { flex-direction: column !important; flex-shrink: initial !important; }
+}
+
 /* Phones: the sticky ribbon is ONE row (market picker + buttons). The local-time pill is hidden
    here to make room; the market pill still shows its own clock. */
 @media (max-width: 760px) {
