@@ -515,6 +515,22 @@ tracked template. The deployed site never uses `config.js` at all — it
 calls the `msv-api` backend instead, which holds the real keys as
 Cloudflare secrets (see that repo).
 
+## Standing rule: send the local link first, always, before deploying
+
+**Jozsua's instruction, 2026-10-08 — applies to every change to this site, no exception.**
+Before running `npx wrangler deploy` (or otherwise pushing a change live), always give Jozsua
+both of these first and let him look before deploying:
+
+1. **The local dev link** — `npm run dev` inside `react-poc/`, then the `http://localhost:5173/...`
+   URL for the specific page/state that changed (e.g. `http://localhost:5173/?page=market-data`).
+2. **A draft** — if the change is substantial enough that a screenshot or a short description
+   isn't enough to review it properly, publish it as an Artifact (or another viewable draft) so
+   he can look at it without needing his own dev server running.
+
+Only deploy after he's seen one of these and said to go ahead, unless he's explicitly told this
+session to skip the check for a specific change (e.g. a one-line text fix he already described
+exactly). Don't deploy "to let him check it live" — that's the opposite of what this rule is for.
+
 ## Deploy safety: `.assetsignore` is not optional
 
 `wrangler.jsonc`'s `assets.directory` is `"./"` — the whole repo root.
