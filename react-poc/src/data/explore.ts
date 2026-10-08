@@ -46,6 +46,7 @@ export const EXPLORE_DIRECTORY: ExploreItem[] = [
   { title: "Crypto News", description: "News feed + regulation/adoption tracker.", nav: "crypto-news", live: true },
   { title: "Options Explorer", description: "Cross-market options screen.", nav: "options-explorer", live: false },
   { title: "Prediction Markets", description: "Live Polymarket odds on finance, economy, crypto and more.", nav: "prediction-markets", live: true },
+  { title: "Notable Trades", description: "What members of Congress are buying and selling, from official disclosures.", nav: "notable-trades", live: true },
 
   { title: "Market Intelligence", description: "Who depends on whom in AI.", nav: "market-intelligence", live: true },
   { title: "Energy & Power Map", description: "Grid supply-chain map.", nav: "energy-theme", live: false, icon: "market-intelligence" },
@@ -74,7 +75,7 @@ export const EXPLORE_DIRECTORY: ExploreItem[] = [
 export const EXPLORE_CATEGORIES: ExploreCategory[] = [
   { title: "Get Started", items: ["home", "create-account", "login", "compare", "how-to", "whats-new"] },
   { title: "Stock Analysis", items: ["stock-analysis", "winners", "losers", "most-active", "trending-tech", "blue-chip", "dividend-payers", "growth-stocks", "earnings-calendar", "stock-ideas", "stock-sentiment", "analyst-actions", "stock-screener", "insider-activity", "short-interest"] },
-  { title: "Market Outlook", items: ["macro", "us-economy", "global-economy", "governance", "economic-calendar", "indexes", "etfs", "bonds", "commodities", "precious-metals", "energy-markets", "forex", "crypto", "options-explorer", "prediction-markets"] },
+  { title: "Market Outlook", items: ["macro", "us-economy", "global-economy", "governance", "economic-calendar", "indexes", "etfs", "bonds", "commodities", "precious-metals", "energy-markets", "forex", "crypto", "options-explorer", "prediction-markets", "notable-trades"] },
   { title: "Market Intelligence", items: ["market-intelligence", "energy-theme", "ev-theme", "defense-theme", "market-data", "sectors", "market-news"] },
   { title: "Portfolio Tools", items: ["watchlist", "recently-viewed", "portfolio-builder", "portfolio-health-check", "performance", "price-alerts", "dividend-tracker"] },
   { title: "Learn & Premium", items: ["learn", "glossary", "premium"] },
