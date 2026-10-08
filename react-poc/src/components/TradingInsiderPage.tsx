@@ -1,4 +1,4 @@
-// components/NotableTradesPage.tsx — what members of Congress are buying and selling, from
+// components/TradingInsiderPage.tsx — what members of Congress are buying and selling, from
 // their official STOCK Act disclosures (Bargo's free Congress Trades API — see lib/bargo.ts
 // for the source and rate-limit notes). First of the "notable figures" tiers researched
 // 2026-10-08 (see msv-org-github's API_RESEARCH.md); tech-leader insider trades (SEC Form 4)
@@ -27,9 +27,20 @@ function perfClass(v: number | null): string {
   return v >= 0 ? "positive" : "negative";
 }
 
-export function NotableTradesPage() {
+/** Shown whenever a section is displaying a cached response instead of a fresh one — most
+ * likely because Bargo's free tier hit its daily limit. Real, previously-fetched data, just
+ * not current; says so rather than passing it off as live. */
+function CachedNote({ at }: { at: string | null }) {
+  if (!at) return null;
+  const when = new Date(at).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+  return <p className="trades-cached-note small">Showing the last successful load, from {when} — today's free-tier limit on live updates has been reached. This refreshes on its own once that resets.</p>;
+}
+
+export function TradingInsiderPage() {
   const [stats, setStats] = useState<CongressStats | null | undefined>(undefined);
+  const [statsCachedAt, setStatsCachedAt] = useState<string | null>(null);
   const [topMembers, setTopMembers] = useState<CongressMemberSummary[] | null | undefined>(undefined);
+  const [topMembersCachedAt, setTopMembersCachedAt] = useState<string | null>(null);
 
   const [chamber, setChamber] = useState<"" | "house" | "senate">("");
   const [type, setType] = useState("");
@@ -39,13 +50,15 @@ export function NotableTradesPage() {
 
   const [trades, setTrades] = useState<CongressTrade[] | null | undefined>(undefined);
   const [tradesError, setTradesError] = useState<string | null>(null);
+  const [tradesCachedAt, setTradesCachedAt] = useState<string | null>(null);
 
   const [selected, setSelected] = useState<string | null>(null);
   const [memberDetail, setMemberDetail] = useState<CongressMemberDetail | null | undefined>(undefined);
+  const [memberDetailCachedAt, setMemberDetailCachedAt] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchStats().then(setStats).catch(() => setStats(null));
-    fetchMembers(8).then(d => setTopMembers(d.members)).catch(() => setTopMembers(null));
+    fetchStats().then(r => { setStats(r.data); setStatsCachedAt(r.cachedAt); }).catch(() => setStats(null));
+    fetchMembers(8).then(r => { setTopMembers(r.data.members); setTopMembersCachedAt(r.cachedAt); }).catch(() => setTopMembers(null));
   }, []);
 
   useEffect(() => {
@@ -58,7 +71,7 @@ export function NotableTradesPage() {
       ticker: ticker.trim() ? ticker.trim().toUpperCase() : undefined,
       member: memberQuery.trim() || undefined,
     })
-      .then(d => { if (live) setTrades(d.trades); })
+      .then(r => { if (live) { setTrades(r.data.trades); setTradesCachedAt(r.cachedAt); } })
       .catch(e => { if (live) { setTradesError(e.message); setTrades(null); } });
     return () => { live = false; };
   }, [chamber, type, ticker, memberQuery, page]);
@@ -67,7 +80,9 @@ export function NotableTradesPage() {
     if (!selected) { setMemberDetail(undefined); return; }
     let live = true;
     setMemberDetail(undefined);
-    fetchMember(selected).then(d => { if (live) setMemberDetail(d); }).catch(() => { if (live) setMemberDetail(null); });
+    fetchMember(selected)
+      .then(r => { if (live) { setMemberDetail(r.data); setMemberDetailCachedAt(r.cachedAt); } })
+      .catch(() => { if (live) setMemberDetail(null); });
     return () => { live = false; };
   }, [selected]);
 
@@ -76,13 +91,20 @@ export function NotableTradesPage() {
   const setFilter = (fn: () => void) => { fn(); setPage(0); };
   const filtersOn = chamber !== "" || type !== "" || ticker.trim() !== "" || memberQuery.trim() !== "";
   const clearFilters = () => setFilter(() => { setChamber(""); setType(""); setTicker(""); setMemberQuery(""); });
+  // One page-wide notice, not three — the stats, members and trades sections are fetched
+  // together on load and go stale together, so repeating the same notice in each section
+  // would just be noise. The member-detail panel gets its own (see below): a visitor can
+  // open that well after the page loaded, so it's a genuinely separate "as of" time.
+  const pageCachedAt = statsCachedAt ?? topMembersCachedAt ?? tradesCachedAt;
 
   return (
     <section className="trades-page">
       <header className="sectors-header">
-        <h2>Notable Trades</h2>
+        <h2>Trading Insider</h2>
         <span className="muted small">What members of Congress are buying and selling, from their official disclosures</span>
       </header>
+
+      <CachedNote at={pageCachedAt} />
 
       <div className="card">
         {stats === undefined ? <p className="muted small">Loading…</p> : stats === null ? (
@@ -138,6 +160,7 @@ export function NotableTradesPage() {
             <p className="muted small">Couldn't load this member's trades right now.</p>
           ) : (
             <>
+              <CachedNote at={memberDetailCachedAt} />
               <p className="muted small">
                 {memberDetail.chamber === "house" ? "House" : "Senate"} · {memberDetail.state} · {memberDetail.stats.trades} disclosed trades
                 ({memberDetail.stats.buys} buys, {memberDetail.stats.sells} sells)
