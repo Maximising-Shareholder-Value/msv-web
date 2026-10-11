@@ -1,9 +1,10 @@
-// components/TradingInsiderPage.tsx — what members of Congress are buying and selling, from
+// components/TradingInsiderPage.tsx — the "notable figures" trading page, in tiers. Tier 1
+// (this file's own content, below): what members of Congress are buying and selling, from
 // their official STOCK Act disclosures (Bargo's free Congress Trades API, via the msv-api
-// proxy — see lib/bargo.ts for the source and rate-limit notes). First of the "notable
-// figures" tiers researched 2026-10-08 (see msv-org-github's API_RESEARCH.md); tech-leader
-// insider trades (SEC Form 4) and 13F institutional holdings are the next two, and need a new
-// msv-api proxy route each.
+// proxy — see lib/bargo.ts for the source and rate-limit notes). Tier 2 (the "Company
+// Insiders" tab, InsiderTradesPanel.tsx): tech-leader insider trades via SEC Form 4, added
+// 2026-10-11. Both tiers researched 2026-10-08 (see msv-org-github's API_RESEARCH.md); 13F
+// institutional holdings is the remaining tier, not started.
 //
 // Disclosures lag the real trade by up to ~45 days — this is never "live," and every date
 // shown is labelled transaction vs. disclosure so that's clear. Not investment advice.
@@ -21,6 +22,13 @@ import {
   type CongressTrade, type CongressMemberSummary, type CongressMemberDetail, type CongressStats,
 } from "../lib/bargo";
 import { fmtPct, fmtCompact } from "../lib/format";
+import { Tabs, TabPanel } from "./Tabs";
+import { InsiderTradesPanel } from "./InsiderTradesPanel";
+
+const TIER_TABS = [
+  { id: "congress", label: "Congress" },
+  { id: "insiders", label: "Company Insiders" },
+];
 
 const CHAMBERS: { id: "" | "house" | "senate"; label: string }[] = [
   { id: "", label: "All" }, { id: "house", label: "House" }, { id: "senate", label: "Senate" },
@@ -55,6 +63,21 @@ function CachedNote({ at }: { at: string | null }) {
 }
 
 export function TradingInsiderPage() {
+  const [tier, setTier] = useState("congress");
+  return (
+    <section className="trades-page">
+      <header className="sectors-header">
+        <h2>Trading Insider</h2>
+        <span className="muted small">What notable figures are doing with their money, from official public filings</span>
+      </header>
+      <Tabs tabs={TIER_TABS} active={tier} onChange={setTier} />
+      <TabPanel active={tier} id="congress"><CongressTradesPanel /></TabPanel>
+      <TabPanel active={tier} id="insiders"><InsiderTradesPanel /></TabPanel>
+    </section>
+  );
+}
+
+function CongressTradesPanel() {
   const [stats, setStats] = useState<CongressStats | null | undefined>(undefined);
   const [statsCachedAt, setStatsCachedAt] = useState<string | null>(null);
   const [topMembers, setTopMembers] = useState<CongressMemberSummary[] | null | undefined>(undefined);
@@ -118,12 +141,10 @@ export function TradingInsiderPage() {
   const pageCachedAt = statsCachedAt ?? topMembersCachedAt ?? tradesCachedAt;
 
   return (
-    <section className="trades-page">
-      <header className="sectors-header">
-        <h2>Trading Insider</h2>
-        <span className="muted small">What members of Congress are buying and selling, from their official disclosures</span>
-      </header>
-
+    <>
+      <p className="muted small" style={{ margin: "0 0 14px" }}>
+        What members of Congress are buying and selling, from their official STOCK Act disclosures.
+      </p>
       <CachedNote at={pageCachedAt} />
 
       <div className="card">
@@ -228,7 +249,7 @@ export function TradingInsiderPage() {
         return, since the real purchase/sale price and whether they still hold the position aren't always disclosed. Not
         investment advice.
       </p>
-    </section>
+    </>
   );
 }
 
