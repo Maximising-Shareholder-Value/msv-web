@@ -26,6 +26,7 @@ import { PageNav } from "./components/PageNav";
 import { AppSidebar } from "./components/AppSidebar";
 import { SiteHeader } from "./components/SiteHeader";
 import { SiteFooter } from "./components/SiteFooter";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 
 // One build, several pages. The page is picked from the query string
 // (?page=sectors, ?page=ipo, ?page=news); anything else shows the Crypto page.
@@ -57,7 +58,10 @@ function Framed({ current, children }: { current: string; children: ReactNode })
       <div className="app-main">
         <SiteHeader />
         <PageNav current={current} />
-        {children}
+        {/* Scoped so a crash in the page content doesn't also take out the sidebar/header —
+            the root-level boundary below is only the last resort for a crash in the shell
+            itself, or on a page that doesn't use Framed. */}
+        <ErrorBoundary>{children}</ErrorBoundary>
         <SiteFooter />
       </div>
     </div>
@@ -99,6 +103,8 @@ function CurrentPage() {
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <CurrentPage />
+    <ErrorBoundary>
+      <CurrentPage />
+    </ErrorBoundary>
   </StrictMode>,
 );

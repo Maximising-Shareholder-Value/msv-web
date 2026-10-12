@@ -25,7 +25,10 @@ const DETAIL_COLLAPSED = 10;
 function fmtShares(n: number | null): string {
   return n === null ? "—" : n.toLocaleString();
 }
-function fmtPrice(n: number | null): string {
+// Named fmtSharePrice, not fmtPrice, to avoid shadowing lib/format.ts's own fmtPrice (which
+// applies different sub-$1 precision — not needed here, Form 4 prices are whole-dollar trade
+// prices, not the sub-cent crypto/forex values that export is really for).
+function fmtSharePrice(n: number | null): string {
   return n === null ? "—" : `$${n.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
 }
 function fmtValue(shares: number | null, price: number | null): string {
@@ -198,7 +201,7 @@ function InsiderTable({ rows, onSelectInsider, hideInsider }: { rows: InsiderTra
                 {t.isDerivative && <span className="trades-outcome-badge" title="A derivative security (option/RSU-type), not plain common stock">DERIV</span>}
               </td>
               <td className="num">{fmtShares(t.shares)}</td>
-              <td className="num">{fmtPrice(t.pricePerShare)}</td>
+              <td className="num">{fmtSharePrice(t.pricePerShare)}</td>
               <td className="num">{fmtValue(t.shares, t.pricePerShare)}</td>
               <td className="num muted small">{fmtShares(t.sharesOwnedAfter)}</td>
               <td className="muted small">{t.filingDate}</td>
