@@ -20,6 +20,7 @@
 // under the same filename with that folder stripped — see rawXmlPath() below.
 
 import { trackedFetch } from "./apiUsage";
+import { createLimiter } from "./limit";
 
 const API_BASE = "https://msv-api.jozsua-heng.workers.dev";
 const SUBMISSIONS_BASE = "https://data.sec.gov/submissions";
@@ -89,26 +90,17 @@ function rawXmlPath(primaryDocument: string): string {
   return primaryDocument.replace(/^xsl[^/]+\//, "");
 }
 
-// Same concurrency-limiter shape as lib/worldBank.ts — SEC asks for roughly <=10 requests/sec,
-// and a cold page load fans this out across up to 10 tracked people at once.
-let active = 0;
-const waiting: (() => void)[] = [];
-function limited<T>(fn: () => Promise<T>): Promise<T> {
-  return new Promise<T>((resolve, reject) => {
-    const run = async () => {
-      active++;
-      try { resolve(await fn()); }
-      catch (e) { reject(e); }
-      finally { active--; waiting.shift()?.(); }
-    };
-    if (active < 4) run(); else waiting.push(run);
-  });
-}
+// SEC asks for roughly <=10 requests/sec. A cold page load fans this out across up to 10
+// tracked people at once, each needing both a filings-list request and per-filing document
+// requests — all of it shares this one limiter so the total never exceeds the cap, not just the
+// document requests. Same helper lib/worldBank.ts uses for the same reason against a different
+// host.
+const limited = createLimiter(4);
 
 interface SecFiling { accessionNumber: string; primaryDocument: string; filingDate: string }
 
 async function fetchFilingsList(cik: string): Promise<SecFiling[]> {
-  const res = await trackedFetch(`${SUBMISSIONS_BASE}/CIK${cik}.json`);
+  const res = await limited(() => trackedFetch(`${SUBMISSIONS_BASE}/CIK${cik}.json`));
   if (!res.ok) throw new Error(`SEC submissions returned ${res.status}`);
   const data = await res.json();
   const fr = data?.filings?.recent;

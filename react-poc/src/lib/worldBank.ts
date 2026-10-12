@@ -7,6 +7,7 @@
 import { COUNTRIES } from "../data/countries";
 import { fmtCompact, fmtPct } from "./format";
 import { trackedFetch } from "./apiUsage";
+import { createLimiter } from "./limit";
 
 const API_BASE = "https://msv-api.jozsua-heng.workers.dev";
 
@@ -52,19 +53,7 @@ export type WbStore = Record<string, WbPoint>;  // keyed by ISO3 code
 // Taiwan isn't covered by the World Bank, so it's left out of the request.
 const COUNTRY_PARAM = COUNTRIES.filter(c => c.iso3 !== "TWN").map(c => c.iso3).join(";");
 
-let active = 0;
-const waiting: (() => void)[] = [];
-function limited<T>(fn: () => Promise<T>): Promise<T> {
-  return new Promise<T>((resolve, reject) => {
-    const run = async () => {
-      active++;
-      try { resolve(await fn()); }
-      catch (e) { reject(e); }
-      finally { active--; waiting.shift()?.(); }
-    };
-    if (active < 4) run(); else waiting.push(run);
-  });
-}
+const limited = createLimiter(4);
 
 async function retried<T>(fn: () => Promise<T>, tries = 3): Promise<T> {
   let lastErr: unknown;
