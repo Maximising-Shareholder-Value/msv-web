@@ -67,13 +67,20 @@ function CachedNote({ at }: { at: string | null }) {
   return <p className="trades-cached-note small">Showing the last successful load, from {when} — today's free-tier limit on live updates has been reached. This refreshes on its own once that resets.</p>;
 }
 
+// Crown icon — the same one used for this page's own sidebar entry (data/sidebar.ts), repeated
+// here so the page header carries the same mark rather than a plain text title.
+const CROWN_ICON = <svg viewBox="0 0 20 20"><path d="M3,14.3 L3,8.6 L6.6,11.3 L10,5.4 L13.4,11.3 L17,8.6 L17,14.3 Z" /></svg>;
+
 export function TradingInsiderPage() {
   const [tier, setTier] = useState("congress");
   return (
     <section className="trades-page">
-      <header className="sectors-header">
-        <h2>Trading Insider</h2>
-        <span className="muted small">What notable figures are doing with their money, from official public filings</span>
+      <header className="trades-hero">
+        <span className="trades-hero-icon">{CROWN_ICON}</span>
+        <span className="trades-hero-text">
+          <h2>Trading Insider</h2>
+          <span className="muted small">What notable figures are doing with their money, from official public filings</span>
+        </span>
       </header>
       <Tabs tabs={TIER_TABS} active={tier} onChange={setTier} />
       <TabPanel active={tier} id="congress"><CongressTradesPanel /></TabPanel>
