@@ -6,6 +6,9 @@
 // 2026-10-11. Both tiers researched 2026-10-08 (see msv-org-github's API_RESEARCH.md); 13F
 // institutional holdings is the remaining tier, not started.
 //
+// Tier 3 (the "Holdings" tab, HoldingsPanel.tsx): institutional managers' latest 13F filings
+// (Buffett, Burry, Ackman, Wood), added 2026-10-16.
+//
 // Disclosures lag the real trade by up to ~45 days — this is never "live," and every date
 // shown is labelled transaction vs. disclosure so that's clear. Not investment advice.
 //
@@ -24,10 +27,12 @@ import {
 import { fmtPct, fmtCompact } from "../lib/format";
 import { Tabs, TabPanel } from "./Tabs";
 import { InsiderTradesPanel } from "./InsiderTradesPanel";
+import { HoldingsPanel } from "./HoldingsPanel";
 
 const TIER_TABS = [
   { id: "congress", label: "Congress" },
   { id: "insiders", label: "Company Insiders" },
+  { id: "holdings", label: "Holdings" },
 ];
 
 const CHAMBERS: { id: "" | "house" | "senate"; label: string }[] = [
@@ -73,6 +78,7 @@ export function TradingInsiderPage() {
       <Tabs tabs={TIER_TABS} active={tier} onChange={setTier} />
       <TabPanel active={tier} id="congress"><CongressTradesPanel /></TabPanel>
       <TabPanel active={tier} id="insiders"><InsiderTradesPanel /></TabPanel>
+      <TabPanel active={tier} id="holdings"><HoldingsPanel /></TabPanel>
     </section>
   );
 }
