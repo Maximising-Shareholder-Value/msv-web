@@ -338,13 +338,28 @@
 /* The generic "every other page" rule further down adds a 24px side margin here, which made
    this page narrower than the footer below it — same fix as Market Data's. */
 .app-main:not(.home-main-frame) > .trades-page:not(.site-header):not(.react-page-nav):not(.ft) { display: flex; flex-direction: column; gap: 18px; max-width: none; margin: 0 !important; padding: 0 !important; background: none !important; border: 0 !important; box-shadow: none !important; }
-.trades-page > .sectors-header { padding-top: 4px; }
+/* Page header: an icon badge (the same crown used for this page's sidebar entry) next to a
+   stacked title/subtitle, replacing the shared `.sectors-header` this page used to reuse — that
+   class puts the title and subtitle on one baseline-aligned line, which crams a heavy uppercase
+   label right up against a full sentence with no room to breathe. Stacking them, with the title
+   given its own line and more size/weight, reads as a proper page title instead of a label. Kept
+   scoped to this page (not a `.sectors-header` edit) since other pages built on that shared class
+   weren't part of this request. */
+.trades-hero { display: flex; align-items: center; gap: 14px; padding-top: 6px; margin-bottom: 2px; }
+.trades-hero-icon { display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 42px; height: 42px; border-radius: 12px; background: color-mix(in srgb, var(--accent, #10b981) 14%, var(--bg-surface-2, transparent)); color: var(--accent, #10b981); }
+.trades-hero-icon svg { width: 21px; height: 21px; fill: currentColor; }
+.trades-hero-text { display: flex; flex-direction: column; gap: 3px; }
+.trades-hero-text h2 { margin: 0; font-size: 1.5rem; font-weight: 800; letter-spacing: 0.01em; line-height: 1.15; }
+.trades-hero-text .muted.small { font-size: 0.85rem; line-height: 1.4; }
+
 .trades-stats-row { display: flex; flex-wrap: wrap; gap: 20px 28px; margin-bottom: 10px; }
-.trades-stats-row > div { display: flex; flex-direction: column; gap: 2px; }
-.trades-stats-row strong { font-size: 18px; }
+.trades-stats-row > div { display: flex; flex-direction: column; gap: 3px; }
+.trades-stats-row strong { font-size: 19px; }
+.trades-stats-row .muted.small { text-transform: uppercase; letter-spacing: 0.04em; font-size: 10.5px; }
 .trades-member-row { display: flex; flex-wrap: wrap; gap: 10px; }
-.trades-member-chip { display: flex; flex-direction: column; gap: 2px; align-items: flex-start; padding: 10px 14px; border: 1px solid var(--border, #2a3642); border-radius: 10px; background: none; color: inherit; font: inherit; cursor: pointer; min-width: 170px; }
-.trades-member-chip:hover { border-color: var(--accent, #10b981); }
+.trades-member-chip { display: flex; flex-direction: column; gap: 2px; align-items: flex-start; padding: 10px 14px; border: 1px solid var(--border, #2a3642); border-radius: 10px; background: none; color: inherit; font: inherit; cursor: pointer; min-width: 170px; transition: border-color 0.12s ease, transform 0.12s ease, box-shadow 0.12s ease; }
+.trades-member-chip:hover:not(:disabled) { border-color: var(--accent, #10b981); transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
+.trades-member-chip:disabled { opacity: 0.5; cursor: default; }
 .trades-detail-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
 .trades-filter-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 12px; }
 .trades-filter-row .news-search { max-width: 220px; }
@@ -359,6 +374,12 @@
    (the one percentage column) back into right-alignment. */
 .trades-page .crypto-table th, .trades-page .crypto-table td { text-align: left; }
 .trades-page .crypto-table th.num, .trades-page .crypto-table td.num { text-align: right; }
+/* Zebra striping: this table runs 20-100+ rows deep with a lot of similar-looking text columns
+   (names, dates, tickers) — a faint alternating background makes it much easier to track one
+   row across the full width without losing your place, the way a dense table in a real
+   brokerage/research tool usually does. */
+.trades-page .crypto-table-row:nth-child(even) { background: var(--bg-surface-2, rgba(255,255,255,0.025)); }
+.trades-page .crypto-table-row:nth-child(even):hover { background: var(--bg-surface-2, rgba(255,255,255,0.05)); }
 
 /* A stacked buy/sell bar — one glance instead of reading two numbers and doing the ratio in
    your head. Reused at three sizes: the stats-card ticker chips, the member chips, and the
@@ -371,8 +392,8 @@
 
 /* Most-traded chips: ticker + count on top, a balance bar underneath instead of a bare number. */
 .trades-chip-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; }
-.trades-chip { display: flex; flex-direction: column; padding: 8px 11px; border: 1px solid var(--border, #2a3642); border-radius: 10px; background: none; color: inherit; font: inherit; cursor: pointer; text-align: left; }
-.trades-chip:hover { border-color: var(--accent, #10b981); }
+.trades-chip { display: flex; flex-direction: column; padding: 8px 11px; border: 1px solid var(--border, #2a3642); border-radius: 10px; background: none; color: inherit; font: inherit; cursor: pointer; text-align: left; transition: border-color 0.12s ease, transform 0.12s ease; }
+.trades-chip:hover { border-color: var(--accent, #10b981); transform: translateY(-1px); }
 .trades-chip.active { border-color: var(--accent, #10b981); background: color-mix(in srgb, var(--accent, #10b981) 10%, transparent); }
 .trades-chip-top { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; }
 
@@ -402,7 +423,12 @@
 .trades-size-bar { display: block; width: 90px; height: 4px; border-radius: 2px; background: var(--border, #2a3642); overflow: hidden; margin-top: 4px; }
 .trades-size-bar i { display: block; height: 100%; background: var(--accent, #10b981); opacity: 0.75; }
 
-.trades-outcome-badge { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 999px; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.03em; background: var(--bg-surface-2, rgba(255,255,255,0.06)); color: var(--text-secondary, #9aa6b2); }
+/* Deliberately neutral, not green/red: "outcome" here is a raw label from the data source
+   (e.g. "early exit", "good exit", "flat"), not a verified gain/loss signal this app computes
+   itself — coloring it like the real positive/negative figures elsewhere would overstate what's
+   actually known. Given a touch more presence (border, weight) instead, so it still reads as a
+   distinct status chip rather than disappearing into the row. */
+.trades-outcome-badge { display: inline-block; margin-left: 6px; padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; background: var(--bg-surface-2, rgba(255,255,255,0.06)); border: 1px solid var(--border, #2a3642); color: var(--text-secondary, #9aa6b2); }
 
 .poly-page { padding: 16px; max-width: 1100px; margin: 0 auto; }
 .poly-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; margin: 12px 0; }
